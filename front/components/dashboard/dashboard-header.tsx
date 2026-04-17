@@ -34,7 +34,7 @@ export function DashboardHeader() {
         </div>
 
         {/* Notifications */}
-        <Button variant="outline" size="icon" className="relative">
+        <Button variant="outline" size="icon" className="relative cursor-pointer">
           <Bell className="w-4 h-4" />
           <span className="absolute -top-1 -right-1 w-4 h-4 bg-primary text-primary-foreground text-[10px] font-bold rounded-full flex items-center justify-center">
             5
@@ -43,7 +43,7 @@ export function DashboardHeader() {
 
         {/* Theme Toggle */}
         <Button
-          variant="outline"
+          variant="outline" className="cursor-pointer"
           size="icon"
           onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
         >
@@ -53,7 +53,7 @@ export function DashboardHeader() {
         </Button>
 
         {/* New Call Button */}
-        <Button className="bg-primary hover:bg-primary/90 hidden sm:flex">
+        <Button className="bg-primary hover:bg-primary/90 hidden sm:flex cursor-pointer">
           + New Call
         </Button>
 

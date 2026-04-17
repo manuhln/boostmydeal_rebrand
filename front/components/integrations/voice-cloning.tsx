@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Progress } from "@/components/ui/progress"
-import { api } from "@/lib/api"
+import { api } from "@/lib/api/api"
 
 interface VoiceCloningProps {
   integrationId: string
@@ -27,7 +27,7 @@ export function VoiceCloning({ integrationId }: VoiceCloningProps) {
   const [uploadProgress, setUploadProgress] = useState(0)
   const [playingId, setPlayingId] = useState<string | null>(null)
   const [cloningStatus, setCloningStatus] = useState<"idle" | "success" | "error">("idle")
-  
+
   const fileInputRef = useRef<HTMLInputElement>(null)
   const audioRef = useRef<HTMLAudioElement>(null)
 
@@ -36,7 +36,7 @@ export function VoiceCloning({ integrationId }: VoiceCloningProps) {
     if (!files) return
 
     const newAudioFiles: AudioFile[] = []
-    
+
     Array.from(files).forEach((file) => {
       if (file.type.startsWith("audio/")) {
         const audioFile: AudioFile = {
@@ -45,20 +45,20 @@ export function VoiceCloning({ integrationId }: VoiceCloningProps) {
           size: file.size,
           file,
         }
-        
+
         // Get duration
         const audio = new Audio(URL.createObjectURL(file))
         audio.onloadedmetadata = () => {
           audioFile.duration = audio.duration
           setAudioFiles(prev => prev.map(f => f.id === audioFile.id ? { ...f, duration: audio.duration } : f))
         }
-        
+
         newAudioFiles.push(audioFile)
       }
     })
 
     setAudioFiles(prev => [...prev, ...newAudioFiles])
-    
+
     // Reset input
     if (fileInputRef.current) {
       fileInputRef.current.value = ""
@@ -78,7 +78,7 @@ export function VoiceCloning({ integrationId }: VoiceCloningProps) {
         audioRef.current.src = URL.createObjectURL(audioFile.file)
         audioRef.current.play()
         setPlayingId(audioFile.id)
-        
+
         audioRef.current.onended = () => {
           setPlayingId(null)
         }
@@ -101,11 +101,11 @@ export function VoiceCloning({ integrationId }: VoiceCloningProps) {
 
   const handleCloneVoice = async () => {
     if (audioFiles.length === 0) return
-    
+
     setIsCloning(true)
     setUploadProgress(0)
     setCloningStatus("idle")
-    
+
     try {
       // Simulate upload progress
       const progressInterval = setInterval(() => {
@@ -127,7 +127,7 @@ export function VoiceCloning({ integrationId }: VoiceCloningProps) {
       clearInterval(progressInterval)
       setUploadProgress(100)
       setCloningStatus("success")
-      
+
       // Reset after success
       setTimeout(() => {
         setAudioFiles([])
@@ -145,9 +145,9 @@ export function VoiceCloning({ integrationId }: VoiceCloningProps) {
   return (
     <div className="space-y-3">
       <audio ref={audioRef} className="hidden" />
-      
+
       {/* Upload Area */}
-      <div 
+      <div
         className="border-2 border-dashed rounded-lg p-4 text-center cursor-pointer hover:border-primary/50 transition-colors"
         onClick={() => fileInputRef.current?.click()}
       >
@@ -172,7 +172,7 @@ export function VoiceCloning({ integrationId }: VoiceCloningProps) {
       {audioFiles.length > 0 && (
         <div className="space-y-2">
           {audioFiles.map((audioFile) => (
-            <div 
+            <div
               key={audioFile.id}
               className="flex items-center gap-2 p-2 bg-muted/50 rounded-md text-xs"
             >
@@ -227,7 +227,7 @@ export function VoiceCloning({ integrationId }: VoiceCloningProps) {
           Voice cloned successfully!
         </div>
       )}
-      
+
       {cloningStatus === "error" && (
         <div className="flex items-center gap-2 text-xs text-destructive">
           <AlertCircle className="h-4 w-4" />
@@ -237,8 +237,8 @@ export function VoiceCloning({ integrationId }: VoiceCloningProps) {
 
       {/* Clone Button */}
       {audioFiles.length > 0 && !isCloning && cloningStatus !== "success" && (
-        <Button 
-          size="sm" 
+        <Button
+          size="sm"
           className="w-full"
           onClick={handleCloneVoice}
         >

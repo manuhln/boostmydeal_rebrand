@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Spinner } from "@/components/ui/spinner"
-import { api } from "@/lib/api"
+import { api } from "@/lib/api/api"
 import { Mail, ArrowRight, AlertCircle } from "lucide-react"
 
 export default function LoginPage() {

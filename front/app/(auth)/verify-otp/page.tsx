@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Spinner } from "@/components/ui/spinner"
-import { api } from "@/lib/api"
+import { api } from "@/lib/api/api"
 import { ArrowLeft, AlertCircle, RefreshCw, CheckCircle } from "lucide-react"
 
 const OTP_LENGTH = 6
@@ -73,7 +73,7 @@ export default function VerifyOtpPage() {
   const handlePaste = (e: React.ClipboardEvent) => {
     e.preventDefault()
     const pastedData = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, OTP_LENGTH)
-    
+
     if (pastedData) {
       const newOtp = [...otp]
       pastedData.split("").forEach((char, index) => {

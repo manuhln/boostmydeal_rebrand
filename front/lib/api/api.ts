@@ -19,7 +19,7 @@ import type {
   Voice,
   PhoneNumber,
   PaginatedRequest,
-} from "./types"
+} from "../types"
 
 // ============================================
 // API Configuration
@@ -49,7 +49,7 @@ class ApiClient {
     }
 
     if (this.token) {
-      ;(headers as Record<string, string>)["Authorization"] = `Bearer ${this.token}`
+      ; (headers as Record<string, string>)["Authorization"] = `Bearer ${this.token}`
     }
 
     try {
@@ -86,6 +86,8 @@ class ApiClient {
       }
     }
   }
+
+
 
   // ============================================
   // Authentication
@@ -131,6 +133,8 @@ class ApiClient {
     return this.request<void>("/auth/logout", { method: "POST" })
   }
 
+
+
   // Multi-tenant authentication flow
   async sendOtp(email: string): Promise<ApiResponse<{ message: string }>> {
     return this.request<{ message: string }>("/auth/send-otp", {
@@ -146,7 +150,7 @@ class ApiClient {
     })
   }
 
-  async getUserOrganizations(tempToken: string): Promise<ApiResponse<{ 
+  async getUserOrganizations(tempToken: string): Promise<ApiResponse<{
     organizations: Array<{
       id: string
       name: string
@@ -163,11 +167,11 @@ class ApiClient {
     })
   }
 
-  async selectOrganization(tempToken: string, organizationId: string): Promise<ApiResponse<AuthResponse & { 
+  async selectOrganization(tempToken: string, organizationId: string): Promise<ApiResponse<AuthResponse & {
     redirectTo: string
-    onboarding?: { 
+    onboarding?: {
       completed: boolean
-      currentStep: number 
+      currentStep: number
     }
   }>> {
     return this.request<AuthResponse & { redirectTo: string; onboarding?: { completed: boolean; currentStep: number } }>("/auth/select-organization", {
@@ -320,33 +324,33 @@ class ApiClient {
     const query = params ? `?${new URLSearchParams(params as Record<string, string>)}` : ""
     return this.request<Voice[]>(`/voices${query}`)
   }
-  
+
   // Provider-specific voice endpoints with filtering
-  async getElevenLabsVoices(params?: { 
+  async getElevenLabsVoices(params?: {
     name?: string
     gender?: string
     country?: string
-    language?: string 
+    language?: string
   }): Promise<ApiResponse<Voice[]>> {
     const query = params ? `?${new URLSearchParams(params as Record<string, string>)}` : ""
     return this.request<Voice[]>(`/elevenlabs/voices${query}`)
   }
-  
-  async getStreamElementsVoices(params?: { 
+
+  async getStreamElementsVoices(params?: {
     name?: string
     gender?: string
     country?: string
-    language?: string 
+    language?: string
   }): Promise<ApiResponse<Voice[]>> {
     const query = params ? `?${new URLSearchParams(params as Record<string, string>)}` : ""
     return this.request<Voice[]>(`/stream-elements/voices${query}`)
   }
-  
-  async getSmallestAIVoices(params?: { 
+
+  async getSmallestAIVoices(params?: {
     name?: string
     gender?: string
     country?: string
-    language?: string 
+    language?: string
   }): Promise<ApiResponse<Voice[]>> {
     const query = params ? `?${new URLSearchParams(params as Record<string, string>)}` : ""
     return this.request<Voice[]>(`/smallest-ai/voices${query}`)
@@ -356,7 +360,7 @@ class ApiClient {
     const formData = new FormData()
     formData.append("name", data.name)
     formData.append("audioFile", data.audioFile)
-    
+
     return this.request<Voice>("/voices/clone", {
       method: "POST",
       body: formData,
@@ -367,11 +371,11 @@ class ApiClient {
   async deleteVoice(id: string): Promise<ApiResponse<void>> {
     return this.request<void>(`/voices/${id}`, { method: "DELETE" })
   }
-  
+
   // ============================================
   // RAG / Knowledge Base Processing
   // ============================================
-  
+
   async processKnowledgeBase(knowledgeBaseId: string): Promise<ApiResponse<{ summary: string; keyPoints: string[] }>> {
     return this.request(`/rag/process-knowledge-base`, {
       method: "POST",
@@ -443,7 +447,7 @@ class ApiClient {
   async uploadDocument(knowledgeBaseId: string, file: File): Promise<ApiResponse<KnowledgeDocument>> {
     const formData = new FormData()
     formData.append("file", file)
-    
+
     return this.request<KnowledgeDocument>(`/knowledge-base/${knowledgeBaseId}/documents`, {
       method: "POST",
       body: formData,

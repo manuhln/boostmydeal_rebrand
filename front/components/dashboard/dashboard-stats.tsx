@@ -55,7 +55,7 @@ const stats: StatCardProps[] = [
 
 function StatCard({ title, value, change, trend, icon: Icon, iconBg, iconColor }: StatCardProps) {
   return (
-    <Card className="p-5 hover:shadow-lg transition-shadow duration-300">
+    <Card className="p-5 hover:shadow-lg transition-shadow duration-300 " >
       <div className="flex items-start justify-between">
         <div>
           <p className="text-sm text-muted-foreground">{title}</p>

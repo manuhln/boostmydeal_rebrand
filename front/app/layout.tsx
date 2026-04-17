@@ -3,8 +3,11 @@ import type { Metadata, Viewport } from "next"
 import { Inter } from "next/font/google"
 import { ThemeProvider } from "@/components/theme-provider"
 import "./globals.css"
+import { QueryClientProvider } from "@tanstack/react-query"
+import { queryClient } from "@/lib/query-client"
+import { Toaster } from "@/components/ui/sonner"
 
-const inter = Inter({ 
+const inter = Inter({
   subsets: ["latin"],
   variable: "--font-geist-sans"
 })
@@ -39,7 +42,10 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.variable} font-sans antialiased`}>
         <ThemeProvider defaultTheme="light" storageKey="boostmydeal-theme">
-          {children}
+          <QueryClientProvider client={queryClient}>
+            {children}
+            <Toaster />
+          </QueryClientProvider>
         </ThemeProvider>
       </body>
     </html>

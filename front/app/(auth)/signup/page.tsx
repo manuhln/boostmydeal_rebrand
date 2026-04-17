@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Logo } from "@/components/ui/logo"
-import { api } from "@/lib/api"
+import { api } from "@/lib/api/api"
 
 interface FormData {
   organizationName: string
@@ -85,15 +85,15 @@ export default function SignupPage() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
-    
+
     setFormData((prev) => {
       const newData = { ...prev, [name]: value }
-      
+
       // Auto-generate slug from org name if not manually edited
       if (name === "organizationName" && !slugManuallyEdited) {
         newData.organizationSlug = generateSlug(value)
       }
-      
+
       return newData
     })
 
@@ -152,7 +152,7 @@ export default function SignupPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!validateForm()) {
       return
     }
@@ -212,7 +212,7 @@ export default function SignupPage() {
             {/* Organization Section */}
             <div className="space-y-4">
               <h3 className="text-sm font-medium text-muted-foreground">Organization</h3>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="organizationName">
                   Organization Name <span className="text-destructive">*</span>
@@ -257,7 +257,7 @@ export default function SignupPage() {
             {/* Personal Info Section */}
             <div className="space-y-4">
               <h3 className="text-sm font-medium text-muted-foreground">Personal Information</h3>
-              
+
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="firstName">
@@ -343,7 +343,7 @@ export default function SignupPage() {
                 {errors.password && (
                   <p className="text-xs text-destructive">{errors.password}</p>
                 )}
-                
+
                 {/* Password Requirements */}
                 <div className="mt-2 space-y-1">
                   <div className="flex items-center gap-2 text-xs">
@@ -383,7 +383,7 @@ export default function SignupPage() {
             {/* Optional Fields Section */}
             <div className="space-y-4">
               <h3 className="text-sm font-medium text-muted-foreground">Optional</h3>
-              
+
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="phone">Phone</Label>

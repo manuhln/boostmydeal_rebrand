@@ -2,6 +2,23 @@
 // Authentication & User Types
 // ============================================
 
+
+export interface PaginatedResponse<T> {
+  data: T[];
+  meta: { current_page: number; last_page: number; per_page: number; total: number };
+  links: { first: string; last: string; prev: string | null; next: string | null };
+}
+
+
+export interface LoginResponse {
+  accessToken: string;
+  tenant: {
+    id: string;
+    name: string;
+  }
+}
+
+
 export interface User {
   id: string
   email: string
@@ -13,6 +30,7 @@ export interface User {
   createdAt: string
   updatedAt: string
 }
+
 
 export interface UserPreferences {
   language: string
@@ -68,16 +86,17 @@ export interface OnboardingData {
   // Step 4: AI Agent
   aiAgent: {
     name: string
-    description: string
-    gender: "male" | "female" | "neutral"
-    voiceProvider: string
-    voiceModel: string
-    tone: string
-    openingMessage: string
-    systemPrompt: string
-    temperature: number
-    maxTokens: number
+    description?: string
     languages: string[]
+    mode?: string
+    gender?: "male" | "female" | "neutral"
+    voiceProvider?: string
+    voiceModel?: string
+    tone: ?string
+    openingMessage?: string
+    systemPrompt?: string
+    temperature?: number
+    maxTokens?: number
   }
   // Step 5: Reporting
   reporting: {
@@ -110,9 +129,9 @@ export interface Integration {
   createdAt: string
 }
 
-export type IntegrationType = 
-  | "hubspot" 
-  | "zoho" 
+export type IntegrationType =
+  | "hubspot"
+  | "zoho"
   | "salesforce"
   | "smtp"
   | "twilio"
@@ -171,7 +190,7 @@ export interface CalendarIntegration {
 export interface AIAgent {
   id: string
   organizationId: string
-  
+
   // Tab 1: Basics
   name: string
   description?: string
@@ -183,7 +202,7 @@ export interface AIAgent {
   firstMessage: string
   userSpeaksFirst: boolean
   workflowIds: string[]
-  
+
   // Tab 2: Persona (concatenated into systemPrompt)
   systemPrompt: string
   persona?: {
@@ -193,7 +212,7 @@ export interface AIAgent {
     responseGuidelines: string
     errorHandling: string
   }
-  
+
   // Tab 3: Media & Knowledge
   voiceProvider: "ElevenLabs" | "Rime" | "StreamElements" | "Smallest AI"
   transcriber: "Deepgram" | "OpenAI Whisper"
@@ -201,7 +220,7 @@ export interface AIAgent {
   geminiLiveVoice?: string
   knowledgeBase: string[]
   speed: number
-  
+
   // Tab 4: Settings
   callRecording: boolean
   callRecordingFormat: "mp3" | "wav" | "m4a"
@@ -213,11 +232,11 @@ export interface AIAgent {
   keyboardSound: boolean
   temperature: number
   maxTokens: number
-  
+
   // Tab 5: Post Call Analysis
   userTags: string[]
   systemTags: string[]
-  
+
   // Meta
   status: "active" | "inactive" | "draft"
   createdAt: string
@@ -235,14 +254,14 @@ export interface AgentFormData {
   firstMessage: string
   userSpeaksFirst: boolean
   workflowIds: string[]
-  
+
   // Tab 2: Persona
   identity: string
   style: string
   goals: string
   responseGuidelines: string
   errorHandling: string
-  
+
   // Tab 3: Media & Knowledge
   voiceProvider: "ElevenLabs" | "Rime" | "StreamElements" | "Smallest AI"
   transcriber: "Deepgram" | "OpenAI Whisper"
@@ -250,7 +269,7 @@ export interface AgentFormData {
   geminiLiveVoice: string
   knowledgeBase: string[]
   speed: number
-  
+
   // Tab 4: Settings
   callRecording: boolean
   callRecordingFormat: "mp3" | "wav" | "m4a"
@@ -262,7 +281,7 @@ export interface AgentFormData {
   keyboardSound: boolean
   temperature: number
   maxTokens: number
-  
+
   // Tab 5: Post Call Analysis
   userTags: string[]
   systemTags: string[]
@@ -270,7 +289,7 @@ export interface AgentFormData {
 
 export const SYSTEM_TAGS = [
   "interested",
-  "not_interested", 
+  "not_interested",
   "voicemail",
   "demo_scheduled",
   "callback_requested",
@@ -366,7 +385,16 @@ export interface Call {
   crmSynced: boolean
 }
 
-export type CallStatus = 
+
+export interface CreateCall {
+  phone_number_id: string
+  agent_id: string
+  direction: string
+  status: string
+}
+
+
+export type CallStatus =
   | "queued"
   | "in-progress"
   | "ringing"
@@ -448,14 +476,14 @@ export interface WorkflowEdge {
   sourceHandle?: string
 }
 
-export type WorkflowNodeType = 
+export type WorkflowNodeType =
   | "TRIGGER"
   | "AI_AGENT"
   | "EMAIL_TOOL"
   | "HUBSPOT_TOOL"
   | "ZOHO_TOOL"
 
-export type WorkflowTriggerType = 
+export type WorkflowTriggerType =
   | "PHONE_CALL_CONNECTED"
   | "TRANSCRIPT_COMPLETE"
   | "CALL_SUMMARY"
@@ -585,7 +613,7 @@ export interface Notification {
   createdAt: string
 }
 
-export type NotificationType = 
+export type NotificationType =
   | "call_completed"
   | "call_failed"
   | "call_no_answer"
@@ -682,6 +710,8 @@ export interface Pagination {
 }
 
 export interface PaginatedRequest {
+  name?: string
+  mode?: string
   page?: number
   limit?: number
   sortBy?: string

@@ -10,7 +10,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Spinner } from "@/components/ui/spinner"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
-import { api } from "@/lib/api"
+import { api } from "@/lib/api/api"
 import { ArrowLeft, AlertCircle, Building2, Users, ChevronRight, Plus } from "lucide-react"
 
 interface Organization {
@@ -49,7 +49,7 @@ export default function SelectOrganizationPage() {
 
       if (response.success && response.data?.organizations) {
         setOrganizations(response.data.organizations)
-        
+
         // If only one organization, auto-select it
         if (response.data.organizations.length === 1) {
           handleSelectOrganization(response.data.organizations[0].id, token)
