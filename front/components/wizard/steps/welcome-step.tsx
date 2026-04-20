@@ -1,93 +1,106 @@
 "use client"
 
+import Image from "next/image"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
+import { useTheme } from "next-themes"
 import { useWizard } from "../wizard-context"
-import { WizardLayout } from "../wizard-layout"
-import { Briefcase, Plug, MessageSquare, AlertTriangle } from "lucide-react"
-
-const OVERVIEW_CARDS = [
-  {
-    icon: Briefcase,
-    title: "Business Information",
-    items: ["Industry, company size,", "sales goals"],
-  },
-  {
-    icon: Plug,
-    title: "Tools & Integrations",
-    items: ["CRM, phone system,", "email & calendar"],
-  },
-  {
-    icon: MessageSquare,
-    title: "AI Behavior & Messaging",
-    items: ["Call tone, email style,", "Automation rules"],
-  },
-]
+import { AlertCircle } from "lucide-react"
+import { Images } from "@/utils/image"
 
 export function WelcomeStep() {
   const { nextStep, skipOnboarding, isLoading } = useWizard()
+  const { resolvedTheme } = useTheme()
 
   return (
-    <WizardLayout
-      title="Get Ready to Launch BoostMyDeal"
-      subtitle="This guide setup takes about 15 minutes and well configure AI agents to match your sales workflow."
-      showSteps={false}
-      showBackButton={false}
-    >
-      <div className="max-w-4xl mx-auto">
-        {/* Overview Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-          {OVERVIEW_CARDS.map((card, index) => (
-            <Card
-              key={index}
-              className={`p-6 text-center border transition-all duration-200 hover:shadow-md ${
-                index === 1 ? "bg-info/5 border-info/20" : "bg-card"
-              }`}
-            >
-              <div className="flex justify-center mb-4">
-                <div className={`p-3 rounded-lg ${index === 1 ? "bg-info/10" : "bg-muted"}`}>
-                  <card.icon className={`w-6 h-6 ${index === 1 ? "text-info" : "text-muted-foreground"}`} />
-                </div>
-              </div>
-              <h3 className="font-semibold text-foreground mb-3">{card.title}</h3>
-              <ul className="space-y-1">
-                {card.items.map((item, i) => (
-                  <li key={i} className="text-sm text-muted-foreground flex items-center justify-center gap-2">
-                    <span className={`w-1.5 h-1.5 rounded-full ${index === 1 ? "bg-info" : "bg-muted-foreground/50"}`} />
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </Card>
-          ))}
-        </div>
+    <div className="min-h-screen bg-[#ececeb] px-6 py-16">
+      <div className="mx-auto max-w-6xl rounded-2xl bg-white px-8 py-6 shadow-sm">
+        <header className="flex items-center justify-between border-b border-gray-200 pb-6">
+          <Image
+            src={resolvedTheme === "dark" ? "/logo-dark.svg" : "/logo.svg"}
+            alt="BoostMyDeal"
+            width={44}
+            height={44}
+            className="h-11 w-11"
+            priority
+          />
+          <Link href="/help" className="text-sm font-medium text-gray-500 transition-colors hover:text-gray-800">
+            Help / Docs
+          </Link>
+        </header>
 
-        {/* Warning Notice */}
-        <div className="flex items-center justify-center gap-2 p-4 bg-muted/50 rounded-lg mb-8">
-          <AlertTriangle className="w-5 h-5 text-warning" />
-          <p className="text-sm text-muted-foreground">
-            You can pause and edit everything later. Nothing goes live without your confirmation.
+        <div className="mx-auto max-w-5xl px-4 py-8 text-center">
+          <h1 className="mb-4 text-4xl font-normal tracking-tight text-[#1f1f1f] md:text-6xl">
+            Get Ready to Launch BoostMyDeal
+          </h1>
+          <p className="mx-auto max-w-3xl text-lg leading-9 text-gray-500">
+            This guide setup takes about <span className="font-semibold text-gray-700">15 minutes</span> and well configure AI agents
+            <br className="hidden md:block" />
+            to match your sales workflow.
           </p>
-        </div>
 
-        {/* Action Buttons */}
-        <div className="flex flex-col items-center gap-4">
-          <Button
-            onClick={nextStep}
-            disabled={isLoading}
-            className="px-8 py-6 text-base bg-primary hover:bg-primary/90"
-          >
-            Start Setup
-          </Button>
-          <button
-            onClick={skipOnboarding}
-            disabled={isLoading}
-            className="text-sm text-muted-foreground hover:text-foreground underline transition-colors"
-          >
-            {"I'll gather this information later"}
-          </button>
+          <div className="mt-10 grid grid-cols-1 gap-0 rounded-xl border border-[#efeaf7] bg-white md:grid-cols-3">
+            {[
+              {
+                src: Images.wizardIntro1,
+                alt: "Business Information",
+                title: "Business Information",
+                items: ["Industry, company size,", "sales goals"],
+              },
+              {
+                src: Images.wizardIntro2,
+                alt: "Tools & Integrations",
+                title: "Tools & Integrations",
+                items: ["CRM, phone system,", "email & calendar"],
+              },
+              {
+                src: Images.wizardIntro3,
+                alt: "AI Behavior & Messaging",
+                title: "AI Behavior & Messaging",
+                items: ["Call tone, email style,", "Automation rules"],
+              },
+            ].map((item, index) => (
+              <div
+                key={item.alt}
+                className={`px-10 py-8 text-left ${index < 2 ? "border-b md:border-b-0 md:border-r md:border-[#f2edf8]" : ""}`}
+              >
+                <div className="mb-5 flex justify-center">
+                  <Image src={item.src} alt={item.alt} width={72} height={72} className="h-[72px] w-[72px] object-contain" />
+                </div>
+                <h3 className="mb-4 text-center text-2xl font-medium text-[#43435d]">{item.title}</h3>
+                <ul className="space-y-3 text-[15px] text-[#86869a]">
+                  {item.items.map((bullet) => (
+                    <li key={bullet} className="flex items-center gap-4">
+                      <span className="h-2 w-2 rounded-full bg-[#c9c9d9]" />
+                      <span>{bullet}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+
+          <div className="mx-auto mt-6 flex max-w-3xl items-center justify-center gap-3 rounded-2xl border border-gray-200 bg-white px-5 py-4 shadow-sm">
+            <AlertCircle className="h-5 w-5 flex-shrink-0 text-gray-400" />
+            <p className="text-center text-sm text-gray-500">
+              You can pause and edit everything later. Nothing goes live without your confirmation.
+            </p>
+          </div>
+
+          <div className="mt-8 flex flex-col items-center gap-6">
+            <Button onClick={nextStep} disabled={isLoading} className="h-12 rounded-2xl px-8 text-base">
+              Start Setup
+            </Button>
+            <button
+              onClick={skipOnboarding}
+              disabled={isLoading}
+              className="text-sm font-medium text-gray-500 underline underline-offset-2 transition-colors hover:text-gray-800"
+            >
+              {"I’ll gather this information later"}
+            </button>
+          </div>
         </div>
       </div>
-    </WizardLayout>
+    </div>
   )
 }

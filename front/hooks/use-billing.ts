@@ -1,28 +1,39 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { api } from "../lib/api-client"
 import { queryKey } from "../lib/query-keys"
-import type { BillingInfo } from "../lib/types"
+import type { Credits, Payment, PaymentIntent, CreatePaymentIntentRequest } from "../lib/types"
 
-// ============================================
-// Billing Services
-// ============================================
-
-export const useBillingInfo = () => {
+export const useCredits = () => {
   return useQuery({
-    queryKey: queryKey.Billing.info(),
-    queryFn: () => api.get("/billing/info"),
+    queryKey: queryKey.Billing.credits(),
+    queryFn: () => api.get<Credits>("/credits"),
   })
 }
 
-export const usePaymentHistory = () => {
+export const usePaymentHistory = (params?: { status?: string; per_page?: number }) => {
   return useQuery({
-    queryKey: queryKey.Billing.paymentHistory(),
-    queryFn: () => api.get("/billing/history"),
+    queryKey: queryKey.Billing.payments(),
+    queryFn: () => api.get<{ data: Payment[] }>("/payments", params),
+  })
+}
+
+export const usePayment = (paymentId: string) => {
+  return useQuery({
+    queryKey: queryKey.Billing.payment(paymentId),
+    queryFn: () => api.get<Payment>(`/payments/${paymentId}`),
+    enabled: !!paymentId,
   })
 }
 
 export const useCreatePaymentIntent = () => {
+  const queryClient = useQueryClient()
+
   return useMutation({
-    mutationFn: (amount: number) => api.post("/billing/create-payment-intent", { amount }),
+    mutationFn: (data: CreatePaymentIntentRequest) =>
+      api.post<PaymentIntent>("/payments/create-intent", data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKey.Billing.credits() })
+      queryClient.invalidateQueries({ queryKey: queryKey.Billing.payments() })
+    },
   })
 }

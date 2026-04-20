@@ -1,0 +1,4544 @@
+openapi: 3.0.3
+info:
+  title: 'BoostMyDeal API Documentation'
+  description: 'The BoostMyDeal API provides endpoints for managing agents, phone numbers, calls, workflows, payments, invoices, and more. This is a multi-tenant application requiring an X-Tenant-ID header for all API requests.'
+  version: 1.0.0
+servers:
+  -
+    url: 'http://localhost'
+tags:
+  -
+    name: 'API Keys'
+    description: ''
+  -
+    name: 'API Tokens'
+    description: ''
+  -
+    name: Agents
+    description: ''
+  -
+    name: Authentication
+    description: ''
+  -
+    name: Calls
+    description: ''
+  -
+    name: Dashboard
+    description: ''
+  -
+    name: Invoices
+    description: ''
+  -
+    name: 'Knowledge Bases'
+    description: ''
+  -
+    name: Notifications
+    description: ''
+  -
+    name: Onboarding
+    description: ''
+  -
+    name: Others
+    description: ''
+  -
+    name: Payments
+    description: ''
+  -
+    name: 'Phone Numbers'
+    description: ''
+  -
+    name: 'Tenant Invitations'
+    description: ''
+  -
+    name: Tenants
+    description: ''
+  -
+    name: 'User Preferences'
+    description: ''
+  -
+    name: Users
+    description: ''
+  -
+    name: Workflows
+    description: ''
+components:
+  securitySchemes:
+    default:
+      type: http
+      scheme: bearer
+      description: 'You can retrieve your API token by visiting your dashboard and clicking <b>Generate API token</b>.'
+security:
+  -
+    default: []
+paths:
+  /api/v1/api-keys:
+    get:
+      summary: 'List all API keys'
+      operationId: listAllAPIKeys
+      description: ''
+      parameters:
+        -
+          in: query
+          name: 'filter[name]'
+          description: 'optional Filter by name (partial match)'
+          example: architecto
+          required: false
+          schema:
+            type: string
+            description: 'optional Filter by name (partial match)'
+            example: architecto
+        -
+          in: query
+          name: 'filter[status]'
+          description: 'optional Filter by status'
+          example: architecto
+          required: false
+          schema:
+            type: string
+            description: 'optional Filter by status'
+            example: architecto
+        -
+          in: query
+          name: sort
+          description: 'optional Sort by field (name, created_at, updated_at)'
+          example: architecto
+          required: false
+          schema:
+            type: string
+            description: 'optional Sort by field (name, created_at, updated_at)'
+            example: architecto
+        -
+          in: header
+          name: X-Tenant-ID
+          description: ''
+          example: '{YOUR_TENANT_ID}'
+          schema:
+            type: string
+      responses:
+        200:
+          description: ''
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: '{"data": [{"id": 1, "name": "My App", "status": "active"}], "meta": {...}}'
+      tags:
+        - 'API Keys'
+    post:
+      summary: 'Create a new API key'
+      operationId: createANewAPIKey
+      description: ''
+      parameters:
+        -
+          in: header
+          name: X-Tenant-ID
+          description: ''
+          example: '{YOUR_TENANT_ID}'
+          schema:
+            type: string
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  id: 1
+                  name: 'My App'
+                  status: active
+                  last_used_at: null
+                properties:
+                  id:
+                    type: integer
+                    example: 1
+                  name:
+                    type: string
+                    example: 'My App'
+                  status:
+                    type: string
+                    example: active
+                  last_used_at:
+                    type: string
+                    example: null
+                    nullable: true
+      tags:
+        - 'API Keys'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: 'API key name'
+                  example: architecto
+                key:
+                  type: string
+                  description: 'optional API key value (auto-generated if not provided)'
+                  example: architecto
+                status:
+                  type: string
+                  description: 'optional Key status (default: active)'
+                  example: architecto
+              required:
+                - name
+  '/api/v1/api-keys/{id}':
+    get:
+      summary: 'Get a specific API key'
+      operationId: getASpecificAPIKey
+      description: ''
+      parameters:
+        -
+          in: header
+          name: X-Tenant-ID
+          description: ''
+          example: '{YOUR_TENANT_ID}'
+          schema:
+            type: string
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  id: 1
+                  name: 'My App'
+                  status: active
+                  last_used_at: null
+                properties:
+                  id:
+                    type: integer
+                    example: 1
+                  name:
+                    type: string
+                    example: 'My App'
+                  status:
+                    type: string
+                    example: active
+                  last_used_at:
+                    type: string
+                    example: null
+                    nullable: true
+      tags:
+        - 'API Keys'
+    put:
+      summary: 'Update an API key'
+      operationId: updateAnAPIKey
+      description: ''
+      parameters:
+        -
+          in: header
+          name: X-Tenant-ID
+          description: ''
+          example: '{YOUR_TENANT_ID}'
+          schema:
+            type: string
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  id: 1
+                  name: 'Updated App'
+                  status: active
+                properties:
+                  id:
+                    type: integer
+                    example: 1
+                  name:
+                    type: string
+                    example: 'Updated App'
+                  status:
+                    type: string
+                    example: active
+      tags:
+        - 'API Keys'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: 'optional API key name'
+                  example: architecto
+                status:
+                  type: string
+                  description: 'optional Key status'
+                  example: architecto
+    delete:
+      summary: 'Delete an API key'
+      operationId: deleteAnAPIKey
+      description: ''
+      parameters:
+        -
+          in: header
+          name: X-Tenant-ID
+          description: ''
+          example: '{YOUR_TENANT_ID}'
+          schema:
+            type: string
+      responses:
+        204:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example: {  }
+                properties: {  }
+      tags:
+        - 'API Keys'
+    parameters:
+      -
+        in: path
+        name: id
+        description: 'The ID of the api key.'
+        example: architecto
+        required: true
+        schema:
+          type: string
+      -
+        in: path
+        name: apiKey
+        description: 'The ID of the API key'
+        example: 16
+        required: true
+        schema:
+          type: integer
+  '/api/v1/api-keys/{apiKey_id}/revoke':
+    post:
+      summary: 'Revoke an API key'
+      operationId: revokeAnAPIKey
+      description: ''
+      parameters:
+        -
+          in: header
+          name: X-Tenant-ID
+          description: ''
+          example: '{YOUR_TENANT_ID}'
+          schema:
+            type: string
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'API key revoked successfully'
+                properties:
+                  message:
+                    type: string
+                    example: 'API key revoked successfully'
+      tags:
+        - 'API Keys'
+    parameters:
+      -
+        in: path
+        name: apiKey_id
+        description: 'The ID of the apiKey.'
+        example: architecto
+        required: true
+        schema:
+          type: string
+      -
+        in: path
+        name: apiKey
+        description: 'The ID of the API key'
+        example: 16
+        required: true
+        schema:
+          type: integer
+  /api/v1/tokens:
+    post:
+      summary: 'Create a new API token'
+      operationId: createANewAPIToken
+      description: ''
+      parameters:
+        -
+          in: header
+          name: X-Tenant-ID
+          description: ''
+          example: '{YOUR_TENANT_ID}'
+          schema:
+            type: string
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  token: 1|abc123...
+                  abilities:
+                    - '*'
+                properties:
+                  token:
+                    type: string
+                    example: 1|abc123...
+                  abilities:
+                    type: array
+                    example:
+                      - '*'
+                    items:
+                      type: string
+      tags:
+        - 'API Tokens'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: 'The token name'
+                  example: architecto
+                abilities:
+                  type: array
+                  description: 'optional The token abilities (default: all)'
+                  example:
+                    - architecto
+                  items:
+                    type: string
+              required:
+                - name
+    get:
+      summary: 'List all API tokens for the authenticated user'
+      operationId: listAllAPITokensForTheAuthenticatedUser
+      description: ''
+      parameters:
+        -
+          in: header
+          name: X-Tenant-ID
+          description: ''
+          example: '{YOUR_TENANT_ID}'
+          schema:
+            type: string
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  data:
+                    -
+                      id: 1
+                      name: 'My Token'
+                      abilities:
+                        - '*'
+                      created_at: '2024-01-01T00:00:00Z'
+                properties:
+                  data:
+                    type: array
+                    example:
+                      -
+                        id: 1
+                        name: 'My Token'
+                        abilities:
+                          - '*'
+                        created_at: '2024-01-01T00:00:00Z'
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          example: 1
+                        name:
+                          type: string
+                          example: 'My Token'
+                        abilities:
+                          type: array
+                          example:
+                            - '*'
+                          items:
+                            type: string
+                        created_at:
+                          type: string
+                          example: '2024-01-01T00:00:00Z'
+      tags:
+        - 'API Tokens'
+  '/api/v1/tokens/{tokenId}':
+    delete:
+      summary: 'Delete an API token'
+      operationId: deleteAnAPIToken
+      description: ''
+      parameters:
+        -
+          in: header
+          name: X-Tenant-ID
+          description: ''
+          example: '{YOUR_TENANT_ID}'
+          schema:
+            type: string
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Token revoked successfully'
+                properties:
+                  message:
+                    type: string
+                    example: 'Token revoked successfully'
+      tags:
+        - 'API Tokens'
+    parameters:
+      -
+        in: path
+        name: tokenId
+        description: 'The ID of the token to delete'
+        example: architecto
+        required: true
+        schema:
+          type: string
+  /api/v1/agents:
+    get:
+      summary: 'List all agents'
+      operationId: listAllAgents
+      description: ''
+      parameters:
+        -
+          in: query
+          name: name
+          description: 'Filter by agent name (partial match)'
+          example: architecto
+          required: false
+          schema:
+            type: string
+            description: 'Filter by agent name (partial match)'
+            example: architecto
+        -
+          in: query
+          name: mode
+          description: 'Filter by agent mode'
+          example: architecto
+          required: false
+          schema:
+            type: string
+            description: 'Filter by agent mode'
+            example: architecto
+        -
+          in: query
+          name: sort
+          description: 'Sort by field (name, created_at, updated_at)'
+          example: architecto
+          required: false
+          schema:
+            type: string
+            description: 'Sort by field (name, created_at, updated_at)'
+            example: architecto
+        -
+          in: query
+          name: 'filter[phoneNumbers]'
+          description: 'Include phone numbers in response'
+          example: architecto
+          required: false
+          schema:
+            type: string
+            description: 'Include phone numbers in response'
+            example: architecto
+        -
+          in: query
+          name: 'filter[knowledgeBases]'
+          description: 'Include knowledge bases in response'
+          example: architecto
+          required: false
+          schema:
+            type: string
+            description: 'Include knowledge bases in response'
+            example: architecto
+        -
+          in: header
+          name: X-Tenant-ID
+          description: ''
+          example: '{YOUR_TENANT_ID}'
+          schema:
+            type: string
+      responses:
+        200:
+          description: ''
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: '{"data": [{"id": 1, "name": "Sales Agent", "mode": "voice"}], "meta": {...}}'
+      tags:
+        - Agents
+    post:
+      summary: 'Create a new agent'
+      operationId: createANewAgent
+      description: ''
+      parameters:
+        -
+          in: header
+          name: X-Tenant-ID
+          description: ''
+          example: '{YOUR_TENANT_ID}'
+          schema:
+            type: string
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  id: 1
+                  name: 'New Agent'
+                  language: en
+                properties:
+                  id:
+                    type: integer
+                    example: 1
+                  name:
+                    type: string
+                    example: 'New Agent'
+                  language:
+                    type: string
+                    example: en
+      tags:
+        - Agents
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: 'Agent name'
+                  example: architecto
+                description:
+                  type: string
+                  description: 'optional Agent description'
+                  example: 'Eius et animi quos velit et.'
+                language:
+                  type: string
+                  description: 'Agent language code'
+                  example: architecto
+                mode:
+                  type: string
+                  description: 'optional Agent mode'
+                  example: architecto
+              required:
+                - name
+                - language
+  '/api/v1/agents/{id}':
+    get:
+      summary: 'Get a specific agent'
+      operationId: getASpecificAgent
+      description: ''
+      parameters:
+        -
+          in: query
+          name: 'filter[phoneNumbers]'
+          description: 'Include phone numbers in response'
+          example: architecto
+          required: false
+          schema:
+            type: string
+            description: 'Include phone numbers in response'
+            example: architecto
+        -
+          in: query
+          name: 'filter[knowledgeBases]'
+          description: 'Include knowledge bases in response'
+          example: architecto
+          required: false
+          schema:
+            type: string
+            description: 'Include knowledge bases in response'
+            example: architecto
+        -
+          in: header
+          name: X-Tenant-ID
+          description: ''
+          example: '{YOUR_TENANT_ID}'
+          schema:
+            type: string
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  id: 1
+                  name: 'Sales Agent'
+                  language: en
+                properties:
+                  id:
+                    type: integer
+                    example: 1
+                  name:
+                    type: string
+                    example: 'Sales Agent'
+                  language:
+                    type: string
+                    example: en
+      tags:
+        - Agents
+    put:
+      summary: 'Update an agent'
+      operationId: updateAnAgent
+      description: ''
+      parameters:
+        -
+          in: header
+          name: X-Tenant-ID
+          description: ''
+          example: '{YOUR_TENANT_ID}'
+          schema:
+            type: string
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  id: 1
+                  name: 'Updated Agent'
+                  language: en
+                properties:
+                  id:
+                    type: integer
+                    example: 1
+                  name:
+                    type: string
+                    example: 'Updated Agent'
+                  language:
+                    type: string
+                    example: en
+      tags:
+        - Agents
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: 'optional Agent name'
+                  example: architecto
+                description:
+                  type: string
+                  description: 'optional Agent description'
+                  example: 'Eius et animi quos velit et.'
+                language:
+                  type: string
+                  description: 'optional Agent language code'
+                  example: architecto
+                mode:
+                  type: string
+                  description: 'optional Agent mode'
+                  example: architecto
+    delete:
+      summary: 'Delete an agent'
+      operationId: deleteAnAgent
+      description: ''
+      parameters:
+        -
+          in: header
+          name: X-Tenant-ID
+          description: ''
+          example: '{YOUR_TENANT_ID}'
+          schema:
+            type: string
+      responses:
+        204:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example: {  }
+                properties: {  }
+      tags:
+        - Agents
+    parameters:
+      -
+        in: path
+        name: id
+        description: 'The ID of the agent.'
+        example: architecto
+        required: true
+        schema:
+          type: string
+      -
+        in: path
+        name: agent
+        description: 'The ID of the agent'
+        example: 16
+        required: true
+        schema:
+          type: integer
+  /api/v1/login:
+    post:
+      summary: "Login to a tenant\nFinal step of the authentication flow."
+      operationId: loginToATenantFinalStepOfTheAuthenticationFlow
+      description: 'Uses the temporary login session (created after OTP verification) and the tenant identifier to authenticate the user within a tenant.'
+      parameters:
+        -
+          in: header
+          name: X-Tenant-ID
+          description: ''
+          example: '{YOUR_TENANT_ID}'
+          schema:
+            type: string
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  accessToken: 1|laravel_sanctum_token
+                  tenant:
+                    id: tenant_123
+                    name: 'Acme Inc'
+                properties:
+                  accessToken:
+                    type: string
+                    example: 1|laravel_sanctum_token
+                  tenant:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        example: tenant_123
+                      name:
+                        type: string
+                        example: 'Acme Inc'
+        401:
+          description: ''
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  -
+                    description: ''
+                    type: object
+                    example:
+                      error: Unauthorized
+                    properties:
+                      error:
+                        type: string
+                        example: Unauthorized
+                  -
+                    description: ''
+                    type: object
+                    example:
+                      error: 'Invalid session'
+                    properties:
+                      error:
+                        type: string
+                        example: 'Invalid session'
+        403:
+          description: ''
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  -
+                    description: ''
+                    type: object
+                    example:
+                      error: 'Session mismatch'
+                    properties:
+                      error:
+                        type: string
+                        example: 'Session mismatch'
+                  -
+                    description: ''
+                    type: object
+                    example:
+                      error: Forbidden
+                    properties:
+                      error:
+                        type: string
+                        example: Forbidden
+      tags:
+        - Authentication
+      security: []
+  /api/v1/me:
+    get:
+      summary: "Get the authenticated user's profile"
+      operationId: getTheAuthenticatedUsersProfile
+      description: ''
+      parameters:
+        -
+          in: header
+          name: X-Tenant-ID
+          description: ''
+          example: '{YOUR_TENANT_ID}'
+          schema:
+            type: string
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  user:
+                    id: 1
+                    first_name: John
+                    last_name: Doe
+                    email: john@example.com
+                  tenant:
+                    id: 1
+                    name: 'Acme Inc'
+                properties:
+                  user:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        example: 1
+                      first_name:
+                        type: string
+                        example: John
+                      last_name:
+                        type: string
+                        example: Doe
+                      email:
+                        type: string
+                        example: john@example.com
+                  tenant:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        example: 1
+                      name:
+                        type: string
+                        example: 'Acme Inc'
+      tags:
+        - Authentication
+  /api/v1/refresh-token:
+    post:
+      summary: 'Refresh access token.'
+      operationId: refreshAccessToken
+      description: 'Accept `{refreshToken: string}` from cookies.'
+      parameters:
+        -
+          in: header
+          name: X-Tenant-ID
+          description: ''
+          example: '{YOUR_TENANT_ID}'
+          schema:
+            type: string
+      responses:
+        200:
+          description: ''
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: 'array{data: array{accessToken: string}, status: bool}'
+      tags:
+        - Authentication
+  /api/v1/logout:
+    post:
+      summary: Logout.
+      operationId: logout
+      description: ''
+      parameters:
+        -
+          in: header
+          name: X-Tenant-ID
+          description: ''
+          example: '{YOUR_TENANT_ID}'
+          schema:
+            type: string
+      responses:
+        200:
+          description: ''
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: 'array{message: string, status: bool}'
+      tags:
+        - Authentication
+  /api/v1/calls:
+    get:
+      summary: 'List all calls'
+      operationId: listAllCalls
+      description: ''
+      parameters:
+        -
+          in: query
+          name: 'filter[status]'
+          description: 'Filter by call status'
+          example: architecto
+          required: false
+          schema:
+            type: string
+            description: 'Filter by call status'
+            example: architecto
+        -
+          in: query
+          name: 'filter[direction]'
+          description: 'Filter by call direction (inbound/outbound)'
+          example: architecto
+          required: false
+          schema:
+            type: string
+            description: 'Filter by call direction (inbound/outbound)'
+            example: architecto
+        -
+          in: query
+          name: 'filter[phone_number_id]'
+          description: 'Filter by phone number ID'
+          example: architecto
+          required: false
+          schema:
+            type: string
+            description: 'Filter by phone number ID'
+            example: architecto
+        -
+          in: query
+          name: 'filter[agent_id]'
+          description: 'Filter by agent ID'
+          example: architecto
+          required: false
+          schema:
+            type: string
+            description: 'Filter by agent ID'
+            example: architecto
+        -
+          in: query
+          name: 'filter[from_number]'
+          description: 'Filter by from number (partial match)'
+          example: architecto
+          required: false
+          schema:
+            type: string
+            description: 'Filter by from number (partial match)'
+            example: architecto
+        -
+          in: query
+          name: 'filter[to_number]'
+          description: 'Filter by to number (partial match)'
+          example: architecto
+          required: false
+          schema:
+            type: string
+            description: 'Filter by to number (partial match)'
+            example: architecto
+        -
+          in: query
+          name: sort
+          description: 'Sort by field (created_at, updated_at, duration_seconds, cost)'
+          example: architecto
+          required: false
+          schema:
+            type: string
+            description: 'Sort by field (created_at, updated_at, duration_seconds, cost)'
+            example: architecto
+        -
+          in: header
+          name: X-Tenant-ID
+          description: ''
+          example: '{YOUR_TENANT_ID}'
+          schema:
+            type: string
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  data:
+                    -
+                      id: 1
+                      status: completed
+                      duration_seconds: 120
+                properties:
+                  data:
+                    type: array
+                    example:
+                      -
+                        id: 1
+                        status: completed
+                        duration_seconds: 120
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          example: 1
+                        status:
+                          type: string
+                          example: completed
+                        duration_seconds:
+                          type: integer
+                          example: 120
+      tags:
+        - Calls
+    post:
+      summary: 'Create a new call'
+      operationId: createANewCall
+      description: ''
+      parameters:
+        -
+          in: header
+          name: X-Tenant-ID
+          description: ''
+          example: '{YOUR_TENANT_ID}'
+          schema:
+            type: string
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  id: 1
+                  status: completed
+                  duration_seconds: 120
+                properties:
+                  id:
+                    type: integer
+                    example: 1
+                  status:
+                    type: string
+                    example: completed
+                  duration_seconds:
+                    type: integer
+                    example: 120
+      tags:
+        - Calls
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                phone_number_id:
+                  type: string
+                  description: 'Phone number ID'
+                  example: architecto
+                agent_id:
+                  type: string
+                  description: 'Agent ID'
+                  example: architecto
+                direction:
+                  type: string
+                  description: 'Call direction (inbound/outbound)'
+                  example: architecto
+                status:
+                  type: string
+                  description: 'Call status'
+                  example: architecto
+              required:
+                - phone_number_id
+                - agent_id
+                - direction
+                - status
+  '/api/v1/calls/{id}':
+    get:
+      summary: 'Get a specific call'
+      operationId: getASpecificCall
+      description: ''
+      parameters:
+        -
+          in: header
+          name: X-Tenant-ID
+          description: ''
+          example: '{YOUR_TENANT_ID}'
+          schema:
+            type: string
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  id: 1
+                  status: completed
+                  duration_seconds: 120
+                properties:
+                  id:
+                    type: integer
+                    example: 1
+                  status:
+                    type: string
+                    example: completed
+                  duration_seconds:
+                    type: integer
+                    example: 120
+      tags:
+        - Calls
+    put:
+      summary: 'Update a call'
+      operationId: updateACall
+      description: ''
+      parameters:
+        -
+          in: header
+          name: X-Tenant-ID
+          description: ''
+          example: '{YOUR_TENANT_ID}'
+          schema:
+            type: string
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  id: 1
+                  status: updated
+                  duration_seconds: 120
+                properties:
+                  id:
+                    type: integer
+                    example: 1
+                  status:
+                    type: string
+                    example: updated
+                  duration_seconds:
+                    type: integer
+                    example: 120
+      tags:
+        - Calls
+    delete:
+      summary: 'Delete a call'
+      operationId: deleteACall
+      description: ''
+      parameters:
+        -
+          in: header
+          name: X-Tenant-ID
+          description: ''
+          example: '{YOUR_TENANT_ID}'
+          schema:
+            type: string
+      responses:
+        204:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example: {  }
+                properties: {  }
+      tags:
+        - Calls
+    parameters:
+      -
+        in: path
+        name: id
+        description: 'The ID of the call.'
+        example: architecto
+        required: true
+        schema:
+          type: string
+      -
+        in: path
+        name: call
+        description: 'The ID of the call'
+        example: 16
+        required: true
+        schema:
+          type: integer
+  /api/v1/calls/start:
+    post:
+      summary: 'Start a new call'
+      operationId: startANewCall
+      description: ''
+      parameters:
+        -
+          in: header
+          name: X-Tenant-ID
+          description: ''
+          example: '{YOUR_TENANT_ID}'
+          schema:
+            type: string
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  data:
+                    call_id: uuid
+                    message: 'Call initiated successfully'
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      call_id:
+                        type: string
+                        example: uuid
+                      message:
+                        type: string
+                        example: 'Call initiated successfully'
+      tags:
+        - Calls
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                agent_id:
+                  type: string
+                  description: 'Agent ID'
+                  example: architecto
+                contact_name:
+                  type: string
+                  description: 'Contact name'
+                  example: architecto
+                to_number:
+                  type: string
+                  description: 'Phone number to call'
+                  example: architecto
+              required:
+                - agent_id
+                - contact_name
+                - to_number
+  /api/v1/calls/export-csv:
+    get:
+      summary: 'Export calls to CSV'
+      operationId: exportCallsToCSV
+      description: ''
+      parameters:
+        -
+          in: query
+          name: start_date
+          description: 'date optional Start date for export (default: 30 days ago)'
+          example: architecto
+          required: false
+          schema:
+            type: string
+            description: 'date optional Start date for export (default: 30 days ago)'
+            example: architecto
+        -
+          in: query
+          name: end_date
+          description: 'date optional End date for export (default: now)'
+          example: architecto
+          required: false
+          schema:
+            type: string
+            description: 'date optional End date for export (default: now)'
+            example: architecto
+        -
+          in: query
+          name: 'filter[status]'
+          description: 'Filter by call status'
+          example: architecto
+          required: false
+          schema:
+            type: string
+            description: 'Filter by call status'
+            example: architecto
+        -
+          in: query
+          name: 'filter[direction]'
+          description: 'Filter by call direction'
+          example: architecto
+          required: false
+          schema:
+            type: string
+            description: 'Filter by call direction'
+            example: architecto
+        -
+          in: header
+          name: X-Tenant-ID
+          description: ''
+          example: '{YOUR_TENANT_ID}'
+          schema:
+            type: string
+      responses:
+        200:
+          description: ''
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: 'text/csv CSV file'
+      tags:
+        - Calls
+  '/api/v1/calls/{call_id}/webhooks':
+    get:
+      summary: 'Get webhooks for a specific call'
+      operationId: getWebhooksForASpecificCall
+      description: ''
+      parameters:
+        -
+          in: header
+          name: X-Tenant-ID
+          description: ''
+          example: '{YOUR_TENANT_ID}'
+          schema:
+            type: string
+      responses:
+        200:
+          description: ''
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: '{"call_id": 1, "webhooks": [{"id": 1, "event_type": "call.started", "payload": {...}}], "total_webhooks": 5}'
+      tags:
+        - Calls
+    parameters:
+      -
+        in: path
+        name: call_id
+        description: 'The ID of the call.'
+        example: architecto
+        required: true
+        schema:
+          type: string
+      -
+        in: path
+        name: call
+        description: 'The ID of the call'
+        example: 16
+        required: true
+        schema:
+          type: integer
+  /api/v1/dashboard/metrics:
+    get:
+      summary: 'Get aggregated dashboard metrics'
+      operationId: getAggregatedDashboardMetrics
+      description: ''
+      parameters:
+        -
+          in: query
+          name: start_date
+          description: 'date optional Start date for metrics (default: 30 days ago)'
+          example: architecto
+          required: false
+          schema:
+            type: string
+            description: 'date optional Start date for metrics (default: 30 days ago)'
+            example: architecto
+        -
+          in: query
+          name: end_date
+          description: 'date optional End date for metrics (default: now)'
+          example: architecto
+          required: false
+          schema:
+            type: string
+            description: 'date optional End date for metrics (default: now)'
+            example: architecto
+        -
+          in: header
+          name: X-Tenant-ID
+          description: ''
+          example: '{YOUR_TENANT_ID}'
+          schema:
+            type: string
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  total_calls: 100
+                  completed_calls: 80
+                  missed_calls: 15
+                  failed_calls: 5
+                  average_duration: 120
+                  total_cost: 5000
+                  inbound_calls: 60
+                  outbound_calls: 40
+                  success_rate: 80.0
+                properties:
+                  total_calls:
+                    type: integer
+                    example: 100
+                  completed_calls:
+                    type: integer
+                    example: 80
+                  missed_calls:
+                    type: integer
+                    example: 15
+                  failed_calls:
+                    type: integer
+                    example: 5
+                  average_duration:
+                    type: integer
+                    example: 120
+                  total_cost:
+                    type: integer
+                    example: 5000
+                  inbound_calls:
+                    type: integer
+                    example: 60
+                  outbound_calls:
+                    type: integer
+                    example: 40
+                  success_rate:
+                    type: number
+                    example: 80.0
+      tags:
+        - Dashboard
+  /api/v1/dashboard/call-evolution:
+    get:
+      summary: 'Get call evolution data for charts'
+      operationId: getCallEvolutionDataForCharts
+      description: ''
+      parameters:
+        -
+          in: query
+          name: start_date
+          description: 'date optional Start date (default: 30 days ago)'
+          example: architecto
+          required: false
+          schema:
+            type: string
+            description: 'date optional Start date (default: 30 days ago)'
+            example: architecto
+        -
+          in: query
+          name: end_date
+          description: 'date optional End date (default: now)'
+          example: architecto
+          required: false
+          schema:
+            type: string
+            description: 'date optional End date (default: now)'
+            example: architecto
+        -
+          in: query
+          name: group_by
+          description: 'optional Group by hour/day/week/month (default: day)'
+          example: architecto
+          required: false
+          schema:
+            type: string
+            description: 'optional Group by hour/day/week/month (default: day)'
+            example: architecto
+        -
+          in: header
+          name: X-Tenant-ID
+          description: ''
+          example: '{YOUR_TENANT_ID}'
+          schema:
+            type: string
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    date:
+                      type: string
+                      example: '2024-01-01'
+                    total_calls:
+                      type: integer
+                      example: 10
+                    completed_calls:
+                      type: integer
+                      example: 8
+                    missed_calls:
+                      type: integer
+                      example: 2
+                    average_duration:
+                      type: integer
+                      example: 120
+                example:
+                  -
+                    date: '2024-01-01'
+                    total_calls: 10
+                    completed_calls: 8
+                    missed_calls: 2
+                    average_duration: 120
+      tags:
+        - Dashboard
+  /api/v1/dashboard/agent-stats:
+    get:
+      summary: 'Get statistics by agent'
+      operationId: getStatisticsByAgent
+      description: ''
+      parameters:
+        -
+          in: query
+          name: start_date
+          description: 'date optional Start date (default: 30 days ago)'
+          example: architecto
+          required: false
+          schema:
+            type: string
+            description: 'date optional Start date (default: 30 days ago)'
+            example: architecto
+        -
+          in: query
+          name: end_date
+          description: 'date optional End date (default: now)'
+          example: architecto
+          required: false
+          schema:
+            type: string
+            description: 'date optional End date (default: now)'
+            example: architecto
+        -
+          in: header
+          name: X-Tenant-ID
+          description: ''
+          example: '{YOUR_TENANT_ID}'
+          schema:
+            type: string
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                      example: 1
+                    name:
+                      type: string
+                      example: 'Sales Agent'
+                    total_calls:
+                      type: integer
+                      example: 50
+                    completed_calls:
+                      type: integer
+                      example: 40
+                    missed_calls:
+                      type: integer
+                      example: 10
+                    average_duration:
+                      type: integer
+                      example: 120
+                    total_cost:
+                      type: integer
+                      example: 2500
+                example:
+                  -
+                    id: 1
+                    name: 'Sales Agent'
+                    total_calls: 50
+                    completed_calls: 40
+                    missed_calls: 10
+                    average_duration: 120
+                    total_cost: 2500
+      tags:
+        - Dashboard
+  /api/v1/dashboard/phone-number-stats:
+    get:
+      summary: 'Get statistics by phone number'
+      operationId: getStatisticsByPhoneNumber
+      description: ''
+      parameters:
+        -
+          in: query
+          name: start_date
+          description: 'date optional Start date (default: 30 days ago)'
+          example: architecto
+          required: false
+          schema:
+            type: string
+            description: 'date optional Start date (default: 30 days ago)'
+            example: architecto
+        -
+          in: query
+          name: end_date
+          description: 'date optional End date (default: now)'
+          example: architecto
+          required: false
+          schema:
+            type: string
+            description: 'date optional End date (default: now)'
+            example: architecto
+        -
+          in: header
+          name: X-Tenant-ID
+          description: ''
+          example: '{YOUR_TENANT_ID}'
+          schema:
+            type: string
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                      example: 1
+                    did:
+                      type: string
+                      example: '+1234567890'
+                    total_calls:
+                      type: integer
+                      example: 30
+                    completed_calls:
+                      type: integer
+                      example: 25
+                    missed_calls:
+                      type: integer
+                      example: 5
+                    average_duration:
+                      type: integer
+                      example: 115
+                    total_cost:
+                      type: integer
+                      example: 1500
+                example:
+                  -
+                    id: 1
+                    did: '+1234567890'
+                    total_calls: 30
+                    completed_calls: 25
+                    missed_calls: 5
+                    average_duration: 115
+                    total_cost: 1500
+      tags:
+        - Dashboard
+  /api/v1/invoices:
+    get:
+      summary: "Get user's invoices"
+      operationId: getUsersInvoices
+      description: ''
+      parameters:
+        -
+          in: query
+          name: status
+          description: 'optional Filter by invoice status'
+          example: architecto
+          required: false
+          schema:
+            type: string
+            description: 'optional Filter by invoice status'
+            example: architecto
+        -
+          in: query
+          name: per_page
+          description: "optional Items per page (default: 15)\nresponse {\"data\": [{\"id\": 1, \"invoice_number\": \"INV-20240101-ABCD\", \"amount\": 10000, \"status\": \"paid\"}], \"meta\": {...}}"
+          example: 16
+          required: false
+          schema:
+            type: integer
+            description: "optional Items per page (default: 15)\nresponse {\"data\": [{\"id\": 1, \"invoice_number\": \"INV-20240101-ABCD\", \"amount\": 10000, \"status\": \"paid\"}], \"meta\": {...}}"
+            example: 16
+        -
+          in: header
+          name: X-Tenant-ID
+          description: ''
+          example: '{YOUR_TENANT_ID}'
+          schema:
+            type: string
+      responses:
+        500:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Server Error'
+                properties:
+                  message:
+                    type: string
+                    example: 'Server Error'
+      tags:
+        - Invoices
+    post:
+      summary: 'Create a new invoice manually'
+      operationId: createANewInvoiceManually
+      description: ''
+      parameters:
+        -
+          in: header
+          name: X-Tenant-ID
+          description: ''
+          example: '{YOUR_TENANT_ID}'
+          schema:
+            type: string
+      responses:
+        200:
+          description: ''
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: '{"message": "Invoice created successfully", "invoice": {...}}'
+      tags:
+        - Invoices
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                amount:
+                  type: integer
+                  description: 'Invoice amount in cents'
+                  example: 16
+                credits_purchased:
+                  type: integer
+                  description: 'Number of credits purchased'
+                  example: 16
+                description:
+                  type: string
+                  description: 'optional Invoice description'
+                  example: 'Eius et animi quos velit et.'
+                billing_period_start:
+                  type: date
+                  description: 'Billing period start date'
+                  example: architecto
+                billing_period_end:
+                  type: date
+                  description: 'Billing period end date'
+                  example: architecto
+                line_items:
+                  type: object
+                  description: ''
+                  example: null
+                  properties: {  }
+                currency:
+                  type: string
+                  description: 'optional Currency code (usd, eur, gbp) default: usd'
+                  example: architecto
+              required:
+                - amount
+                - credits_purchased
+                - billing_period_start
+                - billing_period_end
+  '/api/v1/invoices/{id}':
+    get:
+      summary: 'Get specific invoice details'
+      operationId: getSpecificInvoiceDetails
+      description: ''
+      parameters:
+        -
+          in: header
+          name: X-Tenant-ID
+          description: ''
+          example: '{YOUR_TENANT_ID}'
+          schema:
+            type: string
+      responses:
+        200:
+          description: ''
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: '{"id": 1, "invoice_number": "INV-20240101-ABCD", "amount": 10000, "status": "paid", "user": {...}, "payments": [...]}'
+      tags:
+        - Invoices
+    delete:
+      summary: 'Delete invoice'
+      operationId: deleteInvoice
+      description: ''
+      parameters:
+        -
+          in: header
+          name: X-Tenant-ID
+          description: ''
+          example: '{YOUR_TENANT_ID}'
+          schema:
+            type: string
+      responses:
+        204:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example: {  }
+                properties: {  }
+        403:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  error: 'You do not have permission to delete this invoice'
+                properties:
+                  error:
+                    type: string
+                    example: 'You do not have permission to delete this invoice'
+        422:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  error: 'Cannot delete paid invoice'
+                properties:
+                  error:
+                    type: string
+                    example: 'Cannot delete paid invoice'
+      tags:
+        - Invoices
+    parameters:
+      -
+        in: path
+        name: id
+        description: 'The ID of the invoice.'
+        example: architecto
+        required: true
+        schema:
+          type: string
+      -
+        in: path
+        name: invoice
+        description: 'The ID of the invoice'
+        example: 16
+        required: true
+        schema:
+          type: integer
+  '/api/v1/invoices/{invoice_id}/send':
+    post:
+      summary: 'Send invoice manually'
+      operationId: sendInvoiceManually
+      description: ''
+      parameters:
+        -
+          in: header
+          name: X-Tenant-ID
+          description: ''
+          example: '{YOUR_TENANT_ID}'
+          schema:
+            type: string
+      responses:
+        200:
+          description: ''
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: '{"message": "Invoice sent successfully", "invoice": {...}}'
+        403:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  error: 'You do not have permission to send this invoice'
+                properties:
+                  error:
+                    type: string
+                    example: 'You do not have permission to send this invoice'
+      tags:
+        - Invoices
+    parameters:
+      -
+        in: path
+        name: invoice_id
+        description: 'The ID of the invoice.'
+        example: architecto
+        required: true
+        schema:
+          type: string
+      -
+        in: path
+        name: invoice
+        description: 'The ID of the invoice'
+        example: 16
+        required: true
+        schema:
+          type: integer
+  '/api/v1/invoices/{invoice_id}/status':
+    put:
+      summary: 'Update invoice status'
+      operationId: updateInvoiceStatus
+      description: ''
+      parameters:
+        -
+          in: header
+          name: X-Tenant-ID
+          description: ''
+          example: '{YOUR_TENANT_ID}'
+          schema:
+            type: string
+      responses:
+        200:
+          description: ''
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: '{"message": "Invoice updated successfully", "invoice": {...}}'
+      tags:
+        - Invoices
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  description: 'New status (draft, pending, paid, failed, cancelled)'
+                  example: architecto
+                notes:
+                  type: string
+                  description: 'optional Notes about the status update'
+                  example: architecto
+              required:
+                - status
+    parameters:
+      -
+        in: path
+        name: invoice_id
+        description: 'The ID of the invoice.'
+        example: architecto
+        required: true
+        schema:
+          type: string
+      -
+        in: path
+        name: invoice
+        description: 'The ID of the invoice'
+        example: 16
+        required: true
+        schema:
+          type: integer
+  /api/v1/knowledge-bases:
+    get:
+      summary: 'List all knowledge bases'
+      operationId: listAllKnowledgeBases
+      description: ''
+      parameters:
+        -
+          in: query
+          name: 'filter[name]'
+          description: 'optional Filter by name (partial match)'
+          example: architecto
+          required: false
+          schema:
+            type: string
+            description: 'optional Filter by name (partial match)'
+            example: architecto
+        -
+          in: query
+          name: 'filter[document_type]'
+          description: 'optional Filter by document type'
+          example: architecto
+          required: false
+          schema:
+            type: string
+            description: 'optional Filter by document type'
+            example: architecto
+        -
+          in: query
+          name: sort
+          description: 'optional Sort by field (name, created_at, updated_at)'
+          example: architecto
+          required: false
+          schema:
+            type: string
+            description: 'optional Sort by field (name, created_at, updated_at)'
+            example: architecto
+        -
+          in: query
+          name: 'filter[agents]'
+          description: 'optional Include agents in response'
+          example: architecto
+          required: false
+          schema:
+            type: string
+            description: 'optional Include agents in response'
+            example: architecto
+        -
+          in: header
+          name: X-Tenant-ID
+          description: ''
+          example: '{YOUR_TENANT_ID}'
+          schema:
+            type: string
+      responses:
+        200:
+          description: ''
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: '{"data": [{"id": 1, "name": "Product FAQ", "document_type": "pdf"}], "meta": {...}}'
+      tags:
+        - 'Knowledge Bases'
+    post:
+      summary: 'Create a new knowledge base'
+      operationId: createANewKnowledgeBase
+      description: ''
+      parameters:
+        -
+          in: header
+          name: X-Tenant-ID
+          description: ''
+          example: '{YOUR_TENANT_ID}'
+          schema:
+            type: string
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  id: 1
+                  name: 'Product FAQ'
+                  document_type: pdf
+                properties:
+                  id:
+                    type: integer
+                    example: 1
+                  name:
+                    type: string
+                    example: 'Product FAQ'
+                  document_type:
+                    type: string
+                    example: pdf
+      tags:
+        - 'Knowledge Bases'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: 'Knowledge base name'
+                  example: architecto
+                description:
+                  type: string
+                  description: 'optional Knowledge base description'
+                  example: 'Eius et animi quos velit et.'
+                document_type:
+                  type: string
+                  description: 'optional Document type'
+                  example: architecto
+              required:
+                - name
+  '/api/v1/knowledge-bases/{id}':
+    get:
+      summary: 'Get a specific knowledge base'
+      operationId: getASpecificKnowledgeBase
+      description: ''
+      parameters:
+        -
+          in: query
+          name: 'filter[agents]'
+          description: 'optional Include agents in response'
+          example: architecto
+          required: false
+          schema:
+            type: string
+            description: 'optional Include agents in response'
+            example: architecto
+        -
+          in: header
+          name: X-Tenant-ID
+          description: ''
+          example: '{YOUR_TENANT_ID}'
+          schema:
+            type: string
+      responses:
+        200:
+          description: ''
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: '{"id": 1, "name": "Product FAQ", "document_type": "pdf", "agents": [...]}'
+      tags:
+        - 'Knowledge Bases'
+    put:
+      summary: 'Update a knowledge base'
+      operationId: updateAKnowledgeBase
+      description: ''
+      parameters:
+        -
+          in: header
+          name: X-Tenant-ID
+          description: ''
+          example: '{YOUR_TENANT_ID}'
+          schema:
+            type: string
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  id: 1
+                  name: 'Updated FAQ'
+                  document_type: pdf
+                properties:
+                  id:
+                    type: integer
+                    example: 1
+                  name:
+                    type: string
+                    example: 'Updated FAQ'
+                  document_type:
+                    type: string
+                    example: pdf
+      tags:
+        - 'Knowledge Bases'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: 'optional Knowledge base name'
+                  example: architecto
+                description:
+                  type: string
+                  description: 'optional Knowledge base description'
+                  example: 'Eius et animi quos velit et.'
+                document_type:
+                  type: string
+                  description: 'optional Document type'
+                  example: architecto
+    delete:
+      summary: 'Delete a knowledge base'
+      operationId: deleteAKnowledgeBase
+      description: ''
+      parameters:
+        -
+          in: header
+          name: X-Tenant-ID
+          description: ''
+          example: '{YOUR_TENANT_ID}'
+          schema:
+            type: string
+      responses:
+        204:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example: {  }
+                properties: {  }
+      tags:
+        - 'Knowledge Bases'
+    parameters:
+      -
+        in: path
+        name: id
+        description: 'The ID of the knowledge base.'
+        example: architecto
+        required: true
+        schema:
+          type: string
+      -
+        in: path
+        name: knowledgeBase
+        description: 'The ID of the knowledge base'
+        example: 16
+        required: true
+        schema:
+          type: integer
+  /api/v1/notifications:
+    get:
+      summary: 'List all notifications'
+      operationId: listAllNotifications
+      description: ''
+      parameters:
+        -
+          in: query
+          name: 'filter[read]'
+          description: 'optional Filter by read status (true/false)'
+          example: false
+          required: false
+          schema:
+            type: boolean
+            description: 'optional Filter by read status (true/false)'
+            example: false
+        -
+          in: query
+          name: 'filter[notification_type]'
+          description: 'optional Filter by notification type'
+          example: architecto
+          required: false
+          schema:
+            type: string
+            description: 'optional Filter by notification type'
+            example: architecto
+        -
+          in: query
+          name: sort
+          description: 'optional Sort by field (created_at, updated_at, read_at)'
+          example: architecto
+          required: false
+          schema:
+            type: string
+            description: 'optional Sort by field (created_at, updated_at, read_at)'
+            example: architecto
+        -
+          in: header
+          name: X-Tenant-ID
+          description: ''
+          example: '{YOUR_TENANT_ID}'
+          schema:
+            type: string
+      responses:
+        200:
+          description: ''
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: '{"data": [{"id": 1, "notification_type": "call_completed", "read_at": null}], "meta": {...}}'
+      tags:
+        - Notifications
+  '/api/v1/notifications/{id}':
+    get:
+      summary: 'Get a specific notification'
+      operationId: getASpecificNotification
+      description: ''
+      parameters:
+        -
+          in: header
+          name: X-Tenant-ID
+          description: ''
+          example: '{YOUR_TENANT_ID}'
+          schema:
+            type: string
+      responses:
+        200:
+          description: ''
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: '{"id": 1, "notification_type": "call_completed", "data": {...}, "read_at": null}'
+      tags:
+        - Notifications
+    parameters:
+      -
+        in: path
+        name: id
+        description: 'The ID of the notification.'
+        example: architecto
+        required: true
+        schema:
+          type: string
+      -
+        in: path
+        name: notification
+        description: 'The ID of the notification'
+        example: 16
+        required: true
+        schema:
+          type: integer
+  '/api/v1/notifications/{notification_id}/mark-read':
+    post:
+      summary: 'Mark a notification as read'
+      operationId: markANotificationAsRead
+      description: ''
+      parameters:
+        -
+          in: header
+          name: X-Tenant-ID
+          description: ''
+          example: '{YOUR_TENANT_ID}'
+          schema:
+            type: string
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Notification marked as read'
+                properties:
+                  message:
+                    type: string
+                    example: 'Notification marked as read'
+      tags:
+        - Notifications
+    parameters:
+      -
+        in: path
+        name: notification_id
+        description: 'The ID of the notification.'
+        example: architecto
+        required: true
+        schema:
+          type: string
+      -
+        in: path
+        name: notification
+        description: 'The ID of the notification'
+        example: 16
+        required: true
+        schema:
+          type: integer
+  /api/v1/notifications/mark-all-read:
+    post:
+      summary: 'Mark all notifications as read'
+      operationId: markAllNotificationsAsRead
+      description: ''
+      parameters:
+        -
+          in: header
+          name: X-Tenant-ID
+          description: ''
+          example: '{YOUR_TENANT_ID}'
+          schema:
+            type: string
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'All notifications marked as read'
+                properties:
+                  message:
+                    type: string
+                    example: 'All notifications marked as read'
+      tags:
+        - Notifications
+  /api/v1/onboarding/status:
+    get:
+      summary: "Get the current user's onboarding status"
+      operationId: getTheCurrentUsersOnboardingStatus
+      description: ''
+      parameters:
+        -
+          in: header
+          name: X-Tenant-ID
+          description: ''
+          example: '{YOUR_TENANT_ID}'
+          schema:
+            type: string
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  onboarding:
+                    id: 1
+                    current_step: 2
+                    completed_at: null
+                properties:
+                  onboarding:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        example: 1
+                      current_step:
+                        type: integer
+                        example: 2
+                      completed_at:
+                        type: string
+                        example: null
+                        nullable: true
+      tags:
+        - Onboarding
+  /api/v1/onboarding/step:
+    post:
+      summary: 'Save onboarding step data'
+      operationId: saveOnboardingStepData
+      description: ''
+      parameters:
+        -
+          in: header
+          name: X-Tenant-ID
+          description: ''
+          example: '{YOUR_TENANT_ID}'
+          schema:
+            type: string
+      responses:
+        200:
+          description: ''
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: '{"message": "Step saved successfully", "onboarding": {...}}'
+      tags:
+        - Onboarding
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                step:
+                  type: integer
+                  description: 'Step number (1-5)'
+                  example: 16
+                company_name:
+                  type: string
+                  description: 'optional Step 1: Company name'
+                  example: architecto
+                company_size:
+                  type: string
+                  description: 'optional Step 1: Company size (1-10, 11-50, 51-200, 201-500, 500+)'
+                  example: architecto
+                business_objective:
+                  type: string
+                  description: 'optional Step 1: Business objective'
+                  example: architecto
+                agent_name:
+                  type: string
+                  description: 'optional Step 2: Agent name'
+                  example: architecto
+                agent_description:
+                  type: string
+                  description: 'optional Step 2: Agent description'
+                  example: architecto
+                agent_language:
+                  type: string
+                  description: 'optional Step 2: Agent language'
+                  example: architecto
+              required:
+                - step
+  /api/v1/onboarding/skip:
+    post:
+      summary: 'Skip onboarding'
+      operationId: skipOnboarding
+      description: ''
+      parameters:
+        -
+          in: header
+          name: X-Tenant-ID
+          description: ''
+          example: '{YOUR_TENANT_ID}'
+          schema:
+            type: string
+      responses:
+        200:
+          description: ''
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: '{"message": "Onboarding skipped successfully", "onboarding": {...}}'
+        422:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  error: 'Onboarding already completed'
+                properties:
+                  error:
+                    type: string
+                    example: 'Onboarding already completed'
+      tags:
+        - Onboarding
+  /api/v1/onboarding/complete:
+    post:
+      summary: 'Mark onboarding as completed'
+      operationId: markOnboardingAsCompleted
+      description: ''
+      parameters:
+        -
+          in: header
+          name: X-Tenant-ID
+          description: ''
+          example: '{YOUR_TENANT_ID}'
+          schema:
+            type: string
+      responses:
+        200:
+          description: ''
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: '{"message": "Onboarding completed successfully", "onboarding": {...}}'
+      tags:
+        - Onboarding
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                step_1_data:
+                  type: array
+                  description: 'optional Step 1 data'
+                  example:
+                    - architecto
+                  items:
+                    type: string
+                step_2_data:
+                  type: array
+                  description: 'optional Step 2 data'
+                  example:
+                    - architecto
+                  items:
+                    type: string
+                step_3_data:
+                  type: array
+                  description: 'optional Step 3 data'
+                  example:
+                    - architecto
+                  items:
+                    type: string
+                step_4_data:
+                  type: array
+                  description: 'optional Step 4 data'
+                  example:
+                    - architecto
+                  items:
+                    type: string
+                step_5_data:
+                  type: array
+                  description: 'optional Step 5 data'
+                  example:
+                    - architecto
+                  items:
+                    type: string
+  '/api/v1/onboarding/step/{step}':
+    get:
+      summary: 'Get step data'
+      operationId: getStepData
+      description: ''
+      parameters:
+        -
+          in: header
+          name: X-Tenant-ID
+          description: ''
+          example: '{YOUR_TENANT_ID}'
+          schema:
+            type: string
+      responses:
+        200:
+          description: ''
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: '{"step": 1, "data": {...}, "current_step": 3, "completed": false}'
+      tags:
+        - Onboarding
+    parameters:
+      -
+        in: path
+        name: step
+        description: 'Step number (1-5)'
+        example: 16
+        required: true
+        schema:
+          type: integer
+  /api/csrf-cookie:
+    get:
+      summary: 'Return an empty response simply to trigger the storage of the CSRF cookie in the browser.'
+      operationId: returnAnEmptyResponseSimplyToTriggerTheStorageOfTheCSRFCookieInTheBrowser
+      description: ''
+      parameters:
+        -
+          in: header
+          name: X-Tenant-ID
+          description: ''
+          example: '{YOUR_TENANT_ID}'
+          schema:
+            type: string
+      responses:
+        500:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Server Error'
+                properties:
+                  message:
+                    type: string
+                    example: 'Server Error'
+      tags:
+        - Others
+  /api/v1/credits:
+    get:
+      summary: "Get current user's credit balance"
+      operationId: getCurrentUsersCreditBalance
+      description: ''
+      parameters:
+        -
+          in: header
+          name: X-Tenant-ID
+          description: ''
+          example: '{YOUR_TENANT_ID}'
+          schema:
+            type: string
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  balance: 5000
+                  total_purchased: 10000
+                  total_used: 5000
+                properties:
+                  balance:
+                    type: integer
+                    example: 5000
+                  total_purchased:
+                    type: integer
+                    example: 10000
+                  total_used:
+                    type: integer
+                    example: 5000
+      tags:
+        - Payments
+  /api/v1/payments/create-intent:
+    post:
+      summary: 'Create a payment intent for purchasing credits'
+      operationId: createAPaymentIntentForPurchasingCredits
+      description: ''
+      parameters:
+        -
+          in: header
+          name: X-Tenant-ID
+          description: ''
+          example: '{YOUR_TENANT_ID}'
+          schema:
+            type: string
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  client_secret: pi_...
+                  payment_intent_id: pi_...
+                  amount: 5000
+                  credits_amount: 100
+                  currency: usd
+                properties:
+                  client_secret:
+                    type: string
+                    example: pi_...
+                  payment_intent_id:
+                    type: string
+                    example: pi_...
+                  amount:
+                    type: integer
+                    example: 5000
+                  credits_amount:
+                    type: integer
+                    example: 100
+                  currency:
+                    type: string
+                    example: usd
+      tags:
+        - Payments
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                amount:
+                  type: integer
+                  description: 'Amount in cents (min: 500, max: 100000)'
+                  example: 16
+                credits_amount:
+                  type: integer
+                  description: 'Number of credits to purchase (min: 100, max: 10000)'
+                  example: 16
+                currency:
+                  type: string
+                  description: 'optional Currency code (usd, eur, gbp) default: usd'
+                  example: architecto
+                description:
+                  type: string
+                  description: 'optional Payment description'
+                  example: 'Eius et animi quos velit et.'
+              required:
+                - amount
+                - credits_amount
+  /api/v1/payments:
+    get:
+      summary: 'Get payment history'
+      operationId: getPaymentHistory
+      description: ''
+      parameters:
+        -
+          in: query
+          name: status
+          description: 'optional Filter by payment status'
+          example: architecto
+          required: false
+          schema:
+            type: string
+            description: 'optional Filter by payment status'
+            example: architecto
+        -
+          in: query
+          name: per_page
+          description: 'optional Items per page (default: 15)'
+          example: 16
+          required: false
+          schema:
+            type: integer
+            description: 'optional Items per page (default: 15)'
+            example: 16
+        -
+          in: header
+          name: X-Tenant-ID
+          description: ''
+          example: '{YOUR_TENANT_ID}'
+          schema:
+            type: string
+      responses:
+        200:
+          description: ''
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: '{"data": [{"id": 1, "amount": 5000, "status": "completed", "paid_at": "2024-01-01T00:00:00Z"}], "meta": {...}}'
+      tags:
+        - Payments
+  '/api/v1/payments/{payment_id}':
+    get:
+      summary: 'Get payment details'
+      operationId: getPaymentDetails
+      description: ''
+      parameters:
+        -
+          in: header
+          name: X-Tenant-ID
+          description: ''
+          example: '{YOUR_TENANT_ID}'
+          schema:
+            type: string
+      responses:
+        200:
+          description: ''
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: '{"id": 1, "amount": 5000, "status": "completed", "user": {...}, "invoice": {...}}'
+      tags:
+        - Payments
+    parameters:
+      -
+        in: path
+        name: payment_id
+        description: 'The ID of the payment.'
+        example: architecto
+        required: true
+        schema:
+          type: string
+      -
+        in: path
+        name: payment
+        description: 'The ID of the payment'
+        example: 16
+        required: true
+        schema:
+          type: integer
+  /api/v1/phone-numbers:
+    get:
+      summary: 'List all phone numbers'
+      operationId: listAllPhoneNumbers
+      description: ''
+      parameters:
+        -
+          in: query
+          name: 'filter[did]'
+          description: 'optional Filter by DID (partial match)'
+          example: architecto
+          required: false
+          schema:
+            type: string
+            description: 'optional Filter by DID (partial match)'
+            example: architecto
+        -
+          in: query
+          name: 'filter[provider]'
+          description: 'optional Filter by provider'
+          example: architecto
+          required: false
+          schema:
+            type: string
+            description: 'optional Filter by provider'
+            example: architecto
+        -
+          in: query
+          name: 'filter[country_code]'
+          description: 'optional Filter by country code'
+          example: architecto
+          required: false
+          schema:
+            type: string
+            description: 'optional Filter by country code'
+            example: architecto
+        -
+          in: query
+          name: sort
+          description: 'optional Sort by field (did, country_code, created_at, updated_at)'
+          example: architecto
+          required: false
+          schema:
+            type: string
+            description: 'optional Sort by field (did, country_code, created_at, updated_at)'
+            example: architecto
+        -
+          in: query
+          name: 'filter[agents]'
+          description: 'optional Include agents in response'
+          example: architecto
+          required: false
+          schema:
+            type: string
+            description: 'optional Include agents in response'
+            example: architecto
+        -
+          in: header
+          name: X-Tenant-ID
+          description: ''
+          example: '{YOUR_TENANT_ID}'
+          schema:
+            type: string
+      responses:
+        200:
+          description: ''
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: '{"data": [{"id": 1, "did": "+1234567890", "provider": "twilio", "country_code": "US"}], "meta": {...}}'
+      tags:
+        - 'Phone Numbers'
+    post:
+      summary: 'Create a new phone number'
+      operationId: createANewPhoneNumber
+      description: ''
+      parameters:
+        -
+          in: header
+          name: X-Tenant-ID
+          description: ''
+          example: '{YOUR_TENANT_ID}'
+          schema:
+            type: string
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  id: 1
+                  did: '+1234567890'
+                  provider: twilio
+                  country_code: US
+                properties:
+                  id:
+                    type: integer
+                    example: 1
+                  did:
+                    type: string
+                    example: '+1234567890'
+                  provider:
+                    type: string
+                    example: twilio
+                  country_code:
+                    type: string
+                    example: US
+      tags:
+        - 'Phone Numbers'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                did:
+                  type: string
+                  description: 'Phone number (DID)'
+                  example: architecto
+                provider:
+                  type: string
+                  description: 'optional Provider name: voxsun | twilio'
+                  example: architecto
+                country_code:
+                  type: string
+                  description: 'optional Country code'
+                  example: architecto
+                provider_config:
+                  type: object
+                  description: 'Provider-specific configuration settings'
+                  example: null
+                  properties:
+                    account_sid:
+                      type: string
+                      description: 'Twilio Account SID'
+                      example: AC123
+                    auth_token:
+                      type: string
+                      description: 'Twilio Auth Token'
+                      example: "secret\n\n// Voxsun example"
+                    username:
+                      type: string
+                      description: 'Voxsun SIP Trunk username'
+                      example: john_doe
+                    secret:
+                      type: string
+                      description: 'Voxsun SIP Trunk Secret'
+                      example: secret_456
+                    sip_domain:
+                      type: string
+                      description: 'Voxsun SIP Domain'
+                      example: sip.voxsun.com
+                  required:
+                    - account_sid
+                    - auth_token
+                    - username
+                    - secret
+                    - sip_domain
+              required:
+                - did
+                - provider_config
+  '/api/v1/phone-numbers/{id}':
+    get:
+      summary: 'Get a specific phone number'
+      operationId: getASpecificPhoneNumber
+      description: ''
+      parameters:
+        -
+          in: query
+          name: 'filter[agents]'
+          description: 'optional Include agents in response'
+          example: architecto
+          required: false
+          schema:
+            type: string
+            description: 'optional Include agents in response'
+            example: architecto
+        -
+          in: header
+          name: X-Tenant-ID
+          description: ''
+          example: '{YOUR_TENANT_ID}'
+          schema:
+            type: string
+      responses:
+        200:
+          description: ''
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: '{"id": 1, "did": "+1234567890", "provider": "twilio", "country_code": "US", "agents": [...]}'
+      tags:
+        - 'Phone Numbers'
+    put:
+      summary: 'Update a phone number'
+      operationId: updateAPhoneNumber
+      description: ''
+      parameters:
+        -
+          in: header
+          name: X-Tenant-ID
+          description: ''
+          example: '{YOUR_TENANT_ID}'
+          schema:
+            type: string
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  id: 1
+                  did: '+1234567890'
+                  provider: twilio
+                  country_code: US
+                properties:
+                  id:
+                    type: integer
+                    example: 1
+                  did:
+                    type: string
+                    example: '+1234567890'
+                  provider:
+                    type: string
+                    example: twilio
+                  country_code:
+                    type: string
+                    example: US
+      tags:
+        - 'Phone Numbers'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                did:
+                  type: string
+                  description: 'optional Phone number (DID)'
+                  example: architecto
+                country_code:
+                  type: string
+                  description: 'optional Country code'
+                  example: architecto
+                provider_config:
+                  type: object
+                  description: 'Provider-specific configuration settings'
+                  example: null
+                  properties:
+                    account_sid:
+                      type: string
+                      description: 'Twilio Account SID'
+                      example: AC123
+                    auth_token:
+                      type: string
+                      description: 'Twilio Auth Token'
+                      example: "secret\n\n// Voxsun example"
+                    username:
+                      type: string
+                      description: 'Voxsun SIP Trunk username'
+                      example: john_doe
+                    secret:
+                      type: string
+                      description: 'Voxsun SIP Trunk Secret'
+                      example: secret_456
+                    sip_domain:
+                      type: string
+                      description: 'Voxsun SIP Domain'
+                      example: sip.voxsun.com
+                  required:
+                    - account_sid
+                    - auth_token
+                    - username
+                    - secret
+                    - sip_domain
+              required:
+                - provider_config
+    delete:
+      summary: 'Delete a phone number'
+      operationId: deleteAPhoneNumber
+      description: ''
+      parameters:
+        -
+          in: header
+          name: X-Tenant-ID
+          description: ''
+          example: '{YOUR_TENANT_ID}'
+          schema:
+            type: string
+      responses:
+        204:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example: {  }
+                properties: {  }
+      tags:
+        - 'Phone Numbers'
+    parameters:
+      -
+        in: path
+        name: id
+        description: 'The ID of the phone number.'
+        example: architecto
+        required: true
+        schema:
+          type: string
+  /api/v1/invitations:
+    get:
+      summary: 'List all tenant invitations'
+      operationId: listAllTenantInvitations
+      description: ''
+      parameters:
+        -
+          in: query
+          name: 'filter[email]'
+          description: 'optional Filter by email (partial match)'
+          example: architecto
+          required: false
+          schema:
+            type: string
+            description: 'optional Filter by email (partial match)'
+            example: architecto
+        -
+          in: query
+          name: 'filter[role]'
+          description: 'optional Filter by role'
+          example: architecto
+          required: false
+          schema:
+            type: string
+            description: 'optional Filter by role'
+            example: architecto
+        -
+          in: query
+          name: sort
+          description: 'optional Sort by field (created_at, expires_at)'
+          example: architecto
+          required: false
+          schema:
+            type: string
+            description: 'optional Sort by field (created_at, expires_at)'
+            example: architecto
+        -
+          in: header
+          name: X-Tenant-ID
+          description: ''
+          example: '{YOUR_TENANT_ID}'
+          schema:
+            type: string
+      responses:
+        200:
+          description: ''
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: '{"data": [{"id": 1, "email": "invited@example.com", "role": "admin", "expires_at": "2024-02-01"}], "meta": {...}}'
+      tags:
+        - 'Tenant Invitations'
+    post:
+      summary: 'Create a new tenant invitation'
+      operationId: createANewTenantInvitation
+      description: ''
+      parameters:
+        -
+          in: header
+          name: X-Tenant-ID
+          description: ''
+          example: '{YOUR_TENANT_ID}'
+          schema:
+            type: string
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  id: 1
+                  email: invited@example.com
+                  role: admin
+                  expires_at: '2024-02-01'
+                properties:
+                  id:
+                    type: integer
+                    example: 1
+                  email:
+                    type: string
+                    example: invited@example.com
+                  role:
+                    type: string
+                    example: admin
+                  expires_at:
+                    type: string
+                    example: '2024-02-01'
+      tags:
+        - 'Tenant Invitations'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  description: 'Email to invite'
+                  example: gbailey@example.net
+                name:
+                  type: string
+                  description: 'optional Display name for the invitee'
+                  example: architecto
+                role:
+                  type: string
+                  description: 'optional Role to assign (default: member)'
+                  example: architecto
+              required:
+                - email
+  '/api/v1/invitations/{id}':
+    get:
+      summary: 'Get a specific tenant invitation'
+      operationId: getASpecificTenantInvitation
+      description: ''
+      parameters:
+        -
+          in: header
+          name: X-Tenant-ID
+          description: ''
+          example: '{YOUR_TENANT_ID}'
+          schema:
+            type: string
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  id: 1
+                  email: invited@example.com
+                  role: admin
+                  accepted_at: null
+                properties:
+                  id:
+                    type: integer
+                    example: 1
+                  email:
+                    type: string
+                    example: invited@example.com
+                  role:
+                    type: string
+                    example: admin
+                  accepted_at:
+                    type: string
+                    example: null
+                    nullable: true
+      tags:
+        - 'Tenant Invitations'
+    delete:
+      summary: 'Cancel a tenant invitation'
+      operationId: cancelATenantInvitation
+      description: ''
+      parameters:
+        -
+          in: header
+          name: X-Tenant-ID
+          description: ''
+          example: '{YOUR_TENANT_ID}'
+          schema:
+            type: string
+      responses:
+        204:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example: {  }
+                properties: {  }
+        403:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  error: 'You do not have permission to cancel invitations'
+                properties:
+                  error:
+                    type: string
+                    example: 'You do not have permission to cancel invitations'
+      tags:
+        - 'Tenant Invitations'
+    parameters:
+      -
+        in: path
+        name: id
+        description: 'The ID of the invitation.'
+        example: architecto
+        required: true
+        schema:
+          type: string
+      -
+        in: path
+        name: invitation
+        description: 'The ID of the invitation'
+        example: 16
+        required: true
+        schema:
+          type: integer
+  '/api/v1/invitations/{invitation_id}/accept':
+    post:
+      summary: 'Accept a tenant invitation'
+      operationId: acceptATenantInvitation
+      description: ''
+      parameters:
+        -
+          in: header
+          name: X-Tenant-ID
+          description: ''
+          example: '{YOUR_TENANT_ID}'
+          schema:
+            type: string
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Invitation accepted successfully'
+                  role: admin
+                properties:
+                  message:
+                    type: string
+                    example: 'Invitation accepted successfully'
+                  role:
+                    type: string
+                    example: admin
+        422:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  error: 'Invitation is expired or already accepted'
+                properties:
+                  error:
+                    type: string
+                    example: 'Invitation is expired or already accepted'
+      tags:
+        - 'Tenant Invitations'
+    parameters:
+      -
+        in: path
+        name: invitation_id
+        description: 'The ID of the invitation.'
+        example: architecto
+        required: true
+        schema:
+          type: string
+      -
+        in: path
+        name: invitation
+        description: 'The ID of the invitation'
+        example: 16
+        required: true
+        schema:
+          type: integer
+  /api/v1/tenants/register:
+    post:
+      summary: 'Register a new tenant'
+      operationId: registerANewTenant
+      description: ''
+      parameters:
+        -
+          in: header
+          name: X-Tenant-ID
+          description: ''
+          example: '{YOUR_TENANT_ID}'
+          schema:
+            type: string
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  id: 1
+                  name: 'Acme Inc'
+                  slug: acme-inc
+                  email: admin@acme.com
+                properties:
+                  id:
+                    type: integer
+                    example: 1
+                  name:
+                    type: string
+                    example: 'Acme Inc'
+                  slug:
+                    type: string
+                    example: acme-inc
+                  email:
+                    type: string
+                    example: admin@acme.com
+      tags:
+        - Tenants
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: 'Tenant name'
+                  example: architecto
+                email:
+                  type: string
+                  description: 'Email address'
+                  example: gbailey@example.net
+                password:
+                  type: string
+                  description: Password
+                  example: '|]|{+-'
+              required:
+                - name
+                - email
+                - password
+      security: []
+  /api/v1/tenants/signup.checkEmail:
+    post:
+      summary: 'Check email and send OTP'
+      operationId: checkEmailAndSendOTP
+      description: ''
+      parameters:
+        -
+          in: header
+          name: X-Tenant-ID
+          description: ''
+          example: '{YOUR_TENANT_ID}'
+          schema:
+            type: string
+      responses:
+        204:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example: {  }
+                properties: {  }
+        404:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  error: 'User not found'
+                properties:
+                  error:
+                    type: string
+                    example: 'User not found'
+      tags:
+        - Tenants
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  description: 'Email address'
+                  example: gbailey@example.net
+              required:
+                - email
+      security: []
+  /api/v1/tenants/signup.verifyOtp:
+    post:
+      summary: "Verify OTP and return user's tenants"
+      operationId: verifyOTPAndReturnUsersTenants
+      description: ''
+      parameters:
+        -
+          in: header
+          name: X-Tenant-ID
+          description: ''
+          example: '{YOUR_TENANT_ID}'
+          schema:
+            type: string
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  tenants:
+                    -
+                      id: abc
+                      name: 'Acme Inc'
+                      slug: acme-inc
+                properties:
+                  tenants:
+                    type: array
+                    example:
+                      -
+                        id: abc
+                        name: 'Acme Inc'
+                        slug: acme-inc
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          example: abc
+                        name:
+                          type: string
+                          example: 'Acme Inc'
+                        slug:
+                          type: string
+                          example: acme-inc
+        401:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  error: 'Invalid or expired OTP'
+                properties:
+                  error:
+                    type: string
+                    example: 'Invalid or expired OTP'
+      tags:
+        - Tenants
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  description: 'Email address'
+                  example: gbailey@example.net
+                otp:
+                  type: string
+                  description: 'OTP code'
+                  example: architecto
+              required:
+                - email
+                - otp
+      security: []
+  '/api/v1/tenants/{tenant_id}':
+    get:
+      summary: 'Get tenant details'
+      operationId: getTenantDetails
+      description: ''
+      parameters:
+        -
+          in: header
+          name: X-Tenant-ID
+          description: ''
+          example: '{YOUR_TENANT_ID}'
+          schema:
+            type: string
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  id: 1
+                  name: 'Acme Inc'
+                  slug: acme-inc
+                  email: admin@acme.com
+                properties:
+                  id:
+                    type: integer
+                    example: 1
+                  name:
+                    type: string
+                    example: 'Acme Inc'
+                  slug:
+                    type: string
+                    example: acme-inc
+                  email:
+                    type: string
+                    example: admin@acme.com
+      tags:
+        - Tenants
+    put:
+      summary: 'Update tenant information'
+      operationId: updateTenantInformation
+      description: ''
+      parameters:
+        -
+          in: header
+          name: X-Tenant-ID
+          description: ''
+          example: '{YOUR_TENANT_ID}'
+          schema:
+            type: string
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  id: 1
+                  name: 'Acme Inc'
+                  slug: acme-inc
+                properties:
+                  id:
+                    type: integer
+                    example: 1
+                  name:
+                    type: string
+                    example: 'Acme Inc'
+                  slug:
+                    type: string
+                    example: acme-inc
+        403:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  error: 'You do not have permission to update tenant information'
+                properties:
+                  error:
+                    type: string
+                    example: 'You do not have permission to update tenant information'
+      tags:
+        - Tenants
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: 'optional Tenant name'
+                  example: architecto
+                slug:
+                  type: string
+                  description: 'optional Tenant slug (unique)'
+                  example: architecto
+                website:
+                  type: string
+                  description: 'optional Website URL'
+                  example: architecto
+                  nullable: true
+                phone:
+                  type: string
+                  description: 'optional Phone number'
+                  example: architecto
+                  nullable: true
+                status:
+                  type: string
+                  description: 'optional Tenant status (active, inactive)'
+                  example: architecto
+    delete:
+      summary: 'Delete a tenant'
+      operationId: deleteATenant
+      description: ''
+      parameters:
+        -
+          in: header
+          name: X-Tenant-ID
+          description: ''
+          example: '{YOUR_TENANT_ID}'
+          schema:
+            type: string
+      responses:
+        204:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example: {  }
+                properties: {  }
+        403:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  error: 'You do not have permission to delete this tenant'
+                properties:
+                  error:
+                    type: string
+                    example: 'You do not have permission to delete this tenant'
+      tags:
+        - Tenants
+    parameters:
+      -
+        in: path
+        name: tenant_id
+        description: 'The ID of the tenant.'
+        example: architecto
+        required: true
+        schema:
+          type: string
+      -
+        in: path
+        name: tenant
+        description: 'The ID of the tenant'
+        example: 16
+        required: true
+        schema:
+          type: integer
+  /api/v1/preferences:
+    get:
+      summary: "Get the authenticated user's preferences"
+      operationId: getTheAuthenticatedUsersPreferences
+      description: ''
+      parameters:
+        -
+          in: header
+          name: X-Tenant-ID
+          description: ''
+          example: '{YOUR_TENANT_ID}'
+          schema:
+            type: string
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  id: 1
+                  language: en
+                  email_notifications: true
+                  push_notifications: true
+                  theme: light
+                  timezone: UTC
+                properties:
+                  id:
+                    type: integer
+                    example: 1
+                  language:
+                    type: string
+                    example: en
+                  email_notifications:
+                    type: boolean
+                    example: true
+                  push_notifications:
+                    type: boolean
+                    example: true
+                  theme:
+                    type: string
+                    example: light
+                  timezone:
+                    type: string
+                    example: UTC
+      tags:
+        - 'User Preferences'
+    put:
+      summary: "Update the authenticated user's preferences"
+      operationId: updateTheAuthenticatedUsersPreferences
+      description: ''
+      parameters:
+        -
+          in: header
+          name: X-Tenant-ID
+          description: ''
+          example: '{YOUR_TENANT_ID}'
+          schema:
+            type: string
+      responses:
+        200:
+          description: ''
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: '{"message": "Preferences updated successfully", "preferences": {...}}'
+      tags:
+        - 'User Preferences'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                language:
+                  type: string
+                  description: 'optional Language code (max: 10)'
+                  example: architecto
+                email_notifications:
+                  type: boolean
+                  description: 'optional Enable email notifications'
+                  example: false
+                push_notifications:
+                  type: boolean
+                  description: 'optional Enable push notifications'
+                  example: false
+                theme:
+                  type: string
+                  description: 'optional Theme (light, dark, auto)'
+                  example: architecto
+                timezone:
+                  type: string
+                  description: 'optional Timezone (max: 50)'
+                  example: Asia/Yekaterinburg
+                preferences:
+                  type: object
+                  description: ''
+                  example: null
+                  properties: {  }
+  /api/v1/users:
+    get:
+      summary: 'List all users in tenant'
+      operationId: listAllUsersInTenant
+      description: ''
+      parameters:
+        -
+          in: query
+          name: 'filter[name]'
+          description: 'optional Filter by name (matches first_name or last_name)'
+          example: architecto
+          required: false
+          schema:
+            type: string
+            description: 'optional Filter by name (matches first_name or last_name)'
+            example: architecto
+        -
+          in: query
+          name: 'filter[email]'
+          description: 'optional Filter by email (partial match)'
+          example: architecto
+          required: false
+          schema:
+            type: string
+            description: 'optional Filter by email (partial match)'
+            example: architecto
+        -
+          in: query
+          name: sort
+          description: 'optional Sort by field (first_name, email, created_at)'
+          example: architecto
+          required: false
+          schema:
+            type: string
+            description: 'optional Sort by field (first_name, email, created_at)'
+            example: architecto
+        -
+          in: header
+          name: X-Tenant-ID
+          description: ''
+          example: '{YOUR_TENANT_ID}'
+          schema:
+            type: string
+      responses:
+        200:
+          description: ''
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: '{"data": [{"id": 1, "first_name": "John", "last_name": "Doe", "email": "john@example.com"}], "meta": {...}}'
+      tags:
+        - Users
+  '/api/v1/users/{user_id}':
+    get:
+      summary: 'Get a specific user'
+      operationId: getASpecificUser
+      description: ''
+      parameters:
+        -
+          in: header
+          name: X-Tenant-ID
+          description: ''
+          example: '{YOUR_TENANT_ID}'
+          schema:
+            type: string
+      responses:
+        200:
+          description: ''
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: '{"id": 1, "first_name": "John", "last_name": "Doe", "email": "john@example.com", "roles": [...]}'
+      tags:
+        - Users
+    delete:
+      summary: 'Delete a user'
+      operationId: deleteAUser
+      description: ''
+      parameters:
+        -
+          in: header
+          name: X-Tenant-ID
+          description: ''
+          example: '{YOUR_TENANT_ID}'
+          schema:
+            type: string
+      responses:
+        204:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example: {  }
+                properties: {  }
+        403:
+          description: ''
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  -
+                    description: ''
+                    type: object
+                    example:
+                      error: 'Cannot delete yourself'
+                    properties:
+                      error:
+                        type: string
+                        example: 'Cannot delete yourself'
+                  -
+                    description: ''
+                    type: object
+                    example:
+                      error: 'You do not have permission to delete users'
+                    properties:
+                      error:
+                        type: string
+                        example: 'You do not have permission to delete users'
+                  -
+                    description: ''
+                    type: object
+                    example:
+                      error: 'Cannot delete the last owner of the tenant'
+                    properties:
+                      error:
+                        type: string
+                        example: 'Cannot delete the last owner of the tenant'
+      tags:
+        - Users
+    parameters:
+      -
+        in: path
+        name: user_id
+        description: 'The ID of the user.'
+        example: architecto
+        required: true
+        schema:
+          type: string
+      -
+        in: path
+        name: user
+        description: 'The ID of the user'
+        example: 16
+        required: true
+        schema:
+          type: integer
+  /api/v1/workflows:
+    get:
+      summary: 'List all workflows'
+      operationId: listAllWorkflows
+      description: ''
+      parameters:
+        -
+          in: query
+          name: is_active
+          description: 'optional Filter by active status'
+          example: false
+          required: false
+          schema:
+            type: boolean
+            description: 'optional Filter by active status'
+            example: false
+        -
+          in: query
+          name: trigger_type
+          description: 'optional Filter by trigger type (phone_call_connected, transcript_complete, call_summary, etc.)'
+          example: architecto
+          required: false
+          schema:
+            type: string
+            description: 'optional Filter by trigger type (phone_call_connected, transcript_complete, call_summary, etc.)'
+            example: architecto
+        -
+          in: query
+          name: per_page
+          description: 'optional Items per page (default: 15)'
+          example: 16
+          required: false
+          schema:
+            type: integer
+            description: 'optional Items per page (default: 15)'
+            example: 16
+        -
+          in: header
+          name: X-Tenant-ID
+          description: ''
+          example: '{YOUR_TENANT_ID}'
+          schema:
+            type: string
+      responses:
+        200:
+          description: ''
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: '{"data": [{"id": 1, "name": "Follow-up Workflow", "is_active": true}], "meta": {...}}'
+      tags:
+        - Workflows
+    post:
+      summary: 'Store a new workflow'
+      operationId: storeANewWorkflow
+      description: ''
+      parameters:
+        -
+          in: header
+          name: X-Tenant-ID
+          description: ''
+          example: '{YOUR_TENANT_ID}'
+          schema:
+            type: string
+      responses:
+        200:
+          description: ''
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: '{"message": "Workflow created successfully", "workflow": {...}}'
+      tags:
+        - Workflows
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: 'Workflow name'
+                  example: architecto
+                description:
+                  type: string
+                  description: 'optional Workflow description'
+                  example: 'Eius et animi quos velit et.'
+                  nullable: true
+                is_active:
+                  type: boolean
+                  description: 'optional Initial active status (default: false)'
+                  example: false
+                trigger_type:
+                  type: string
+                  description: 'optional Trigger type (phone_call_connected, transcript_complete, call_summary, phone_call_ended, live_transcript, manual)'
+                  example: architecto
+                  nullable: true
+                trigger_config:
+                  type: array
+                  description: 'optional Trigger configuration'
+                  example:
+                    - architecto
+                  items:
+                    type: string
+                    nullable: true
+              required:
+                - name
+  '/api/v1/workflows/{id}':
+    get:
+      summary: 'Get a specific workflow'
+      operationId: getASpecificWorkflow
+      description: ''
+      parameters:
+        -
+          in: header
+          name: X-Tenant-ID
+          description: ''
+          example: '{YOUR_TENANT_ID}'
+          schema:
+            type: string
+      responses:
+        200:
+          description: ''
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: '{"workflow": {"id": 1, "name": "Follow-up Workflow", "nodes": [...]}}'
+      tags:
+        - Workflows
+    put:
+      summary: 'Update a workflow'
+      operationId: updateAWorkflow
+      description: ''
+      parameters:
+        -
+          in: header
+          name: X-Tenant-ID
+          description: ''
+          example: '{YOUR_TENANT_ID}'
+          schema:
+            type: string
+      responses:
+        200:
+          description: ''
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: '{"message": "Workflow updated successfully", "workflow": {...}}'
+      tags:
+        - Workflows
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: 'optional Workflow name'
+                  example: architecto
+                description:
+                  type: string
+                  description: 'optional Workflow description'
+                  example: 'Eius et animi quos velit et.'
+                  nullable: true
+                is_active:
+                  type: boolean
+                  description: 'optional Active status'
+                  example: false
+                trigger_type:
+                  type: string
+                  description: 'optional Trigger type'
+                  example: architecto
+                  nullable: true
+                trigger_config:
+                  type: array
+                  description: 'optional Trigger configuration'
+                  example:
+                    - architecto
+                  items:
+                    type: string
+                    nullable: true
+    delete:
+      summary: 'Delete a workflow'
+      operationId: deleteAWorkflow
+      description: ''
+      parameters:
+        -
+          in: header
+          name: X-Tenant-ID
+          description: ''
+          example: '{YOUR_TENANT_ID}'
+          schema:
+            type: string
+      responses:
+        204:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example: {  }
+                properties: {  }
+      tags:
+        - Workflows
+    parameters:
+      -
+        in: path
+        name: id
+        description: 'The ID of the workflow.'
+        example: architecto
+        required: true
+        schema:
+          type: string
+      -
+        in: path
+        name: workflow
+        description: 'The ID of the workflow'
+        example: 16
+        required: true
+        schema:
+          type: integer
+  '/api/v1/workflows/{workflow_id}/executions':
+    get:
+      summary: 'Get workflow execution history'
+      operationId: getWorkflowExecutionHistory
+      description: ''
+      parameters:
+        -
+          in: query
+          name: status
+          description: 'optional Filter by execution status'
+          example: architecto
+          required: false
+          schema:
+            type: string
+            description: 'optional Filter by execution status'
+            example: architecto
+        -
+          in: query
+          name: per_page
+          description: 'optional Items per page (default: 15)'
+          example: 16
+          required: false
+          schema:
+            type: integer
+            description: 'optional Items per page (default: 15)'
+            example: 16
+        -
+          in: header
+          name: X-Tenant-ID
+          description: ''
+          example: '{YOUR_TENANT_ID}'
+          schema:
+            type: string
+      responses:
+        200:
+          description: ''
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: '{"data": [{"id": 1, "status": "completed", "created_at": "2024-01-01T00:00:00Z"}], "meta": {...}}'
+      tags:
+        - Workflows
+    parameters:
+      -
+        in: path
+        name: workflow_id
+        description: 'The ID of the workflow.'
+        example: architecto
+        required: true
+        schema:
+          type: string
+      -
+        in: path
+        name: workflow
+        description: 'The ID of the workflow'
+        example: 16
+        required: true
+        schema:
+          type: integer
+  '/api/v1/workflows/{workflow_id}/trigger':
+    post:
+      summary: 'Trigger a workflow manually'
+      operationId: triggerAWorkflowManually
+      description: ''
+      parameters:
+        -
+          in: header
+          name: X-Tenant-ID
+          description: ''
+          example: '{YOUR_TENANT_ID}'
+          schema:
+            type: string
+      responses:
+        200:
+          description: ''
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: '{"message": "Workflow triggered successfully", "execution": {...}}'
+      tags:
+        - Workflows
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                input_data:
+                  type: array
+                  description: 'optional Input data for the workflow'
+                  example:
+                    - architecto
+                  items:
+                    type: string
+                call_id:
+                  type: string
+                  description: 'optional Call ID to associate with the execution'
+                  example: architecto
+    parameters:
+      -
+        in: path
+        name: workflow_id
+        description: 'The ID of the workflow.'
+        example: architecto
+        required: true
+        schema:
+          type: string
+      -
+        in: path
+        name: workflow
+        description: 'The ID of the workflow'
+        example: 16
+        required: true
+        schema:
+          type: integer
+  '/api/v1/workflows/{workflow_id}/activate':
+    post:
+      summary: 'Activate a workflow'
+      operationId: activateAWorkflow
+      description: ''
+      parameters:
+        -
+          in: header
+          name: X-Tenant-ID
+          description: ''
+          example: '{YOUR_TENANT_ID}'
+          schema:
+            type: string
+      responses:
+        200:
+          description: ''
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: '{"message": "Workflow activated successfully", "workflow": {...}}'
+      tags:
+        - Workflows
+    parameters:
+      -
+        in: path
+        name: workflow_id
+        description: 'The ID of the workflow.'
+        example: architecto
+        required: true
+        schema:
+          type: string
+      -
+        in: path
+        name: workflow
+        description: 'The ID of the workflow'
+        example: 16
+        required: true
+        schema:
+          type: integer
+  '/api/v1/workflows/{workflow_id}/deactivate':
+    post:
+      summary: 'Deactivate a workflow'
+      operationId: deactivateAWorkflow
+      description: ''
+      parameters:
+        -
+          in: header
+          name: X-Tenant-ID
+          description: ''
+          example: '{YOUR_TENANT_ID}'
+          schema:
+            type: string
+      responses:
+        200:
+          description: ''
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: '{"message": "Workflow deactivated successfully", "workflow": {...}}'
+      tags:
+        - Workflows
+    parameters:
+      -
+        in: path
+        name: workflow_id
+        description: 'The ID of the workflow.'
+        example: architecto
+        required: true
+        schema:
+          type: string
+      -
+        in: path
+        name: workflow
+        description: 'The ID of the workflow'
+        example: 16
+        required: true
+        schema:
+          type: integer

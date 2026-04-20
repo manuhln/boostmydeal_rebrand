@@ -9,34 +9,33 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Spinner } from "@/components/ui/spinner"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { useLogin, type Tenant } from "@/hooks/use-auth"
+import { useLogin } from "@/hooks/use-auth"
 import { ArrowLeft, AlertCircle, Building2, ChevronRight, Plus } from "lucide-react"
+import { TenantData } from "@/lib/types"
 
 export default function SelectOrganizationPage() {
   const router = useRouter()
-  const [tenants, setTenants] = useState<Tenant[]>([])
+  const [tenants, setTenants] = useState<TenantData[]>([])
   const [isSelecting, setIsSelecting] = useState<string | null>(null)
 
   const login = useLogin()
 
   useEffect(() => {
     const stored = sessionStorage.getItem("auth_tenants")
+    console.log(stored);
     if (!stored) {
       router.push("/login")
       return
     }
-    const parsed: Tenant[] = JSON.parse(stored)
+    const parsed: TenantData[] = JSON.parse(stored)
     setTenants(parsed)
-
     if (parsed.length === 1) {
       handleSelect(parsed[0].id)
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const handleSelect = (tenantId: string) => {
     setIsSelecting(tenantId)
-
     login.mutate(tenantId, {
       onSuccess: () => {
         sessionStorage.removeItem("auth_email")
@@ -44,7 +43,8 @@ export default function SelectOrganizationPage() {
         router.push("/dashboard")
       },
       onError: () => {
-        setIsSelecting(null)
+        localStorage.removeItem("tenantId");
+        setIsSelecting(null);
       },
     })
   }
@@ -101,8 +101,9 @@ export default function SelectOrganizationPage() {
             ) : (
               <>
                 <div className="space-y-2">
-                  {tenants.map((tenant) => (
-                    <button
+                  {tenants.map((tenant) => {
+                    console.log(tenant)
+                    return (<button
                       key={tenant.id}
                       onClick={() => handleSelect(tenant.id)}
                       disabled={isSelecting !== null}
@@ -110,13 +111,14 @@ export default function SelectOrganizationPage() {
                     >
                       <Avatar className="h-12 w-12">
                         <AvatarFallback className="bg-primary/10 text-primary font-semibold">
-                          {getInitials(tenant.name)}
+
+                          {getInitials(tenant.attributes.name)}
                         </AvatarFallback>
                       </Avatar>
 
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold truncate">{tenant.name}</h3>
-                        <p className="text-sm text-muted-foreground truncate">{tenant.slug}</p>
+                        <h3 className="font-semibold truncate">{tenant.attributes.name}</h3>
+                        <p className="text-sm text-muted-foreground truncate">{tenant.attributes.slug}</p>
                       </div>
 
                       <div className="flex-shrink-0">
@@ -126,8 +128,9 @@ export default function SelectOrganizationPage() {
                           <ChevronRight className="h-5 w-5 text-muted-foreground" />
                         )}
                       </div>
-                    </button>
-                  ))}
+                    </button>)
+                  }
+                  )}
                 </div>
 
                 <div className="pt-4 border-t">

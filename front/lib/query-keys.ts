@@ -93,9 +93,9 @@ export const queryKey = {
   },
 
   Billing: {
-    info: () => ["billing", "info"] as const,
-    paymentHistory: () => ["billing", "history"] as const,
-    paymentIntent: (amount: number) => ["billing", "payment-intent", amount] as const,
+    credits: () => ["billing", "credits"] as const,
+    payments: () => ["billing", "payments"] as const,
+    payment: (id: string) => ["billing", "payments", id] as const,
   },
 
   Settings: {
@@ -106,8 +106,16 @@ export const queryKey = {
 
   metrics: {
     dashboard: (startDate?: string, endDate?: string) =>
-      ["analytics", "dashboard", startDate ?? "all", endDate ?? "all"] as const,
-    calls: (period: string, startDate?: string, endDate?: string) =>
-      ["analytics", "calls", period, startDate ?? "all", endDate ?? "all"] as const,
+      ["dashboard", "metrics", startDate ?? "all", endDate ?? "all"] as const,
+    callEvolution: (startDate?: string, endDate?: string, groupBy?: string) =>
+      ["dashboard", "call-evolution", startDate ?? "all", endDate ?? "all", groupBy ?? "day"] as const,
+    agentStats: (startDate?: string, endDate?: string) =>
+      ["dashboard", "agent-stats", startDate ?? "all", endDate ?? "all"] as const,
+    phoneNumberStats: (startDate?: string, endDate?: string) =>
+      ["dashboard", "phone-number-stats", startDate ?? "all", endDate ?? "all"] as const,
+  },
+
+  Preferences: {
+    get: () => ["preferences"] as const,
   },
 }

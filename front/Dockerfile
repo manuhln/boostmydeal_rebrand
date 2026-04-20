@@ -1,5 +1,23 @@
 # ======================
-# 1. Build stage
+# 1. Dev stage (hot reload)
+# ======================
+FROM node:20-alpine AS dev
+
+WORKDIR /app
+ENV NODE_ENV=development
+ENV WATCHPACK_POLLING=true
+ENV CHOKIDAR_USEPOLLING=true
+
+COPY package*.json ./
+RUN npm ci
+
+COPY . .
+
+EXPOSE 3000
+CMD ["npm", "run", "dev"]
+
+# ======================
+# 2. Build stage
 # ======================
 FROM node:20-alpine AS builder
 
@@ -12,7 +30,7 @@ COPY . .
 RUN npm run build
 
 # ======================
-# 2. Production stage
+# 3. Production stage
 # ======================
 FROM node:20-alpine AS runner
 

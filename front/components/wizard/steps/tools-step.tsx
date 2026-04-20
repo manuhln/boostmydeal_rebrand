@@ -1,240 +1,224 @@
 "use client"
 
+import Image from "next/image"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import { Check } from "lucide-react"
+import { cn } from "@/lib/utils"
+import { Images } from "@/utils/image"
 import { useWizard } from "../wizard-context"
 import { WizardLayout } from "../wizard-layout"
-import { Check, ExternalLink } from "lucide-react"
-import { cn } from "@/lib/utils"
 
 interface IntegrationOption {
   id: string
   name: string
-  logo: string
-  description: string
-  connected?: boolean
+  image: string
 }
 
-const CRM_OPTIONS: IntegrationOption[] = [
-  { id: "hubspot", name: "HubSpot", logo: "/integrations/hubspot.svg", description: "Connect your HubSpot CRM" },
-  { id: "zoho", name: "Zoho CRM", logo: "/integrations/zoho.svg", description: "Connect your Zoho CRM" },
-  { id: "salesforce", name: "Salesforce", logo: "/integrations/salesforce.svg", description: "Connect your Salesforce" },
-  { id: "none", name: "Skip for now", logo: "", description: "I'll connect later" },
-]
-
-const PHONE_OPTIONS: IntegrationOption[] = [
-  { id: "twilio", name: "Twilio", logo: "/integrations/twilio.svg", description: "Use your Twilio account" },
-  { id: "voxsun", name: "VoxSun", logo: "/integrations/voxsun.svg", description: "Use VoxSun for calls" },
-  { id: "boostmydeal", name: "BoostMyDeal Numbers", logo: "/logo.svg", description: "Get new phone numbers" },
-]
-
-const EMAIL_OPTIONS: IntegrationOption[] = [
-  { id: "smtp", name: "SMTP", logo: "/integrations/smtp.svg", description: "Configure SMTP server" },
-  { id: "sendgrid", name: "SendGrid", logo: "/integrations/sendgrid.svg", description: "Use SendGrid API" },
-  { id: "none", name: "Skip for now", logo: "", description: "I'll configure later" },
-]
-
-const CALENDAR_OPTIONS: IntegrationOption[] = [
-  { id: "google", name: "Google Calendar", logo: "/integrations/google.svg", description: "Connect Google Calendar" },
-  { id: "outlook", name: "Outlook Calendar", logo: "/integrations/outlook.svg", description: "Connect Outlook" },
-  { id: "none", name: "Skip for now", logo: "", description: "I'll connect later" },
-]
-
-interface IntegrationSelectorProps {
+interface ConnectionCardProps {
   title: string
   options: IntegrationOption[]
   selected: string
   onSelect: (id: string) => void
-  showConfig?: boolean
-  configFields?: { key: string; label: string; type?: string; placeholder?: string }[]
-  configValues?: Record<string, string>
-  onConfigChange?: (key: string, value: string) => void
+  highlighted?: boolean
+  compact?: boolean
 }
 
-function IntegrationSelector({
+const CRM_OPTIONS: IntegrationOption[] = [
+  { id: "hubspot", name: "HubSpot", image: Images.hubspot },
+  { id: "zoho", name: "Zoho", image: Images.zohocrm },
+  { id: "boostmydeal", name: "Use BoostMyDeal CRM", image: Images.boostmydeal },
+]
+
+const PHONE_OPTIONS: IntegrationOption[] = [
+  { id: "voxsun", name: "VoxSun (Recommended)", image: Images.voxsun },
+  { id: "twilio", name: "Twilio", image: Images.twilio },
+]
+
+const EMAIL_OPTIONS: IntegrationOption[] = [
+  { id: "smtp", name: "SMTP", image: Images.smtp },
+  { id: "google", name: "Google", image: Images.google },
+  { id: "microsoft", name: "Microsoft", image: Images.microsoft },
+]
+
+const CALENDAR_OPTIONS: IntegrationOption[] = [
+  { id: "google_calendar", name: "Google Calendar", image: Images.googleCalendar },
+  { id: "outlook_calendar", name: "Outlook Calendar", image: Images.outlook },
+  { id: "calendly", name: "Calendly", image: Images.calendly },
+  { id: "zoho_calendar", name: "Zoho Calendar", image: Images.zohoCalendar },
+]
+
+function RadioOption({
+  option,
+  selected,
+  onSelect,
+}: {
+  option: IntegrationOption
+  selected: string
+  onSelect: (id: string) => void
+}) {
+  return (
+    <button
+      type="button"
+      onClick={() => onSelect(option.id)}
+      className="flex items-center gap-2 text-sm text-gray-700"
+    >
+      <div
+        className={cn(
+          "flex h-5 w-5 items-center justify-center rounded-full border-2",
+          selected === option.id ? "border-primary" : "border-gray-300"
+        )}
+      >
+        {selected === option.id && <div className="h-2.5 w-2.5 rounded-full bg-primary" />}
+      </div>
+      <div className="relative h-5 w-5 overflow-hidden">
+        <Image src={option.image} alt={option.name} fill className="object-contain" />
+      </div>
+      <span>{option.name}</span>
+    </button>
+  )
+}
+
+function ConnectionCard({
   title,
   options,
   selected,
   onSelect,
-  showConfig,
-  configFields,
-  configValues,
-  onConfigChange,
-}: IntegrationSelectorProps) {
+  highlighted = false,
+  compact = false,
+}: ConnectionCardProps) {
   return (
-    <div className="space-y-3">
-      <h3 className="font-medium text-foreground">{title}</h3>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        {options.map((option) => (
-          <button
-            key={option.id}
-            onClick={() => onSelect(option.id)}
+    <Card
+      className={cn(
+        "rounded-xl border bg-white p-4",
+        highlighted ? "border-primary border-2" : "border-gray-200"
+      )}
+    >
+      <div className="mb-4 flex items-center justify-between gap-4">
+        <div className="flex items-center gap-2">
+          <div
             className={cn(
-              "relative p-4 rounded-lg border-2 text-left transition-all duration-200 hover:border-primary/50",
-              selected === option.id
-                ? "border-primary bg-primary/5"
-                : "border-border bg-card"
+              "flex h-6 w-6 items-center justify-center rounded-full",
+              highlighted ? "bg-green-500 text-white" : "border-2 border-gray-300"
             )}
           >
-            {selected === option.id && (
-              <div className="absolute top-2 right-2 w-5 h-5 bg-success rounded-full flex items-center justify-center">
-                <Check className="w-3 h-3 text-success-foreground" />
-              </div>
-            )}
-            {option.logo ? (
-              <div className="w-8 h-8 mb-2 bg-muted rounded flex items-center justify-center">
-                <span className="text-xs font-bold text-muted-foreground">
-                  {option.name.charAt(0)}
-                </span>
-              </div>
-            ) : (
-              <div className="w-8 h-8 mb-2" />
-            )}
-            <p className="font-medium text-sm text-foreground">{option.name}</p>
-            <p className="text-xs text-muted-foreground">{option.description}</p>
-          </button>
-        ))}
+            {highlighted && <Check className="h-3.5 w-3.5" />}
+          </div>
+          <span className="text-sm font-semibold text-gray-800">{title}</span>
+        </div>
+        <div className="flex items-center gap-2">
+          {!compact && (
+            <Button type="button" size="sm" className="h-8 px-4 text-xs">
+              Connect
+            </Button>
+          )}
+          <Button type="button" size="sm" variant="secondary" className="h-8 px-4 text-xs">
+            Test
+          </Button>
+          <div className="rounded-md bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-400">
+            {selected ? "Connected" : "Not Connected"}
+          </div>
+        </div>
       </div>
 
-      {/* Configuration Fields */}
-      {showConfig && selected && selected !== "none" && configFields && (
-        <Card className="p-4 mt-4 bg-muted/30">
-          <div className="space-y-4">
-            {configFields.map((field) => (
-              <div key={field.key} className="space-y-2">
-                <Label htmlFor={field.key}>{field.label}</Label>
-                <Input
-                  id={field.key}
-                  type={field.type || "text"}
-                  placeholder={field.placeholder}
-                  value={configValues?.[field.key] || ""}
-                  onChange={(e) => onConfigChange?.(field.key, e.target.value)}
-                />
-              </div>
-            ))}
-            <Button variant="outline" size="sm" className="gap-2">
-              <ExternalLink className="w-4 h-4" />
-              Test Connection
-            </Button>
-          </div>
-        </Card>
-      )}
-    </div>
+      <div className={cn("flex flex-wrap gap-6", compact && "grid grid-cols-2 gap-3")}>
+        {options.map((option) => (
+          <RadioOption key={option.id} option={option} selected={selected} onSelect={onSelect} />
+        ))}
+      </div>
+    </Card>
   )
 }
 
 export function ToolsStep() {
-  const { nextStep, updateData, data, isLoading } = useWizard()
-  
-  const [selectedCRM, setSelectedCRM] = useState(data.tools?.crm?.provider || "")
-  const [selectedPhone, setSelectedPhone] = useState(data.tools?.phoneSystem?.provider || "")
-  const [selectedEmail, setSelectedEmail] = useState(data.tools?.email?.provider || "")
-  const [selectedCalendar, setSelectedCalendar] = useState(data.tools?.calendar?.provider || "")
-  
-  const [crmConfig, setCrmConfig] = useState<Record<string, string>>({})
-  const [emailConfig, setEmailConfig] = useState<Record<string, string>>({})
+  const { nextStep, prevStep, skipOnboarding, updateData, data, isLoading } = useWizard()
+
+  const [selectedCRM, setSelectedCRM] = useState(data.tools?.crm?.provider || "hubspot")
+  const [selectedPhone, setSelectedPhone] = useState(data.tools?.phoneSystem?.provider || "voxsun")
+  const [selectedEmail, setSelectedEmail] = useState(data.tools?.email?.provider || "smtp")
+  const [selectedCalendar, setSelectedCalendar] = useState(data.tools?.calendar?.provider || "google_calendar")
 
   const handleContinue = () => {
     updateData({
       tools: {
         crm: {
-          provider: selectedCRM as "hubspot" | "zoho" | "salesforce" | "none",
-          connected: selectedCRM !== "none",
+          provider: selectedCRM as "hubspot" | "zoho" | "salesforce" | "boostmydeal" | "none",
+          connected: true,
         },
         phoneSystem: {
-          provider: selectedPhone as "twilio" | "voxsun" | "none",
+          provider: selectedPhone as "twilio" | "voxsun" | "boostmydeal" | "none",
           phoneNumbers: [],
-          connected: selectedPhone !== "",
+          connected: true,
         },
         email: {
-          provider: selectedEmail as "smtp" | "sendgrid" | "none",
-          connected: selectedEmail !== "none",
+          provider: selectedEmail as "smtp" | "sendgrid" | "google" | "microsoft" | "none",
+          connected: true,
         },
         calendar: {
-          provider: selectedCalendar as "google" | "outlook" | "none",
-          connected: selectedCalendar !== "none",
+          provider: selectedCalendar as "google" | "google_calendar" | "outlook" | "outlook_calendar" | "calendly" | "zoho_calendar" | "none",
+          connected: true,
         },
       },
     })
     nextStep()
   }
 
-  const isValid = selectedPhone !== ""
-
   return (
     <WizardLayout
       title="Connect Your Tools"
-      subtitle="Integrate your existing systems to enable AI-powered automation."
+      subtitle="Link your CRM, phone, email, and calendar systems to activate the full setup."
+      footer={
+        <div className="flex items-center justify-between">
+          <Button type="button" variant="secondary" onClick={prevStep} className="h-12 rounded-2xl px-8 bg-[#d0d0d0] text-white hover:bg-[#c5c5c5]">
+            Back
+          </Button>
+          <div className="flex items-center gap-8">
+            <button
+              type="button"
+              onClick={skipOnboarding}
+              className="text-sm font-semibold text-gray-500 underline underline-offset-2 transition-colors hover:text-gray-800"
+            >
+              Skip for now
+            </button>
+            <Button onClick={handleContinue} disabled={isLoading} className="h-12 rounded-2xl px-8">
+              Continue
+            </Button>
+          </div>
+        </div>
+      }
     >
-      <div className="max-w-4xl mx-auto space-y-8">
-        {/* CRM Integration */}
-        <Card className="p-6">
-          <IntegrationSelector
-            title="CRM Integration"
-            options={CRM_OPTIONS}
-            selected={selectedCRM}
-            onSelect={setSelectedCRM}
-            showConfig={selectedCRM === "hubspot" || selectedCRM === "zoho" || selectedCRM === "salesforce"}
-            configFields={[
-              { key: "apiKey", label: "API Key", type: "password", placeholder: "Enter your API key" },
-            ]}
-            configValues={crmConfig}
-            onConfigChange={(key, value) => setCrmConfig((prev) => ({ ...prev, [key]: value }))}
-          />
-        </Card>
+      <div className="max-w-5xl mx-auto space-y-4">
+        <ConnectionCard
+          title="CRM Connection"
+          options={CRM_OPTIONS}
+          selected={selectedCRM}
+          onSelect={setSelectedCRM}
+          highlighted
+        />
 
-        {/* Phone System */}
-        <Card className="p-6">
-          <IntegrationSelector
-            title="Phone System"
-            options={PHONE_OPTIONS}
-            selected={selectedPhone}
-            onSelect={setSelectedPhone}
-          />
-        </Card>
+        <ConnectionCard
+          title="Phone System Connection"
+          options={PHONE_OPTIONS}
+          selected={selectedPhone}
+          onSelect={setSelectedPhone}
+        />
 
-        {/* Email */}
-        <Card className="p-6">
-          <IntegrationSelector
-            title="Email Integration"
+        <div className="grid gap-4 md:grid-cols-2">
+          <ConnectionCard
+            title="Email System Connection"
             options={EMAIL_OPTIONS}
             selected={selectedEmail}
             onSelect={setSelectedEmail}
-            showConfig={selectedEmail === "smtp"}
-            configFields={[
-              { key: "host", label: "SMTP Host", placeholder: "smtp.example.com" },
-              { key: "port", label: "Port", placeholder: "587" },
-              { key: "username", label: "Username", placeholder: "your@email.com" },
-              { key: "password", label: "Password", type: "password", placeholder: "Your password" },
-            ]}
-            configValues={emailConfig}
-            onConfigChange={(key, value) => setEmailConfig((prev) => ({ ...prev, [key]: value }))}
+            compact
           />
-        </Card>
-
-        {/* Calendar */}
-        <Card className="p-6">
-          <IntegrationSelector
-            title="Calendar Integration"
+          <ConnectionCard
+            title="Calendar Connection"
             options={CALENDAR_OPTIONS}
             selected={selectedCalendar}
             onSelect={setSelectedCalendar}
+            compact
           />
-        </Card>
-
-        {/* Navigation */}
-        <div className="flex justify-between">
-          <div />
-          <Button
-            onClick={handleContinue}
-            disabled={!isValid || isLoading}
-            className="px-8 bg-primary hover:bg-primary/90"
-          >
-            Continue
-          </Button>
         </div>
       </div>
     </WizardLayout>

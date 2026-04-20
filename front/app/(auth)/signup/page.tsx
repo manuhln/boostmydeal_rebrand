@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
-import { Eye, EyeOff, Loader2, CheckCircle2, XCircle } from "lucide-react"
+import { Loader2 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -31,14 +31,9 @@ const signupSchema = z.object({
     .string()
     .min(1, "Organization slug is required")
     .regex(/^[a-z0-9-]+$/, "Slug can only contain lowercase letters, numbers, and hyphens"),
-  firstName: z.string().min(1, "First name is required"),
-  lastName: z.string().min(1, "Last name is required"),
+  first_name: z.string().min(1, "First name is required"),
+  last_name: z.string().min(1, "Last name is required"),
   email: z.string().min(1, "Email is required").email("Please enter a valid email address"),
-  password: z
-    .string()
-    .min(6, "At least 6 characters")
-    .regex(/\d/, "At least 1 number")
-    .regex(/[!@#$%^&*(),.?":{}]/, 'At least 1 special character (!@#$%^&*(),.?":{}|<>)'),
   phone: z.string().optional(),
   website: z.string().optional(),
 })
@@ -47,7 +42,6 @@ type SignupFormValues = z.infer<typeof signupSchema>
 
 export default function SignupPage() {
   const router = useRouter()
-  const [showPassword, setShowPassword] = useState(false)
   const [slugManuallyEdited, setSlugManuallyEdited] = useState(false)
 
   const signup = useSignup()
@@ -58,21 +52,13 @@ export default function SignupPage() {
     defaultValues: {
       organizationName: "",
       organizationSlug: "",
-      firstName: "",
-      lastName: "",
+      first_name: "",
+      last_name: "",
       email: "",
-      password: "",
       phone: "",
       website: "",
     },
   })
-
-  const password = form.watch("password")
-  const passwordValidation = {
-    minLength: password.length >= 6,
-    hasNumber: /\d/.test(password),
-    hasSpecial: /[!@#$%^&*(),.?":{}]/.test(password),
-  }
 
   const handleOrgNameChange = (value: string, onChange: (v: string) => void) => {
     onChange(value)
@@ -87,9 +73,8 @@ export default function SignupPage() {
         name: values.organizationName,
         slug: values.organizationSlug,
         email: values.email,
-        password: values.password,
-        first_Name: values.firstName,
-        last_Name: values.lastName,
+        first_name: values.first_name,
+        last_name: values.last_name,
         phone: values.phone || undefined,
         website: values.website || undefined,
       },
@@ -192,7 +177,7 @@ export default function SignupPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
-                    name="firstName"
+                    name="first_name"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>First Name <span className="text-destructive">*</span></FormLabel>
@@ -206,7 +191,7 @@ export default function SignupPage() {
 
                   <FormField
                     control={form.control}
-                    name="lastName"
+                    name="last_name"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Last Name <span className="text-destructive">*</span></FormLabel>
@@ -233,55 +218,6 @@ export default function SignupPage() {
                   )}
                 />
 
-                <FormField
-                  control={form.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Password <span className="text-destructive">*</span></FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <Input
-                            type={showPassword ? "text" : "password"}
-                            placeholder="Create a strong password"
-                            className="pr-10"
-                            {...field}
-                          />
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
-                            onClick={() => setShowPassword(!showPassword)}
-                          >
-                            {showPassword ? (
-                              <EyeOff className="h-4 w-4 text-muted-foreground" />
-                            ) : (
-                              <Eye className="h-4 w-4 text-muted-foreground" />
-                            )}
-                          </Button>
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                      <div className="mt-2 space-y-1">
-                        {[
-                          { ok: passwordValidation.minLength, label: "At least 6 characters" },
-                          { ok: passwordValidation.hasNumber, label: "At least 1 number" },
-                          { ok: passwordValidation.hasSpecial, label: 'At least 1 special character (!@#$%^&*(),.?":{}|<>)' },
-                        ].map(({ ok, label }) => (
-                          <div key={label} className="flex items-center gap-2 text-xs">
-                            {ok ? (
-                              <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
-                            ) : (
-                              <XCircle className="h-3.5 w-3.5 text-muted-foreground" />
-                            )}
-                            <span className={ok ? "text-green-600" : "text-muted-foreground"}>{label}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </FormItem>
-                  )}
-                />
               </div>
 
               {/* Optional */}

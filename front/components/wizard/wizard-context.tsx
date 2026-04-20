@@ -71,7 +71,7 @@ export function WizardProvider({
   const stepIndex = STEPS.indexOf(currentStep)
   const isFirstStep = stepIndex === 0
   const isLastStep = stepIndex === STEPS.length - 1
-  const canGoBack = stepIndex > 1 // Can't go back from welcome
+  const canGoBack = stepIndex > 0
   const canGoNext = stepIndex < STEPS.length - 1
 
   const goToStep = useCallback((step: WizardStep) => {

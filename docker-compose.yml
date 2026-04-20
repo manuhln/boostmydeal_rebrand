@@ -1,10 +1,14 @@
 services:
   nextjs:
     container_name: nextjs-app
-    build: ./front
+    build:
+      context: ./front
+      target: dev
     restart: always
     volumes:
-      - .:/front/app
+      - ./front:/app
+      - /app/node_modules
+      - /app/.next
     ports:
       - "3000:3000"
     env_file:

@@ -1,77 +1,36 @@
 "use client"
 
 import { Card } from "@/components/ui/card"
-import { Phone, PhoneIncoming, PhoneOff, Clock, TrendingUp, TrendingDown } from "lucide-react"
+import { Phone, PhoneIncoming, PhoneOff, Clock } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useDashboardMetrics } from "@/hooks/use-analytics"
 
-interface StatCardProps {
+function formatDuration(seconds: number) {
+  const m = Math.floor(seconds / 60)
+  const s = seconds % 60
+  return `${m}:${s.toString().padStart(2, "0")}`
+}
+
+function StatCard({
+  title, value, icon: Icon, iconBg, iconColor, loading,
+}: {
   title: string
   value: string
-  change: string
-  trend: "up" | "down"
   icon: typeof Phone
   iconBg: string
   iconColor: string
-}
-
-const stats: StatCardProps[] = [
-  {
-    title: "Total Calls Today",
-    value: "247",
-    change: "+12.5%",
-    trend: "up",
-    icon: Phone,
-    iconBg: "bg-primary/10",
-    iconColor: "text-primary",
-  },
-  {
-    title: "Successful Calls",
-    value: "189",
-    change: "+8.2%",
-    trend: "up",
-    icon: PhoneIncoming,
-    iconBg: "bg-emerald-500/10",
-    iconColor: "text-emerald-500",
-  },
-  {
-    title: "Missed / Failed",
-    value: "58",
-    change: "-3.1%",
-    trend: "down",
-    icon: PhoneOff,
-    iconBg: "bg-red-500/10",
-    iconColor: "text-red-500",
-  },
-  {
-    title: "Avg Duration",
-    value: "4:32",
-    change: "+15s",
-    trend: "up",
-    icon: Clock,
-    iconBg: "bg-blue-500/10",
-    iconColor: "text-blue-500",
-  },
-]
-
-function StatCard({ title, value, change, trend, icon: Icon, iconBg, iconColor }: StatCardProps) {
+  loading?: boolean
+}) {
   return (
-    <Card className="p-5 hover:shadow-lg transition-shadow duration-300 " >
+    <Card className="p-5 hover:shadow-lg transition-shadow duration-300">
       <div className="flex items-start justify-between">
         <div>
           <p className="text-sm text-muted-foreground">{title}</p>
-          <p className="text-2xl font-bold mt-1">{value}</p>
-          <div className={cn(
-            "flex items-center gap-1 mt-2 text-sm",
-            trend === "up" ? "text-emerald-500" : "text-red-500"
-          )}>
-            {trend === "up" ? (
-              <TrendingUp className="w-4 h-4" />
-            ) : (
-              <TrendingDown className="w-4 h-4" />
-            )}
-            <span>{change}</span>
-            <span className="text-muted-foreground ml-1">vs last week</span>
-          </div>
+          {loading ? (
+            <div className="h-8 w-20 bg-muted animate-pulse rounded mt-1" />
+          ) : (
+            <p className="text-2xl font-bold mt-1">{value}</p>
+          )}
         </div>
         <div className={cn("p-3 rounded-xl", iconBg)}>
           <Icon className={cn("w-5 h-5", iconColor)} />
@@ -82,11 +41,43 @@ function StatCard({ title, value, change, trend, icon: Icon, iconBg, iconColor }
 }
 
 export function DashboardStats() {
+  const { data, isLoading } = useDashboardMetrics()
+  const metrics = data
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      {stats.map((stat) => (
-        <StatCard key={stat.title} {...stat} />
-      ))}
+      <StatCard
+        title="Total Calls"
+        value={metrics ? String(metrics.total_calls) : "—"}
+        icon={Phone}
+        iconBg="bg-primary/10"
+        iconColor="text-primary"
+        loading={isLoading}
+      />
+      <StatCard
+        title="Successful Calls"
+        value={metrics ? String(metrics.completed_calls) : "—"}
+        icon={PhoneIncoming}
+        iconBg="bg-emerald-500/10"
+        iconColor="text-emerald-500"
+        loading={isLoading}
+      />
+      <StatCard
+        title="Missed / Failed"
+        value={metrics ? String(metrics.missed_calls + metrics.failed_calls) : "—"}
+        icon={PhoneOff}
+        iconBg="bg-red-500/10"
+        iconColor="text-red-500"
+        loading={isLoading}
+      />
+      <StatCard
+        title="Avg Duration"
+        value={metrics ? formatDuration(metrics.average_duration) : "—"}
+        icon={Clock}
+        iconBg="bg-blue-500/10"
+        iconColor="text-blue-500"
+        loading={isLoading}
+      />
     </div>
   )
 }

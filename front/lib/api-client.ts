@@ -1,16 +1,9 @@
+import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from "axios";
 import { PaginatedRequest } from "./types";
+import { queryClient } from "./query-client";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL!;
-
-type RequestOptions = {
-  method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
-  body?: unknown;
-  tags?: string[];
-  revalidate?: number;
-  headers?: Record<string, string>;
-  params?: PaginatedRequest;
-};
-
+const APP_BASE_URL = API_BASE_URL.replace(/\/api\/v\d+\/?$/, "");
 
 export class ApiError extends Error {
   constructor(
@@ -24,88 +17,196 @@ export class ApiError extends Error {
   }
 }
 
-const refreshAccessToken = async (): Promise<string | null> => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/refresh-token`, {
-      method: 'POST',
-      credentials: 'include',
-    });
-    if (!response.ok) throw new Error('Failed to refresh token');
-    const data = await response.json();
-    const newToken = data.accessToken;
-    localStorage.setItem('accessToken', newToken);
-    return newToken;
-  } catch (error) {
-    console.error('Error refreshing access token:', error);
-    return null;
-  }
+function hasCookie(name: string): boolean {
+  return document.cookie.split('; ').some(c => c.startsWith(`${name}=`));
+}
+
+let csrfPromise: Promise<unknown> | null = null;
+
+
+
+function ensureCsrf(tenantId?: string): Promise<unknown> {
+
+  if (hasCookie('XSRF-TOKEN') && !csrfPromise) return Promise.resolve();
+  csrfPromise ??= initCsrf(tenantId).finally(() => { csrfPromise = null; });
+  return csrfPromise;
+}
+
+function refreshCsrf(tenantId?: string): Promise<unknown> {
+  csrfPromise = initCsrf(tenantId).finally(() => { csrfPromise = null; });
+  return csrfPromise;
 }
 
 
-async function customFetch(url: string, options: RequestInit = {}): Promise<Response> {
-  let tenantId = localStorage.getItem("tenantId") ?? "";
-  const makeRequest = (token: string,) =>
-    fetch(url, {
-      ...options,
-      headers: {
-        ...options.headers,
-        Authorization: `Bearer ${token}`,
-        "X-Tenant-ID": tenantId,
-      },
-    });
-  let token = localStorage.getItem("accessToken") ?? "";
+const axiosInstance: AxiosInstance = axios.create({
+  baseURL: API_BASE_URL,
+  headers: {
+    "Content-Type": "application/json",
+    Accept: "application/json",
+  },
+  withCredentials: true,
+  withXSRFToken: true,
+});
 
-  let response = await makeRequest(token);
+axiosInstance.interceptors.request.use(async (config: InternalAxiosRequestConfig) => {
+  const method = (config.method ?? '').toLowerCase();
 
-  if (response.status === 401) {
-    const newToken = await refreshAccessToken();
-    if (!newToken) {
-      window.location.href = "/login";
-      return response;
+  const noCsrfUrls = ["signup.verifyOtp", "signup.checkEmail", "register"];
+  if (['post', 'put', 'patch', 'delete', 'get'].includes(method) && !noCsrfUrls.some(url => config.url?.includes(url))) {
+    const tenantId = localStorage.getItem("tenantId")
+      || config.headers?.["X-Tenant-ID"] as string
+      || undefined;
+    await ensureCsrf(tenantId);
+  }
+
+  const token = localStorage.getItem("accessToken") ?? "";
+  const tenantId = localStorage.getItem("tenantId") ?? "";
+
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+
+  if (!config.headers["X-Tenant-ID"] && tenantId) {
+    config.headers["X-Tenant-ID"] = tenantId;
+  }
+
+  if (config.data instanceof FormData) {
+    delete config.headers["Content-Type"];
+  }
+  return config;
+});
+
+let isRefreshing = false;
+let refreshQueue: Array<{
+  resolve: (t: string) => void;
+  reject: (e: unknown) => void;
+}> = [];
+
+const processQueue = (token: string) => {
+  refreshQueue.forEach(({ resolve }) => resolve(token));
+  refreshQueue = [];
+};
+
+
+const rejectQueue = (err: unknown) => {
+  refreshQueue.forEach(({ reject }) => reject(err));
+  refreshQueue = [];
+};
+
+
+
+// Handle 401 — refresh token once, then replay queued requests
+axiosInstance.interceptors.response.use(
+  (response) => response,
+  async (error: AxiosError) => {
+    const original = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
+
+
+    if (error.response?.status === 419 && !original._retry) {
+      original._retry = true;
+
+      const tenantId = localStorage.getItem("tenantId")
+        || original.headers?.["X-Tenant-ID"] as string
+        || undefined;
+      await refreshCsrf(tenantId);
+      return axiosInstance(original);
     }
-    response = await makeRequest(newToken);
+
+    if (error.response?.status !== 401 || original._retry) {
+      const data = error.response?.data as { code?: string; message?: string; errors?: Record<string, string[]> } | undefined;
+      throw new ApiError(
+        error.response?.status ?? 0,
+        data?.code ?? "UNKNOWN_ERROR",
+        data?.message ?? "An error occurred",
+        data?.errors
+      );
+    }
+
+    if (isRefreshing) {
+      return new Promise((resolve, reject) => {
+        refreshQueue.push({
+          resolve: (token) => {
+            original.headers.Authorization = `Bearer ${token}`;
+            resolve(axiosInstance(original));
+          },
+          reject,
+        });
+      });
+    }
+
+    original._retry = true;
+    isRefreshing = true;
+
+    try {
+      const tenantId = localStorage.getItem("tenantId") ?? undefined;
+      const refreshHeaders: Record<string, string> = {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      };
+      if (tenantId) refreshHeaders["X-Tenant-ID"] = tenantId;
+
+
+      const { data } = await axios.post(`${API_BASE_URL}/refresh-token`, {}, {
+        withCredentials: true,
+        withXSRFToken: true,
+        headers: refreshHeaders,
+      });
+
+      const newToken: string = data.data.accessToken;
+      localStorage.setItem("accessToken", newToken);
+      processQueue(newToken);
+      original.headers.Authorization = `Bearer ${newToken}`;
+      return axiosInstance(original);
+    } catch (err) {
+      rejectQueue(err);
+
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("tenantId");
+      queryClient.clear();
+      window.location.href = "/login";
+      throw error;
+    } finally {
+      isRefreshing = false;
+    }
   }
-  return response;
-}
+);
 
+export async function apiClient<T>(
+  endpoint: string,
+  options: {
+    method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
+    body?: unknown;
+    headers?: Record<string, string>;
+    params?: PaginatedRequest;
+  } = {}
+): Promise<T> {
+  const { method = "GET", body, headers, params } = options;
 
-
-export async function apiClient<T>(endpoint: string, options: RequestOptions = {}, headers?: Record<string, string>, params?: PaginatedRequest): Promise<T> {
-  const url = (() => {
-    if (!params) return `${API_BASE_URL}${endpoint}`;
-    const query = Object.entries(params)
-      .filter(([, v]) => v !== undefined && v !== null)
-      .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(String(v))}`)
-      .join("&");
-    return query ? `${API_BASE_URL}${endpoint}?${query}` : `${API_BASE_URL}${endpoint}`;
-  })();
-
-
-  const { method = "GET", body, tags, revalidate } = options;
-  const fetchOptions: RequestInit = {
+  const response = await axiosInstance.request<T>({
+    url: endpoint,
     method,
-    headers: {
-      "Content-Type": "application/json",
-      Accept: "application/json",
-      ...headers,
-    },
-    credentials: "include",
-    body: body ? JSON.stringify(body) : undefined,
-  };
+    data: body,
+    headers,
+    params,
+  });
 
-  const response = await customFetch(url, fetchOptions);
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new ApiError(response.status, errorData.code ?? "UNKNOWN_ERROR", errorData.message ?? "An error occurred", errorData.errors);
-  }
-  if (response.status === 204) return undefined as T;
-
-  return response.json();
+  return response.data;
 }
+
+// Call once before the first auth request to set the XSRF-TOKEN cookie.
+// Axios then automatically sends it as X-XSRF-TOKEN on every subsequent request.
+export const initCsrf = (tenantId?: string) => {
+  const headers: Record<string, string> = {};
+  if (tenantId) headers['X-Tenant-ID'] = tenantId;
+  return axios.get(`${APP_BASE_URL}/api/csrf-cookie`, {
+    withCredentials: true,
+    headers,
+  });
+};
 
 export const api = {
-  get: <T>(url: string, opts?: Omit<RequestOptions, "method" | "body">, params?: PaginatedRequest) =>
-    apiClient<T>(url, { ...opts, method: "GET" }, undefined, params),
+  get: <T>(url: string, params?: PaginatedRequest, headers?: Record<string, string>) =>
+    apiClient<T>(url, { method: "GET", params, headers }),
   post: <T>(url: string, body?: unknown, headers?: Record<string, string>) =>
     apiClient<T>(url, { method: "POST", body, headers }),
   put: <T>(url: string, body?: unknown) =>
@@ -115,4 +216,3 @@ export const api = {
   delete: <T>(url: string) =>
     apiClient<T>(url, { method: "DELETE" }),
 };
-

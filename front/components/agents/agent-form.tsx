@@ -24,12 +24,13 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { Checkbox } from "@/components/ui/checkbox"
-import type { AgentFormData, AIAgent, Voice, PhoneNumber, Workflow, KnowledgeBase } from "@/lib/types"
+import type { AgentFormData, AIAgent, Voice, Workflow, KnowledgeBase } from "@/lib/types"
 import { AI_MODELS, SYSTEM_TAGS, GEMINI_VOICES, RIME_VOICES } from "@/lib/types"
+import { usePhoneNumbers } from "@/hooks/use-phone-number"
 
 interface AgentFormProps {
   agent?: AIAgent
-  onSubmit: (data: AgentFormData) => Promise<void>
+  onSubmit: (data: AgentFormData) => void
   onCancel: () => void
   isLoading?: boolean
 }
@@ -45,14 +46,14 @@ const defaultFormData: AgentFormData = {
   firstMessage: "Hello! How can I help you today?",
   userSpeaksFirst: false,
   workflowIds: [],
-  
+
   // Tab 2: Persona
   identity: "",
   style: "",
   goals: "",
   responseGuidelines: "",
   errorHandling: "",
-  
+
   // Tab 3: Media & Knowledge
   voiceProvider: "ElevenLabs",
   transcriber: "Deepgram",
@@ -60,7 +61,7 @@ const defaultFormData: AgentFormData = {
   geminiLiveVoice: "Puck",
   knowledgeBase: [],
   speed: 1.0,
-  
+
   // Tab 4: Settings
   callRecording: true,
   callRecordingFormat: "mp3",
@@ -72,7 +73,7 @@ const defaultFormData: AgentFormData = {
   keyboardSound: false,
   temperature: 0.7,
   maxTokens: 1000,
-  
+
   // Tab 5: Post Call Analysis
   userTags: [],
   systemTags: [],
@@ -81,7 +82,7 @@ const defaultFormData: AgentFormData = {
 // Parse systemPrompt back into persona fields
 function parseSystemPrompt(systemPrompt: string): Partial<AgentFormData> {
   const fields: Partial<AgentFormData> = {}
-  
+
   const patterns = {
     identity: /\*\*Identity:\*\*\s*([\s\S]*?)(?=\*\*Style:|$)/i,
     style: /\*\*Style:\*\*\s*([\s\S]*?)(?=\*\*Goals:|$)/i,
@@ -89,14 +90,14 @@ function parseSystemPrompt(systemPrompt: string): Partial<AgentFormData> {
     responseGuidelines: /\*\*Response Guidelines:\*\*\s*([\s\S]*?)(?=\*\*Error Handling\/Fallback:|$)/i,
     errorHandling: /\*\*Error Handling\/Fallback:\*\*\s*([\s\S]*?)$/i,
   }
-  
+
   for (const [key, pattern] of Object.entries(patterns)) {
     const match = systemPrompt.match(pattern)
     if (match) {
       fields[key as keyof AgentFormData] = match[1].trim() as never
     }
   }
-  
+
   return fields
 }
 
@@ -114,12 +115,8 @@ export function AgentForm({ agent, onSubmit, onCancel, isLoading }: AgentFormPro
   const [formData, setFormData] = useState<AgentFormData>(defaultFormData)
   const [newTag, setNewTag] = useState("")
   const [playingVoice, setPlayingVoice] = useState<string | null>(null)
-  
-  // Mock data - in real app these would come from API
-  const [phoneNumbers] = useState<PhoneNumber[]>([
-    { id: "1", number: "+1 202-555-0123", label: "Main", isDefault: true, status: "active" },
-    { id: "2", number: "+1 202-555-0198", label: "Sales", isDefault: false, status: "active" },
-  ])
+
+  const { data: phoneNumbersData } = usePhoneNumbers()
   const [workflows] = useState<Workflow[]>([
     { id: "1", organizationId: "1", name: "Lead Qualification", status: "active", trigger: "PHONE_CALL_CONNECTED", nodes: [], executionHistory: [], createdAt: "", updatedAt: "" },
     { id: "2", organizationId: "1", name: "Appointment Booking", status: "active", trigger: "TRANSCRIPT_COMPLETE", nodes: [], executionHistory: [], createdAt: "", updatedAt: "" },
@@ -134,68 +131,79 @@ export function AgentForm({ agent, onSubmit, onCancel, isLoading }: AgentFormPro
     { id: "sarah", name: "Sarah", provider: "ElevenLabs", gender: "female", language: "en", isCloned: false },
     { id: "michael", name: "Michael", provider: "ElevenLabs", gender: "male", language: "en", isCloned: false },
   ])
-  
+
+  // Map backend tts_provider → UI voiceProvider label
+  const mapTtsProvider = (p?: string): AgentFormData["voiceProvider"] => {
+    const m: Record<string, AgentFormData["voiceProvider"]> = {
+      elevenlabs: "ElevenLabs", rime: "Rime",
+      stream_elements: "StreamElements", smallest_ai: "Smallest AI",
+    }
+    return m[p?.toLowerCase() ?? ""] ?? "ElevenLabs"
+  }
+
   // Initialize form with agent data if editing
   useEffect(() => {
     if (agent) {
-      const parsedPersona = agent.systemPrompt ? parseSystemPrompt(agent.systemPrompt) : {}
       setFormData({
         ...defaultFormData,
         name: agent.name,
         description: agent.description || "",
         language: agent.language,
-        modelProvider: agent.modelProvider,
-        aiModel: agent.aiModel,
-        phoneNumberId: agent.phoneNumberId || "",
-        firstMessage: agent.firstMessage,
-        userSpeaksFirst: agent.userSpeaksFirst,
-        workflowIds: agent.workflowIds,
-        voiceProvider: agent.voiceProvider,
-        transcriber: agent.transcriber,
-        voice: agent.voice,
-        geminiLiveVoice: agent.geminiLiveVoice || "Puck",
-        knowledgeBase: agent.knowledgeBase,
-        speed: agent.speed,
-        callRecording: agent.callRecording,
-        callRecordingFormat: agent.callRecordingFormat,
-        rememberLeadPreference: agent.rememberLeadPreference,
-        voicemailDetection: agent.voicemailDetection,
-        voicemailMessage: agent.voicemailMessage,
-        enableCallTransfer: agent.enableCallTransfer,
-        transferPhoneNumber: agent.transferPhoneNumber,
-        keyboardSound: agent.keyboardSound,
+        modelProvider: agent.mode === "realtime" ? "Gemini Live" : "ChatGPT",
+        aiModel: agent.llm_model || defaultFormData.aiModel,
+        phoneNumberId: "",
+        firstMessage: agent.first_message || defaultFormData.firstMessage,
+        userSpeaksFirst: agent.user_speaks_first,
+        workflowIds: [],
+        // Persona — direct fields in backend
+        identity: agent.identity || "",
+        style: agent.style || "",
+        goals: agent.goal || "",
+        responseGuidelines: agent.response_guideline || "",
+        errorHandling: agent.fallback || "",
+        // Media
+        voiceProvider: mapTtsProvider(agent.tts_provider),
+        transcriber: agent.stt_provider === "openai_whisper" ? "OpenAI Whisper" : "Deepgram",
+        voice: agent.mode === "pipeline" ? (agent.tts_voice || "") : "",
+        geminiLiveVoice: agent.mode === "realtime" ? (agent.tts_voice || "Puck") : "Puck",
+        knowledgeBase: [],
+        speed: 1.0,
+        // Settings
+        callRecording: agent.call_recording,
+        callRecordingFormat: (agent.recording_format as AgentFormData["callRecordingFormat"]) || "mp3",
+        rememberLeadPreference: agent.remember_lead_preference,
+        voicemailDetection: agent.enable_vad,
+        voicemailMessage: agent.voicemail_message || defaultFormData.voicemailMessage,
+        enableCallTransfer: agent.enable_human_transfer,
+        transferPhoneNumber: "",
+        keyboardSound: agent.enable_background_sound,
         temperature: agent.temperature,
-        maxTokens: agent.maxTokens,
-        userTags: agent.userTags,
-        systemTags: agent.systemTags,
-        ...parsedPersona,
+        maxTokens: 1000,
+        userTags: [],
+        systemTags: [],
       })
     }
   }, [agent])
-  
+
   const updateField = <K extends keyof AgentFormData>(field: K, value: AgentFormData[K]) => {
     setFormData(prev => ({ ...prev, [field]: value }))
   }
-  
-  const handleSubmit = async () => {
-    // Build systemPrompt from persona fields before submitting
-    const dataToSubmit = {
-      ...formData,
-    }
-    await onSubmit(dataToSubmit)
+
+  const handleSubmit = () => {
+    onSubmit(formData)
   }
-  
+
   const addUserTag = () => {
     if (newTag.trim() && !formData.userTags.includes(newTag.trim())) {
       updateField("userTags", [...formData.userTags, newTag.trim()])
       setNewTag("")
     }
   }
-  
+
   const removeUserTag = (tag: string) => {
     updateField("userTags", formData.userTags.filter(t => t !== tag))
   }
-  
+
   const toggleSystemTag = (tag: string) => {
     if (formData.systemTags.includes(tag)) {
       updateField("systemTags", formData.systemTags.filter(t => t !== tag))
@@ -203,9 +211,9 @@ export function AgentForm({ agent, onSubmit, onCancel, isLoading }: AgentFormPro
       updateField("systemTags", [...formData.systemTags, tag])
     }
   }
-  
+
   const isGeminiLive = formData.modelProvider === "Gemini Live"
-  
+
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
@@ -213,11 +221,9 @@ export function AgentForm({ agent, onSubmit, onCancel, isLoading }: AgentFormPro
         <h2 className="text-xl font-semibold">
           {agent ? "Edit Agent" : "Create New Agent"}
         </h2>
-        <Button variant="ghost" size="icon" onClick={onCancel}>
-          <X className="h-5 w-5" />
-        </Button>
+
       </div>
-      
+
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
         <div className="border-b px-6">
@@ -239,7 +245,7 @@ export function AgentForm({ agent, onSubmit, onCancel, isLoading }: AgentFormPro
             </TabsTrigger>
           </TabsList>
         </div>
-        
+
         <div className="flex-1 overflow-y-auto p-6">
           {/* Tab 1: Basics */}
           <TabsContent value="basics" className="mt-0 space-y-6">
@@ -253,7 +259,7 @@ export function AgentForm({ agent, onSubmit, onCancel, isLoading }: AgentFormPro
                   placeholder="e.g., Sales Outreach Agent"
                 />
               </div>
-              
+
               <div className="grid gap-2">
                 <Label htmlFor="description">Description</Label>
                 <Textarea
@@ -264,7 +270,7 @@ export function AgentForm({ agent, onSubmit, onCancel, isLoading }: AgentFormPro
                   rows={3}
                 />
               </div>
-              
+
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
                   <Label>Language</Label>
@@ -281,11 +287,11 @@ export function AgentForm({ agent, onSubmit, onCancel, isLoading }: AgentFormPro
                     </SelectContent>
                   </Select>
                 </div>
-                
+
                 <div className="grid gap-2">
                   <Label>AI Provider</Label>
-                  <Select 
-                    value={formData.modelProvider} 
+                  <Select
+                    value={formData.modelProvider}
                     onValueChange={(v: "ChatGPT" | "Gemini Live") => {
                       updateField("modelProvider", v)
                       updateField("aiModel", AI_MODELS[v][0])
@@ -301,7 +307,7 @@ export function AgentForm({ agent, onSubmit, onCancel, isLoading }: AgentFormPro
                   </Select>
                 </div>
               </div>
-              
+
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
                   <Label>Model</Label>
@@ -316,7 +322,7 @@ export function AgentForm({ agent, onSubmit, onCancel, isLoading }: AgentFormPro
                     </SelectContent>
                   </Select>
                 </div>
-                
+
                 <div className="grid gap-2">
                   <Label>Phone Number</Label>
                   <Select value={formData.phoneNumberId} onValueChange={(v) => updateField("phoneNumberId", v)}>
@@ -324,16 +330,16 @@ export function AgentForm({ agent, onSubmit, onCancel, isLoading }: AgentFormPro
                       <SelectValue placeholder="Select phone number" />
                     </SelectTrigger>
                     <SelectContent>
-                      {phoneNumbers.map((phone) => (
+                      {(phoneNumbersData?.data ?? []).map((phone) => (
                         <SelectItem key={phone.id} value={phone.id}>
-                          {phone.number} {phone.label && `(${phone.label})`}
+                          {phone.did} ({phone.provider})
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
               </div>
-              
+
               <div className="grid gap-2">
                 <Label htmlFor="firstMessage">First Message</Label>
                 <Textarea
@@ -344,7 +350,7 @@ export function AgentForm({ agent, onSubmit, onCancel, isLoading }: AgentFormPro
                   rows={3}
                 />
               </div>
-              
+
               <div className="flex items-center justify-between rounded-lg border p-4">
                 <div className="space-y-0.5">
                   <Label>User Speaks First</Label>
@@ -357,18 +363,17 @@ export function AgentForm({ agent, onSubmit, onCancel, isLoading }: AgentFormPro
                   onCheckedChange={(v) => updateField("userSpeaksFirst", v)}
                 />
               </div>
-              
+
               <div className="grid gap-2">
                 <Label>Workflows</Label>
                 <div className="flex flex-wrap gap-2">
                   {workflows.map((workflow) => (
                     <label
                       key={workflow.id}
-                      className={`flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 transition-colors ${
-                        formData.workflowIds.includes(workflow.id)
+                      className={`flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 transition-colors ${formData.workflowIds.includes(workflow.id)
                           ? "border-primary bg-primary/5"
                           : "hover:bg-muted"
-                      }`}
+                        }`}
                     >
                       <Checkbox
                         checked={formData.workflowIds.includes(workflow.id)}
@@ -387,13 +392,13 @@ export function AgentForm({ agent, onSubmit, onCancel, isLoading }: AgentFormPro
               </div>
             </div>
           </TabsContent>
-          
+
           {/* Tab 2: Persona */}
           <TabsContent value="persona" className="mt-0 space-y-6">
             <p className="text-sm text-muted-foreground">
               Define your agent&apos;s personality and behavior. These fields will be combined into the system prompt.
             </p>
-            
+
             <div className="grid gap-4">
               <div className="grid gap-2">
                 <div className="flex items-center gap-2">
@@ -417,7 +422,7 @@ export function AgentForm({ agent, onSubmit, onCancel, isLoading }: AgentFormPro
                   rows={4}
                 />
               </div>
-              
+
               <div className="grid gap-2">
                 <div className="flex items-center gap-2">
                   <Label htmlFor="style">Style</Label>
@@ -440,7 +445,7 @@ export function AgentForm({ agent, onSubmit, onCancel, isLoading }: AgentFormPro
                   rows={4}
                 />
               </div>
-              
+
               <div className="grid gap-2">
                 <div className="flex items-center gap-2">
                   <Label htmlFor="goals">Goals</Label>
@@ -463,7 +468,7 @@ export function AgentForm({ agent, onSubmit, onCancel, isLoading }: AgentFormPro
                   rows={4}
                 />
               </div>
-              
+
               <div className="grid gap-2">
                 <div className="flex items-center gap-2">
                   <Label htmlFor="responseGuidelines">Response Guidelines</Label>
@@ -486,7 +491,7 @@ export function AgentForm({ agent, onSubmit, onCancel, isLoading }: AgentFormPro
                   rows={4}
                 />
               </div>
-              
+
               <div className="grid gap-2">
                 <div className="flex items-center gap-2">
                   <Label htmlFor="errorHandling">Error Handling / Fallback</Label>
@@ -511,7 +516,7 @@ export function AgentForm({ agent, onSubmit, onCancel, isLoading }: AgentFormPro
               </div>
             </div>
           </TabsContent>
-          
+
           {/* Tab 3: Media & Knowledge */}
           <TabsContent value="media" className="mt-0 space-y-6">
             {isGeminiLive ? (
@@ -522,7 +527,7 @@ export function AgentForm({ agent, onSubmit, onCancel, isLoading }: AgentFormPro
                     Gemini Live uses Google&apos;s built-in voices. Select one below.
                   </p>
                 </div>
-                
+
                 <div className="grid gap-2">
                   <Label>Gemini Voice</Label>
                   <Select value={formData.geminiLiveVoice} onValueChange={(v) => updateField("geminiLiveVoice", v)}>
@@ -543,8 +548,8 @@ export function AgentForm({ agent, onSubmit, onCancel, isLoading }: AgentFormPro
                 <div className="grid grid-cols-2 gap-4">
                   <div className="grid gap-2">
                     <Label>Voice Provider</Label>
-                    <Select 
-                      value={formData.voiceProvider} 
+                    <Select
+                      value={formData.voiceProvider}
                       onValueChange={(v: "ElevenLabs" | "Rime" | "StreamElements" | "Smallest AI") => {
                         updateField("voiceProvider", v)
                         updateField("voice", "")
@@ -561,11 +566,11 @@ export function AgentForm({ agent, onSubmit, onCancel, isLoading }: AgentFormPro
                       </SelectContent>
                     </Select>
                   </div>
-                  
+
                   <div className="grid gap-2">
                     <Label>Transcriber</Label>
-                    <Select 
-                      value={formData.transcriber} 
+                    <Select
+                      value={formData.transcriber}
                       onValueChange={(v: "Deepgram" | "OpenAI Whisper") => updateField("transcriber", v)}
                     >
                       <SelectTrigger>
@@ -578,7 +583,7 @@ export function AgentForm({ agent, onSubmit, onCancel, isLoading }: AgentFormPro
                     </Select>
                   </div>
                 </div>
-                
+
                 <div className="grid gap-2">
                   <Label>Voice</Label>
                   {formData.voiceProvider === "Rime" ? (
@@ -588,11 +593,10 @@ export function AgentForm({ agent, onSubmit, onCancel, isLoading }: AgentFormPro
                           key={voice.id}
                           type="button"
                           onClick={() => updateField("voice", voice.id)}
-                          className={`flex items-center justify-between rounded-lg border p-3 transition-colors ${
-                            formData.voice === voice.id
+                          className={`flex items-center justify-between rounded-lg border p-3 transition-colors ${formData.voice === voice.id
                               ? "border-primary bg-primary/5"
                               : "hover:bg-muted"
-                          }`}
+                            }`}
                         >
                           <div className="text-left">
                             <p className="font-medium">{voice.name}</p>
@@ -634,7 +638,7 @@ export function AgentForm({ agent, onSubmit, onCancel, isLoading }: AgentFormPro
                     </Select>
                   )}
                 </div>
-                
+
                 <div className="grid gap-2">
                   <div className="flex items-center justify-between">
                     <Label>Speech Speed</Label>
@@ -656,18 +660,17 @@ export function AgentForm({ agent, onSubmit, onCancel, isLoading }: AgentFormPro
                 </div>
               </div>
             )}
-            
+
             <div className="grid gap-2">
               <Label>Knowledge Base</Label>
               <div className="flex flex-wrap gap-2">
                 {knowledgeBases.map((kb) => (
                   <label
                     key={kb.id}
-                    className={`flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 transition-colors ${
-                      formData.knowledgeBase.includes(kb.id)
+                    className={`flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 transition-colors ${formData.knowledgeBase.includes(kb.id)
                         ? "border-primary bg-primary/5"
                         : "hover:bg-muted"
-                    }`}
+                      }`}
                   >
                     <Checkbox
                       checked={formData.knowledgeBase.includes(kb.id)}
@@ -690,12 +693,12 @@ export function AgentForm({ agent, onSubmit, onCancel, isLoading }: AgentFormPro
               )}
             </div>
           </TabsContent>
-          
+
           {/* Tab 4: Settings */}
           <TabsContent value="settings" className="mt-0 space-y-6">
             <div className="space-y-4">
               <h3 className="font-medium">Recording</h3>
-              
+
               <div className="flex items-center justify-between rounded-lg border p-4">
                 <div className="space-y-0.5">
                   <Label>Call Recording</Label>
@@ -708,12 +711,12 @@ export function AgentForm({ agent, onSubmit, onCancel, isLoading }: AgentFormPro
                   onCheckedChange={(v) => updateField("callRecording", v)}
                 />
               </div>
-              
+
               {formData.callRecording && (
                 <div className="grid gap-2">
                   <Label>Recording Format</Label>
-                  <Select 
-                    value={formData.callRecordingFormat} 
+                  <Select
+                    value={formData.callRecordingFormat}
                     onValueChange={(v: "mp3" | "wav" | "m4a") => updateField("callRecordingFormat", v)}
                   >
                     <SelectTrigger className="w-[200px]">
@@ -728,10 +731,10 @@ export function AgentForm({ agent, onSubmit, onCancel, isLoading }: AgentFormPro
                 </div>
               )}
             </div>
-            
+
             <div className="space-y-4">
               <h3 className="font-medium">Lead Preferences</h3>
-              
+
               <div className="flex items-center justify-between rounded-lg border p-4">
                 <div className="space-y-0.5">
                   <Label>Remember Lead Preference</Label>
@@ -745,10 +748,10 @@ export function AgentForm({ agent, onSubmit, onCancel, isLoading }: AgentFormPro
                 />
               </div>
             </div>
-            
+
             <div className="space-y-4">
               <h3 className="font-medium">Voicemail</h3>
-              
+
               <div className="flex items-center justify-between rounded-lg border p-4">
                 <div className="space-y-0.5">
                   <Label>Voicemail Detection</Label>
@@ -761,7 +764,7 @@ export function AgentForm({ agent, onSubmit, onCancel, isLoading }: AgentFormPro
                   onCheckedChange={(v) => updateField("voicemailDetection", v)}
                 />
               </div>
-              
+
               {formData.voicemailDetection && (
                 <div className="grid gap-2">
                   <Label htmlFor="voicemailMessage">Voicemail Message</Label>
@@ -775,10 +778,10 @@ export function AgentForm({ agent, onSubmit, onCancel, isLoading }: AgentFormPro
                 </div>
               )}
             </div>
-            
+
             <div className="space-y-4">
               <h3 className="font-medium">Call Transfer</h3>
-              
+
               <div className="flex items-center justify-between rounded-lg border p-4">
                 <div className="space-y-0.5">
                   <Label>Enable Call Transfer</Label>
@@ -791,7 +794,7 @@ export function AgentForm({ agent, onSubmit, onCancel, isLoading }: AgentFormPro
                   onCheckedChange={(v) => updateField("enableCallTransfer", v)}
                 />
               </div>
-              
+
               {formData.enableCallTransfer && (
                 <div className="grid gap-2">
                   <Label htmlFor="transferPhoneNumber">Transfer Phone Number</Label>
@@ -804,10 +807,10 @@ export function AgentForm({ agent, onSubmit, onCancel, isLoading }: AgentFormPro
                 </div>
               )}
             </div>
-            
+
             <div className="space-y-4">
               <h3 className="font-medium">Advanced</h3>
-              
+
               <div className="flex items-center justify-between rounded-lg border p-4">
                 <div className="space-y-0.5">
                   <Label>Keyboard Sound</Label>
@@ -820,7 +823,7 @@ export function AgentForm({ agent, onSubmit, onCancel, isLoading }: AgentFormPro
                   onCheckedChange={(v) => updateField("keyboardSound", v)}
                 />
               </div>
-              
+
               <div className="grid gap-2">
                 <div className="flex items-center justify-between">
                   <Label>Temperature</Label>
@@ -839,7 +842,7 @@ export function AgentForm({ agent, onSubmit, onCancel, isLoading }: AgentFormPro
                   <span>More Creative</span>
                 </div>
               </div>
-              
+
               <div className="grid gap-2">
                 <div className="flex items-center justify-between">
                   <Label>Max Tokens</Label>
@@ -860,7 +863,7 @@ export function AgentForm({ agent, onSubmit, onCancel, isLoading }: AgentFormPro
               </div>
             </div>
           </TabsContent>
-          
+
           {/* Tab 5: Post Call Analysis */}
           <TabsContent value="analysis" className="mt-0 space-y-6">
             <div className="space-y-4">
@@ -868,7 +871,7 @@ export function AgentForm({ agent, onSubmit, onCancel, isLoading }: AgentFormPro
               <p className="text-sm text-muted-foreground">
                 Add custom tags that will be applied during post-call analysis.
               </p>
-              
+
               <div className="flex gap-2">
                 <Input
                   value={newTag}
@@ -880,7 +883,7 @@ export function AgentForm({ agent, onSubmit, onCancel, isLoading }: AgentFormPro
                   <Plus className="h-4 w-4" />
                 </Button>
               </div>
-              
+
               {formData.userTags.length > 0 && (
                 <div className="flex flex-wrap gap-2">
                   {formData.userTags.map((tag) => (
@@ -898,22 +901,21 @@ export function AgentForm({ agent, onSubmit, onCancel, isLoading }: AgentFormPro
                 </div>
               )}
             </div>
-            
+
             <div className="space-y-4">
               <h3 className="font-medium">System Tags</h3>
               <p className="text-sm text-muted-foreground">
                 Select predefined tags to automatically classify calls.
               </p>
-              
+
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
                 {SYSTEM_TAGS.map((tag) => (
                   <label
                     key={tag}
-                    className={`flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 transition-colors ${
-                      formData.systemTags.includes(tag)
+                    className={`flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 transition-colors ${formData.systemTags.includes(tag)
                         ? "border-primary bg-primary/5"
                         : "hover:bg-muted"
-                    }`}
+                      }`}
                   >
                     <Checkbox
                       checked={formData.systemTags.includes(tag)}
@@ -927,7 +929,7 @@ export function AgentForm({ agent, onSubmit, onCancel, isLoading }: AgentFormPro
           </TabsContent>
         </div>
       </Tabs>
-      
+
       {/* Footer */}
       <div className="flex items-center justify-between border-t px-6 py-4">
         <Button variant="outline" onClick={onCancel}>

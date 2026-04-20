@@ -1,29 +1,25 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { api } from "../lib/api-client"
 import { queryKey } from "../lib/query-keys"
+import type { Notification } from "../lib/types"
 
-// ============================================
-// Notification Services
-// ============================================
-
-export const useNotifications = (params?: { read?: boolean; page?: number; limit?: number }) => {
+export const useNotifications = (params?: {
+  "filter[read]"?: boolean
+  "filter[notification_type]"?: string
+  sort?: string
+  page?: number
+  per_page?: number
+}) => {
   return useQuery({
     queryKey: queryKey.Notifications.all(params?.page || 1),
-    queryFn: () => api.get("/notifications", { params }),
-  })
-}
-
-export const useUnreadNotificationCount = () => {
-  return useQuery({
-    queryKey: queryKey.Notifications.unreadCount(),
-    queryFn: () => api.get("/notifications/unread-count"),
+    queryFn: () => api.get<{ data: Notification[] }>("/notifications", params),
   })
 }
 
 export const useNotification = (id: string) => {
   return useQuery({
     queryKey: queryKey.Notifications.detail(id),
-    queryFn: () => api.get(`/notifications/${id}`),
+    queryFn: () => api.get<Notification>(`/notifications/${id}`),
     enabled: !!id,
   })
 }
@@ -32,10 +28,10 @@ export const useMarkAsRead = () => {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (notificationId: string) => api.patch(`/notifications/${notificationId}/read`),
+    mutationFn: (notificationId: string) =>
+      api.post<{ message: string }>(`/notifications/${notificationId}/mark-read`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKey.Notifications.all(1) })
-      queryClient.invalidateQueries({ queryKey: queryKey.Notifications.unreadCount() })
     },
   })
 }
@@ -44,10 +40,9 @@ export const useMarkAllAsRead = () => {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: () => api.patch("/notifications/read-all"),
+    mutationFn: () => api.post<{ message: string }>("/notifications/mark-all-read"),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKey.Notifications.all(1) })
-      queryClient.invalidateQueries({ queryKey: queryKey.Notifications.unreadCount() })
     },
   })
 }

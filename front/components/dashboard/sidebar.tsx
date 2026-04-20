@@ -1,16 +1,17 @@
 "use client"
 
-import { 
-  LayoutDashboard, 
-  Bot, 
-  Phone, 
-  GitBranch, 
-  BarChart3, 
-  Users, 
-  Plug, 
-  BookOpen, 
-  Settings, 
-  HelpCircle, 
+import {
+  LayoutDashboard,
+  Bot,
+  Phone,
+  PhoneCall,
+  GitBranch,
+  BarChart3,
+  Users,
+  Plug,
+  BookOpen,
+  Settings,
+  HelpCircle,
   LogOut,
   CreditCard,
   Bell
@@ -25,6 +26,7 @@ const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
   { icon: Bot, label: "AI Agents", href: "/agents" },
   { icon: Phone, label: "Call Logs", badge: "24", href: "/calls" },
+  { icon: PhoneCall, label: "Phone Numbers", href: "/phone-numbers" },
   { icon: GitBranch, label: "Workflows", href: "/workflows" },
   { icon: BookOpen, label: "Knowledge Base", href: "/knowledge" },
   { icon: Plug, label: "Integrations", href: "/integrations" },

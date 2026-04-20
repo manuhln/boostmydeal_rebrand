@@ -4,241 +4,135 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Switch } from "@/components/ui/switch"
+import { Zap } from "lucide-react"
 import { useWizard } from "../wizard-context"
 import { WizardLayout } from "../wizard-layout"
-import { Phone, Mail, Calendar, Database, Zap, ArrowRight } from "lucide-react"
-import { cn } from "@/lib/utils"
-
-interface WorkflowTrigger {
-  id: string
-  name: string
-  description: string
-  icon: typeof Phone
-  enabled: boolean
-}
-
-interface AutomationAction {
-  id: string
-  name: string
-  description: string
-  icon: typeof Mail
-  enabled: boolean
-}
-
-const DEFAULT_TRIGGERS: WorkflowTrigger[] = [
-  {
-    id: "call_completed",
-    name: "Call Completed",
-    description: "Trigger when an AI call ends successfully",
-    icon: Phone,
-    enabled: true,
-  },
-  {
-    id: "transcript_ready",
-    name: "Transcript Ready",
-    description: "Trigger when call transcription is available",
-    icon: Database,
-    enabled: true,
-  },
-  {
-    id: "call_summary",
-    name: "Call Summary Generated",
-    description: "Trigger after AI generates call summary",
-    icon: Zap,
-    enabled: false,
-  },
-]
-
-const DEFAULT_ACTIONS: AutomationAction[] = [
-  {
-    id: "send_followup_email",
-    name: "Send Follow-up Email",
-    description: "Automatically email prospects after calls",
-    icon: Mail,
-    enabled: true,
-  },
-  {
-    id: "update_crm",
-    name: "Update CRM Record",
-    description: "Sync call data to your CRM",
-    icon: Database,
-    enabled: true,
-  },
-  {
-    id: "book_meeting",
-    name: "Book Meeting",
-    description: "Schedule calendar meetings automatically",
-    icon: Calendar,
-    enabled: false,
-  },
-  {
-    id: "trigger_outbound",
-    name: "Trigger Outbound Call",
-    description: "Initiate follow-up calls based on rules",
-    icon: Phone,
-    enabled: false,
-  },
-]
 
 export function WorkflowStep() {
-  const { nextStep, updateData, isLoading } = useWizard()
-  
-  const [triggers, setTriggers] = useState<WorkflowTrigger[]>(DEFAULT_TRIGGERS)
-  const [actions, setActions] = useState<AutomationAction[]>(DEFAULT_ACTIONS)
+  const { nextStep, prevStep, skipOnboarding, updateData, isLoading } = useWizard()
 
-  const toggleTrigger = (id: string) => {
-    setTriggers((prev) =>
-      prev.map((t) => (t.id === id ? { ...t, enabled: !t.enabled } : t))
-    )
-  }
+  const [workflows, setWorkflows] = useState({
+    leadFollowUp: true,
+    quoteOffer: false,
+    appointmentScheduling: false,
+    missedAppointment: false,
+  })
 
-  const toggleAction = (id: string) => {
-    setActions((prev) =>
-      prev.map((a) => (a.id === id ? { ...a, enabled: !a.enabled } : a))
-    )
+  const toggleWorkflow = (key: keyof typeof workflows) => {
+    setWorkflows((prev) => ({ ...prev, [key]: !prev[key] }))
   }
 
   const handleContinue = () => {
+    const enabledRules = [
+      { id: "lead_follow_up", name: "Lead Follow-Up Automation", enabled: workflows.leadFollowUp },
+      { id: "quote_offer", name: "Quote & Offer Automation", enabled: workflows.quoteOffer },
+      { id: "appointment_scheduling", name: "Appointment Scheduling & Reminders", enabled: workflows.appointmentScheduling },
+      { id: "missed_appointment", name: "Missed Appointment Recovery", enabled: workflows.missedAppointment },
+    ].filter((rule) => rule.enabled)
+
     updateData({
       workflow: {
-        triggers: triggers
-          .filter((t) => t.enabled)
-          .map((t) => t.id as "PHONE_CALL_CONNECTED" | "TRANSCRIPT_COMPLETE" | "CALL_SUMMARY" | "PHONE_CALL_ENDED" | "LIVE_TRANSCRIPT" | "MANUAL" | "SCHEDULED"),
-        automationRules: actions
-          .filter((a) => a.enabled)
-          .map((a) => ({
-            id: a.id,
-            name: a.name,
-            condition: "always",
-            action: a.id,
-            enabled: true,
-          })),
+        triggers: ["MANUAL"],
+        automationRules: enabledRules.map((rule) => ({
+          id: rule.id,
+          name: rule.name,
+          condition: "always",
+          action: rule.id,
+          enabled: true,
+        })),
       },
     })
     nextStep()
   }
 
-  const enabledTriggers = triggers.filter((t) => t.enabled)
-  const enabledActions = actions.filter((a) => a.enabled)
+  const activeCount = Object.values(workflows).filter(Boolean).length
 
   return (
     <WizardLayout
       title="Configure Your Workflow"
-      subtitle="Set up automation triggers and actions for your AI agents."
+      subtitle="Choose which automation blocks should be active when your AI system goes live."
+      footer={
+        <div className="flex items-center justify-between">
+          <Button type="button" variant="secondary" onClick={prevStep} className="h-12 rounded-2xl px-8 bg-[#d0d0d0] text-white hover:bg-[#c5c5c5]">
+            Back
+          </Button>
+          <div className="flex items-center gap-8">
+            <button
+              type="button"
+              onClick={skipOnboarding}
+              className="text-sm font-semibold text-gray-500 underline underline-offset-2 transition-colors hover:text-gray-800"
+            >
+              Skip for now
+            </button>
+            <Button onClick={handleContinue} disabled={isLoading} className="h-12 rounded-2xl px-8">
+              Continue
+            </Button>
+          </div>
+        </div>
+      }
     >
       <div className="max-w-4xl mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Triggers */}
-          <Card className="p-6">
-            <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
-              <Zap className="w-5 h-5 text-primary" />
-              Triggers
-            </h3>
-            <p className="text-sm text-muted-foreground mb-4">
-              Choose events that start your automation workflows.
-            </p>
-            <div className="space-y-3">
-              {triggers.map((trigger) => (
-                <div
-                  key={trigger.id}
-                  className={cn(
-                    "flex items-center justify-between p-4 rounded-lg border transition-colors",
-                    trigger.enabled ? "border-primary/30 bg-primary/5" : "border-border"
-                  )}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className={cn(
-                      "p-2 rounded-lg",
-                      trigger.enabled ? "bg-primary/10" : "bg-muted"
-                    )}>
-                      <trigger.icon className={cn(
-                        "w-4 h-4",
-                        trigger.enabled ? "text-primary" : "text-muted-foreground"
-                      )} />
-                    </div>
-                    <div>
-                      <p className="font-medium text-sm">{trigger.name}</p>
-                      <p className="text-xs text-muted-foreground">{trigger.description}</p>
-                    </div>
-                  </div>
-                  <Switch
-                    checked={trigger.enabled}
-                    onCheckedChange={() => toggleTrigger(trigger.id)}
-                  />
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          {[
+            {
+              key: "leadFollowUp" as const,
+              title: "Lead Follow-Up Automation",
+              description: "AI calls and follows up with leads automatically until response or unsubscribe.",
+              disabled: false,
+              warning: "",
+            },
+            {
+              key: "quoteOffer" as const,
+              title: "Quote & Offer Automation",
+              description: "AI sends quotes automatically after qualification.",
+              disabled: true,
+              warning: "Connect your CRM to enable this workflow",
+            },
+            {
+              key: "appointmentScheduling" as const,
+              title: "Appointment Scheduling & Reminders",
+              description: "AI books meetings and sends reminders.",
+              disabled: true,
+              warning: "Connect your calendar to enable this workflow",
+            },
+            {
+              key: "missedAppointment" as const,
+              title: "Missed Appointment Recovery",
+              description: "Follows up on no-shows and cancellations.",
+              disabled: false,
+              warning: "",
+            },
+          ].map((item) => (
+            <Card key={item.key} className="flex h-full flex-col gap-3 rounded-xl border border-gray-200 bg-white p-5">
+              <div className="flex items-start justify-between gap-3">
+                <h3 className="text-base font-semibold text-gray-900">{item.title}</h3>
+                <Switch
+                  checked={workflows[item.key]}
+                  disabled={item.disabled}
+                  onCheckedChange={() => toggleWorkflow(item.key)}
+                />
+              </div>
+              <p className="text-sm text-gray-500">{item.description}</p>
+              {item.warning && (
+                <div className="rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-500">
+                  {item.warning}
                 </div>
-              ))}
-            </div>
-          </Card>
-
-          {/* Actions */}
-          <Card className="p-6">
-            <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
-              <ArrowRight className="w-5 h-5 text-primary" />
-              Actions
-            </h3>
-            <p className="text-sm text-muted-foreground mb-4">
-              Select what happens when triggers are activated.
-            </p>
-            <div className="space-y-3">
-              {actions.map((action) => (
-                <div
-                  key={action.id}
-                  className={cn(
-                    "flex items-center justify-between p-4 rounded-lg border transition-colors",
-                    action.enabled ? "border-primary/30 bg-primary/5" : "border-border"
-                  )}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className={cn(
-                      "p-2 rounded-lg",
-                      action.enabled ? "bg-primary/10" : "bg-muted"
-                    )}>
-                      <action.icon className={cn(
-                        "w-4 h-4",
-                        action.enabled ? "text-primary" : "text-muted-foreground"
-                      )} />
-                    </div>
-                    <div>
-                      <p className="font-medium text-sm">{action.name}</p>
-                      <p className="text-xs text-muted-foreground">{action.description}</p>
-                    </div>
-                  </div>
-                  <Switch
-                    checked={action.enabled}
-                    onCheckedChange={() => toggleAction(action.id)}
-                  />
-                </div>
-              ))}
-            </div>
-          </Card>
+              )}
+            </Card>
+          ))}
         </div>
 
-        {/* Summary */}
-        {(enabledTriggers.length > 0 || enabledActions.length > 0) && (
-          <Card className="mt-6 p-4 bg-muted/30">
-            <h4 className="font-medium text-sm mb-2">Workflow Summary</h4>
-            <div className="flex items-center gap-4 text-sm text-muted-foreground">
-              <span>
-                <strong className="text-foreground">{enabledTriggers.length}</strong> triggers enabled
-              </span>
-              <ArrowRight className="w-4 h-4" />
-              <span>
-                <strong className="text-foreground">{enabledActions.length}</strong> actions configured
-              </span>
+        <Card className="mt-6 bg-muted/30 p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium">Workflow Summary</p>
+              <p className="text-xs text-muted-foreground">
+                {activeCount} automation block{activeCount > 1 ? "s" : ""} selected
+              </p>
             </div>
-          </Card>
-        )}
-
-        {/* Navigation */}
-        <div className="flex justify-end mt-6">
-          <Button
-            onClick={handleContinue}
-            disabled={isLoading}
-            className="px-8 bg-primary hover:bg-primary/90"
-          >
-            Continue
-          </Button>
-        </div>
+            <Zap className="h-5 w-5 text-primary" />
+          </div>
+        </Card>
       </div>
     </WizardLayout>
   )

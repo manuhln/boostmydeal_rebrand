@@ -1,6 +1,7 @@
 "use client"
 
-import { LogoIcon } from "@/components/ui/logo"
+import Image from "next/image"
+import { useTheme } from "next-themes"
 import { useWizard, type WizardStep } from "./wizard-context"
 import { cn } from "@/lib/utils"
 import Link from "next/link"
@@ -12,6 +13,8 @@ interface WizardLayoutProps {
   subtitle?: string
   showSteps?: boolean
   showBackButton?: boolean
+  footer?: React.ReactNode
+  contentClassName?: string
 }
 
 const DISPLAY_STEPS: WizardStep[] = ["business", "tools", "workflow", "ai-agent", "report", "go-live"]
@@ -22,61 +25,56 @@ export function WizardLayout({
   subtitle,
   showSteps = true,
   showBackButton = true,
+  footer,
+  contentClassName,
 }: WizardLayoutProps) {
-  const { currentStep, stepIndex, stepLabels, prevStep, canGoBack } = useWizard()
+  const { currentStep, stepLabels, prevStep, canGoBack } = useWizard()
+  const { resolvedTheme } = useTheme()
 
-  // Calculate progress for display steps only (excluding welcome)
   const displayStepIndex = DISPLAY_STEPS.indexOf(currentStep)
   const showProgressBar = showSteps && currentStep !== "welcome"
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b border-border bg-card">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-          <LogoIcon size="lg" />
-          <Link 
-            href="/help" 
-            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-          >
-            Help / Docs
-          </Link>
-        </div>
-      </header>
+    <div className="min-h-screen bg-slate-50 dark:bg-background relative">
+      <div className="absolute right-6 top-6 z-10">
+        <Image
+          src={resolvedTheme === "dark" ? "/logo-dark.svg" : "/logo.svg"}
+          alt="BoostMyDeal"
+          width={60}
+          height={60}
+          className=""
+          priority
+        />
+      </div>
 
-      {/* Main Content */}
-      <main className="max-w-6xl mx-auto px-4 py-8">
-        {/* Title Section */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl md:text-4xl font-semibold text-foreground mb-2">
+      <main className="mx-auto min-h-screen max-w-6xl px-6 pb-8 pt-12">
+        <header className="mb-8 text-center">
+          <h1 className="mb-2 text-2xl font-normal text-foreground lg:text-4xl">
             {title}
           </h1>
           {subtitle && (
-            <p className="text-muted-foreground max-w-xl mx-auto">
+            <p className="mx-auto max-w-3xl text-sm text-muted-foreground">
               {subtitle}
             </p>
           )}
-        </div>
+        </header>
 
-        {/* Step Progress Bar */}
         {showProgressBar && (
-          <div className="mb-8">
-            <div className="flex items-center justify-between max-w-3xl mx-auto">
-              {/* Back Button */}
-              {showBackButton && canGoBack ? (
-                <button
-                  onClick={prevStep}
-                  className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                  Back
-                </button>
-              ) : (
-                <div className="w-12" />
-              )}
+          <div className="relative mb-8 flex items-center">
+            {showBackButton && canGoBack ? (
+              <button
+                onClick={prevStep}
+                className="flex items-center gap-2 text-muted-foreground transition-colors hover:text-foreground"
+              >
+                <ChevronLeft className="h-5 w-5" />
+                Back
+              </button>
+            ) : (
+              <div />
+            )}
 
-              {/* Steps */}
-              <div className="flex items-center gap-2">
+            <div className="absolute left-1/2 -translate-x-1/2">
+              <div className="flex items-center">
                 {DISPLAY_STEPS.map((step, index) => {
                   const isCompleted = displayStepIndex > index
                   const isCurrent = step === currentStep
@@ -84,32 +82,36 @@ export function WizardLayout({
 
                   return (
                     <div key={step} className="flex items-center">
-                      {/* Step Circle and Label */}
                       <div className="flex flex-col items-center">
                         <div
                           className={cn(
-                            "w-3 h-3 rounded-full border-2 transition-all duration-200",
-                            isCompleted && "bg-muted-foreground/50 border-muted-foreground/50",
-                            isCurrent && "bg-primary border-primary ring-4 ring-primary/20",
-                            isPending && "bg-transparent border-muted-foreground/30"
+                            "flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full transition-all",
+                            isCurrent && "bg-primary ring-4 ring-primary/25",
+                            isCompleted && "bg-primary",
+                            isPending && "bg-gray-300"
                           )}
-                        />
+                        >
+                          {isCompleted && (
+                            <svg className="h-3 w-3" fill="none" stroke="white" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                            </svg>
+                          )}
+                        </div>
                         <span
                           className={cn(
-                            "text-xs mt-1 whitespace-nowrap",
-                            isCurrent ? "text-foreground font-medium" : "text-muted-foreground"
+                            "mt-2 whitespace-nowrap text-xs transition-all",
+                            isCurrent ? "font-bold text-foreground" : "font-normal text-muted-foreground"
                           )}
                         >
                           {stepLabels[step]}
                         </span>
                       </div>
 
-                      {/* Connector Line */}
                       {index < DISPLAY_STEPS.length - 1 && (
                         <div
                           className={cn(
-                            "w-12 h-0.5 mx-1 mb-5 transition-all duration-200",
-                            displayStepIndex > index ? "bg-muted-foreground/50" : "bg-muted-foreground/20"
+                            "mb-5 h-px min-w-12 flex-1 transition-all",
+                            isCompleted ? "bg-primary" : "bg-gray-300"
                           )}
                         />
                       )}
@@ -117,17 +119,15 @@ export function WizardLayout({
                   )
                 })}
               </div>
-
-              {/* Spacer for alignment */}
-              <div className="w-12" />
             </div>
           </div>
         )}
 
-        {/* Content */}
-        <div className="animate-fade-in">
+        <div className={cn("animate-fade-in rounded-2xl bg-white p-6 shadow-sm md:p-10", contentClassName)}>
           {children}
         </div>
+
+        {footer && <div className="mt-10">{footer}</div>}
       </main>
     </div>
   )

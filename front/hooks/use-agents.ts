@@ -1,15 +1,19 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { api } from "../lib/api-client"
 import { queryKey } from "../lib/query-keys"
-import type { AIAgent, PaginatedRequest } from "../lib/types"
+import type { AIAgent, AgentApiItem, PaginatedRequest } from "../lib/types"
 
 
 export const useAgents = (params?: PaginatedRequest) => {
   return useQuery({
     queryKey: queryKey.Agent.list(params?.page ?? 1),
-    queryFn: () => api.get("/agents", { params: params as Record<string, unknown> }),
-  });
-};
+    queryFn: () => api.get<{ data: AgentApiItem[]; meta?: unknown; links?: unknown }>("/agents", params),
+    select: (res) => ({
+      ...res,
+      data: res.data.map((item): AIAgent => ({ id: item.id, ...item.attributes })),
+    }),
+  })
+}
 
 
 export const useAgent = (id: string) => {

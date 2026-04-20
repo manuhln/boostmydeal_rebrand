@@ -1,10 +1,20 @@
+"use client"
+
 import { Sidebar } from "@/components/dashboard/sidebar"
+import { api } from "@/lib/api-client";
+import { useEffect } from "react"
 
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  useEffect(() => {
+    if (!localStorage.getItem("accessToken")) {
+      api.get("/me").catch(() => { });
+    }
+  }, []);
+
   return (
     <div className="min-h-screen bg-background">
       <Sidebar />

@@ -4,11 +4,6 @@ import { queryKey } from "../lib/query-keys"
 import type { LoginResponse, VerifyOtpResponse, SignupResponse } from "../lib/types"
 
 
-
-// ============================================
-// Authentication Services
-// ============================================
-
 export const useMe = () => {
   return useQuery({
     queryKey: queryKey.auth.me(),
@@ -16,20 +11,19 @@ export const useMe = () => {
   })
 }
 
-
 export const useLogin = () => {
   return useMutation({
     mutationFn: (tenantId: string) =>
       api.post<LoginResponse>("/login", undefined, {
         "X-Tenant-ID": tenantId,
       }),
-    onSuccess: (data) => {
-      localStorage.setItem("accessToken", data.accessToken);
-      localStorage.setItem("tenantId", data.tenant.id);
+    onSuccess: (response) => {
+      localStorage.setItem("accessToken", response?.data.accessToken);
+      localStorage.setItem("tenantId", response?.data.tenant.data.id);
+
     },
   })
 }
-
 
 export const useSignup = () => {
   return useMutation({
@@ -37,27 +31,24 @@ export const useSignup = () => {
       name: string;
       slug: string;
       email: string;
-      password: string;
-      first_Name: string;
-      last_Name: string;
+      first_name: string;
+      last_name: string;
       phone?: string;
       website?: string;
-    }) => api.post<SignupResponse>("/tenants/register ", data),
+    }) => api.post<SignupResponse>("/tenants/register", data)
   })
 }
-
-
-
 export const useSendOtp = () => {
   return useMutation({
-    mutationFn: (email: string) => api.post("/tenants/checkEmail", { email }),
+    mutationFn: (email: string) =>
+      api.post("/tenants/signup.checkEmail", { email })
   })
 }
 
 export const useVerifyOtp = () => {
   return useMutation({
     mutationFn: (data: { email: string; otp: string }) =>
-      api.post<VerifyOtpResponse>("/tenants/verifyOtp", data),
+      api.post<VerifyOtpResponse>("/tenants/signup.verifyOtp", data),
   })
 }
 
@@ -68,8 +59,10 @@ export const useLogout = () => {
   return useMutation({
     mutationFn: () => api.post("/logout"),
     onSuccess: () => {
-      queryClient.clear()
+      queryClient.clear();
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("tenantId");
+      window.location.href = "/login";
     },
   })
 }
-

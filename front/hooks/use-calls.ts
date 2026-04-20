@@ -1,87 +1,89 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { api } from "../lib/api-client"
 import { queryKey } from "../lib/query-keys"
-import type { Call, PaginatedRequest, InitiateCallRequest, CreateCall } from "../lib/types"
+import type { Call, CallApiItem, CallFilters, CreateCall, StartCallRequest } from "../lib/types"
 
-// ============================================
-// Call Hooks
-// ============================================
-
-export const useCalls = (params?: PaginatedRequest) => {
+export const useCalls = (params?: CallFilters) => {
   return useQuery({
-    queryKey: queryKey.Calls.all(params?.page || 1),
-    queryFn: () => api.get("/calls", { params }),
+    queryKey: queryKey.Calls.all(params?.page as number || 1),
+    queryFn: () => api.get<{ data: CallApiItem[]; meta?: unknown; links?: unknown }>("/calls", params),
+    select: (res) => ({
+      ...res,
+      data: res.data.map((item): Call => ({ id: item.id, ...item.attributes })),
+    }),
   })
 }
-
-
-export const useCreateCall = () => {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: (data: CreateCall) => api.post("/calls/start", data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKey.Calls.all(1) })
-    },
-  })
-}
-
-
-export const useUpdateCall = (callId: string) => {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: (data: Partial<CreateCall>) => api.put(`calls/${callId}`, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKey.Calls.all(1) })
-    },
-  })
-}
-
 
 export const useCall = (id: string) => {
   return useQuery({
     queryKey: queryKey.Calls.detail(id),
-    queryFn: () => api.get(`/calls/${id}`),
+    queryFn: () => api.get<Call>(`/calls/${id}`),
     enabled: !!id,
   })
 }
 
-export const useCallTranscription = (callId: string) => {
-  return useQuery({
-    queryKey: queryKey.Calls.transcription(callId),
-    queryFn: () => api.get(`/calls/${callId}/transcription`),
-    enabled: !!callId,
-  })
-}
-
-
-export const useInitiateCall = () => {
+// CRUD create — POST /calls
+export const useCreateCall = () => {
   const queryClient = useQueryClient()
-
   return useMutation({
-    mutationFn: (data: InitiateCallRequest) => api.post("/calls/start", data),
+    mutationFn: (data: CreateCall) => api.post<Call>("/calls", data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKey.Calls.all(1) })
     },
   })
 }
 
-export const useExportCalls = () => {
-  // return useMutation({
-  //   mutationFn: (params: { format: "csv" | "json"; startDate?: string; endDate?: string }) =>
-  //     api.post("/calls/export", params),
-  // })
-  return useQuery(
-    {
-      queryKey: queryKey.Calls.export(),
-      queryFn: () => api.get(`/calls/export-csv`)
-    }
-  )
+// Initiate outbound call — POST /calls/start
+export const useStartCall = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (data: StartCallRequest) =>
+      api.post<{ data: { call_id: string; message: string } }>("/calls/start", data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKey.Calls.all(1) })
+    },
+  })
 }
 
+export const useUpdateCall = (callId: string) => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (data: Partial<CreateCall>) => api.put<Call>(`/calls/${callId}`, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKey.Calls.all(1) })
+      queryClient.invalidateQueries({ queryKey: queryKey.Calls.detail(callId) })
+    },
+  })
+}
 
-export const useGetWebhooksCalls = (callId: string) => {
+export const useDeleteCall = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => api.delete(`/calls/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKey.Calls.all(1) })
+    },
+  })
+}
+
+export const useExportCalls = (params?: {
+  start_date?: string
+  end_date?: string
+  "filter[status]"?: string
+  "filter[direction]"?: string
+}) => {
+  return useQuery({
+    queryKey: queryKey.Calls.export(),
+    queryFn: () => api.get<string>("/calls/export-csv", params),
+    enabled: false,
+  })
+}
+
+export const useCallWebhooks = (callId: string) => {
   return useQuery({
     queryKey: queryKey.Calls.webhooks(callId),
-    queryFn: () => api.get(`calls/${callId}/webhooks`)
+    queryFn: () =>
+      api.get<{ call_id: number; webhooks: unknown[]; total_webhooks: number }>(`/calls/${callId}/webhooks`),
+    enabled: !!callId,
   })
 }

@@ -1,23 +1,24 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { api } from "../lib/api-client"
 import { queryKey } from "../lib/query-keys"
-import type { KnowledgeBase, KnowledgeDocument } from "../lib/types"
+import type { KnowledgeBase } from "../lib/types"
 
-// ============================================
-// Knowledge Base Services
-// ============================================
-
-export const useKnowledgeBases = () => {
+export const useKnowledgeBases = (params?: {
+  "filter[name]"?: string
+  "filter[document_type]"?: string
+  "filter[agents]"?: string
+  sort?: string
+}) => {
   return useQuery({
     queryKey: queryKey.KnowlegeBase.all(),
-    queryFn: () => api.get("/knowledge-bases"),
+    queryFn: () => api.get<{ data: KnowledgeBase[] }>("/knowledge-bases", params),
   })
 }
 
 export const useKnowledgeBase = (id: string) => {
   return useQuery({
     queryKey: queryKey.KnowlegeBase.detail(id),
-    queryFn: () => api.get(`/knowledge-bases/${id}`),
+    queryFn: () => api.get<KnowledgeBase>(`/knowledge-bases/${id}`),
     enabled: !!id,
   })
 }
@@ -26,8 +27,32 @@ export const useCreateKnowledgeBase = () => {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (data: { name: string; description?: string }) =>
-      api.post("/knowledge-bases", data),
+    mutationFn: (data: { name: string; description?: string; document_type?: string }) =>
+      api.post<KnowledgeBase>("/knowledge-bases", data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKey.KnowlegeBase.all() })
+    },
+  })
+}
+
+export const useUpdateKnowledgeBase = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: { name?: string; description?: string; document_type?: string } }) =>
+      api.put<KnowledgeBase>(`/knowledge-bases/${id}`, data),
+    onSuccess: (_, { id }) => {
+      queryClient.invalidateQueries({ queryKey: queryKey.KnowlegeBase.all() })
+      queryClient.invalidateQueries({ queryKey: queryKey.KnowlegeBase.detail(id) })
+    },
+  })
+}
+
+export const useDeleteKnowledgeBase = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (id: string) => api.delete(`/knowledge-bases/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKey.KnowlegeBase.all() })
     },
@@ -59,18 +84,6 @@ export const useDeleteDocument = () => {
     onSuccess: (_, { knowledgeBaseId }) => {
       queryClient.invalidateQueries({ queryKey: queryKey.KnowlegeBase.detail(knowledgeBaseId) })
       queryClient.invalidateQueries({ queryKey: queryKey.KnowlegeBase.documents(knowledgeBaseId) })
-    },
-  })
-}
-
-export const useProcessKnowledgeBase = () => {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: (knowledgeBaseId: string) =>
-      api.post(`/knowledge-bases/${knowledgeBaseId}/process`),
-    onSuccess: (_, knowledgeBaseId) => {
-      queryClient.invalidateQueries({ queryKey: queryKey.KnowlegeBase.detail(knowledgeBaseId) })
     },
   })
 }

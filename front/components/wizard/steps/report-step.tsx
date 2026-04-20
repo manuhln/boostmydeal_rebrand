@@ -2,59 +2,23 @@
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
-import { Switch } from "@/components/ui/switch"
-import { Label } from "@/components/ui/label"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+import { CheckCircle2 } from "lucide-react"
+import { cn } from "@/lib/utils"
 import { useWizard } from "../wizard-context"
 import { WizardLayout } from "../wizard-layout"
-import { BarChart3, Mail, Clock, CheckCircle2 } from "lucide-react"
-import { cn } from "@/lib/utils"
 
-const METRICS = [
-  { id: "total_calls", name: "Total Calls", description: "Number of calls made" },
-  { id: "success_rate", name: "Success Rate", description: "Percentage of successful calls" },
-  { id: "avg_duration", name: "Average Duration", description: "Average call length" },
-  { id: "meetings_booked", name: "Meetings Booked", description: "Calendar meetings scheduled" },
-  { id: "emails_sent", name: "Emails Sent", description: "Follow-up emails delivered" },
-  { id: "crm_updates", name: "CRM Updates", description: "Records synced to CRM" },
-]
-
-const FREQUENCIES = [
-  { id: "daily", name: "Daily", description: "Every day at 9 AM" },
-  { id: "weekly", name: "Weekly", description: "Every Monday morning" },
-  { id: "monthly", name: "Monthly", description: "First day of each month" },
-]
+type ReportOption = "daily" | "weekly" | "monthly" | "none"
 
 export function ReportStep() {
-  const { nextStep, updateData, data, isLoading } = useWizard()
-  
-  const [emailReports, setEmailReports] = useState(data.reporting?.emailReports ?? true)
-  const [frequency, setFrequency] = useState(data.reporting?.reportFrequency || "weekly")
-  const [selectedMetrics, setSelectedMetrics] = useState<string[]>(
-    data.reporting?.metrics || ["total_calls", "success_rate", "avg_duration"]
-  )
-
-  const toggleMetric = (metricId: string) => {
-    setSelectedMetrics((prev) =>
-      prev.includes(metricId)
-        ? prev.filter((id) => id !== metricId)
-        : [...prev, metricId]
-    )
-  }
+  const { nextStep, prevStep, skipOnboarding, updateData, data, isLoading } = useWizard()
+  const [selected, setSelected] = useState<ReportOption>(data.reporting?.reportFrequency || "daily")
 
   const handleContinue = () => {
     updateData({
       reporting: {
-        emailReports,
-        reportFrequency: frequency as "daily" | "weekly" | "monthly",
-        metrics: selectedMetrics,
+        emailReports: selected !== "none",
+        reportFrequency: selected === "none" ? "weekly" : selected,
+        metrics: ["calls", "leads", "automations"],
       },
     })
     nextStep()
@@ -63,144 +27,93 @@ export function ReportStep() {
   return (
     <WizardLayout
       title="Set Your Reporting Preferences"
-      subtitle="Configure how you want to receive performance reports and analytics."
+      subtitle="Choose how often you want reporting updates from your AI system."
+      footer={
+        <div className="flex items-center justify-between">
+          <Button type="button" variant="secondary" onClick={prevStep} className="h-12 rounded-2xl px-8 bg-[#d0d0d0] text-white hover:bg-[#c5c5c5]">
+            Back
+          </Button>
+          <div className="flex items-center gap-8">
+            <button
+              type="button"
+              onClick={skipOnboarding}
+              className="text-sm font-semibold text-gray-500 underline underline-offset-2 transition-colors hover:text-gray-800"
+            >
+              Skip for now
+            </button>
+            <Button onClick={handleContinue} disabled={isLoading} className="h-12 rounded-2xl px-8">
+              Continue
+            </Button>
+          </div>
+        </div>
+      }
     >
       <div className="max-w-4xl mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Email Reports Toggle */}
-          <Card className="p-6">
-            <div className="flex items-start gap-4">
-              <div className="p-3 bg-primary/10 rounded-lg">
-                <Mail className="w-6 h-6 text-primary" />
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="font-semibold">Email Reports</h3>
-                  <Switch
-                    checked={emailReports}
-                    onCheckedChange={setEmailReports}
-                  />
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          {[
+            {
+              id: "daily" as const,
+              label: "Daily Summary",
+              title: "Daily Summary",
+              description: "Get a daily summary of calls, leads and automations.",
+              badge: "D",
+            },
+            {
+              id: "weekly" as const,
+              label: "Weekly Summary",
+              title: "Weekly Summary",
+              description: "Get a weekly summary of calls, leads and automations.",
+              badge: "W",
+            },
+            {
+              id: "monthly" as const,
+              label: "Monthly Report",
+              title: "Monthly Summary",
+              description: "Receive a detailed monthly report with key metrics.",
+              badge: "M",
+            },
+            {
+              id: "none" as const,
+              label: "No Reports",
+              title: "No Reports",
+              description: "Skip these notifications for now.",
+              badge: "X",
+            },
+          ].map((option) => (
+            <div key={option.id} className="flex flex-col gap-2">
+              <div className="flex items-center gap-2">
+                <div
+                  className={cn(
+                    "flex h-4 w-4 items-center justify-center rounded border",
+                    selected === option.id ? "border-primary bg-primary text-white" : "border-gray-300 bg-white"
+                  )}
+                >
+                  {selected === option.id && <CheckCircle2 className="h-2.5 w-2.5" />}
                 </div>
-                <p className="text-sm text-muted-foreground">
-                  Receive automated performance summaries directly in your inbox.
-                </p>
+                <span className={cn("text-sm font-medium", selected === option.id ? "text-gray-900" : "text-gray-500")}>
+                  {option.label}
+                </span>
               </div>
+
+              <button
+                type="button"
+                onClick={() => setSelected(option.id)}
+                className="rounded-xl border border-gray-200 bg-white p-5 text-center transition-all hover:shadow-sm"
+              >
+                <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-gray-200 text-sm font-bold text-gray-700">
+                  {option.badge}
+                </div>
+                <p className="text-sm font-semibold text-gray-800">{option.title}</p>
+                <p className="mt-1 text-xs leading-relaxed text-gray-400">{option.description}</p>
+              </button>
             </div>
-
-            {emailReports && (
-              <div className="mt-6 space-y-3">
-                <Label>Report Frequency</Label>
-                {FREQUENCIES.map((freq) => (
-                  <button
-                    key={freq.id}
-                    onClick={() => setFrequency(freq.id)}
-                    className={cn(
-                      "w-full flex items-center gap-3 p-3 rounded-lg border text-left transition-all",
-                      frequency === freq.id
-                        ? "border-primary bg-primary/5"
-                        : "border-border hover:border-primary/50"
-                    )}
-                  >
-                    <Clock className={cn(
-                      "w-4 h-4",
-                      frequency === freq.id ? "text-primary" : "text-muted-foreground"
-                    )} />
-                    <div>
-                      <p className="font-medium text-sm">{freq.name}</p>
-                      <p className="text-xs text-muted-foreground">{freq.description}</p>
-                    </div>
-                    {frequency === freq.id && (
-                      <CheckCircle2 className="w-4 h-4 text-primary ml-auto" />
-                    )}
-                  </button>
-                ))}
-              </div>
-            )}
-          </Card>
-
-          {/* Metrics Selection */}
-          <Card className="p-6 lg:col-span-2">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="p-3 bg-primary/10 rounded-lg">
-                <BarChart3 className="w-6 h-6 text-primary" />
-              </div>
-              <div>
-                <h3 className="font-semibold">Dashboard Metrics</h3>
-                <p className="text-sm text-muted-foreground">
-                  Choose which metrics to display on your dashboard
-                </p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {METRICS.map((metric) => {
-                const isSelected = selectedMetrics.includes(metric.id)
-                return (
-                  <button
-                    key={metric.id}
-                    onClick={() => toggleMetric(metric.id)}
-                    className={cn(
-                      "flex items-center justify-between p-4 rounded-lg border text-left transition-all",
-                      isSelected
-                        ? "border-primary bg-primary/5"
-                        : "border-border hover:border-primary/50"
-                    )}
-                  >
-                    <div>
-                      <p className="font-medium text-sm">{metric.name}</p>
-                      <p className="text-xs text-muted-foreground">{metric.description}</p>
-                    </div>
-                    <div className={cn(
-                      "w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all",
-                      isSelected
-                        ? "border-primary bg-primary"
-                        : "border-muted-foreground/30"
-                    )}>
-                      {isSelected && (
-                        <CheckCircle2 className="w-3 h-3 text-primary-foreground" />
-                      )}
-                    </div>
-                  </button>
-                )
-              })}
-            </div>
-
-            {selectedMetrics.length === 0 && (
-              <p className="text-sm text-muted-foreground mt-4 text-center">
-                Select at least one metric to display on your dashboard.
-              </p>
-            )}
-          </Card>
+          ))}
         </div>
 
-        {/* Summary */}
-        <Card className="mt-6 p-4 bg-muted/30">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="font-medium text-sm">Report Configuration</p>
-              <p className="text-xs text-muted-foreground">
-                {emailReports
-                  ? `${frequency.charAt(0).toUpperCase() + frequency.slice(1)} email reports with ${selectedMetrics.length} metrics`
-                  : "Email reports disabled"}
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">
-                {selectedMetrics.length} metrics selected
-              </span>
-            </div>
+        <div className="mt-6 flex justify-center">
+          <div className="rounded-full bg-gray-100 px-4 py-2 text-sm text-gray-500">
+            {selected === "none" ? "Reports disabled for now." : `Current selection: ${selected}`}
           </div>
-        </Card>
-
-        {/* Navigation */}
-        <div className="flex justify-end mt-6">
-          <Button
-            onClick={handleContinue}
-            disabled={selectedMetrics.length === 0 || isLoading}
-            className="px-8 bg-primary hover:bg-primary/90"
-          >
-            Continue
-          </Button>
         </div>
       </div>
     </WizardLayout>

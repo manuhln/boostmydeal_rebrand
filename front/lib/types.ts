@@ -1,3 +1,4 @@
+import { Tenant } from './types';
 // ============================================
 // Authentication & User Types
 // ============================================
@@ -11,11 +12,21 @@ export interface PaginatedResponse<T> {
 
 
 export interface LoginResponse {
-  accessToken: string;
-  tenant: {
-    id: string;
-    name: string;
-  }
+  data: {
+    accessToken: string;
+    tenant: {
+      data: {
+        id: string;
+        attributes: {
+          id: string;
+          name: string;
+          slug: string;
+          status: string;
+        }
+      }
+    }
+  },
+  message: string;
 }
 
 export interface Tenant {
@@ -24,9 +35,15 @@ export interface Tenant {
   slug: string
 }
 
+export interface TenantData {
+  attributes: Tenant
+  id: string
+  type: string
+}
 export interface VerifyOtpResponse {
   tenants: Tenant[]
 }
+
 
 export interface SignupResponse {
   id: number
@@ -52,9 +69,12 @@ export interface User {
 
 
 export interface UserPreferences {
+  id?: number
   language: string
-  emailNotifications: boolean
-  theme: "light" | "dark" | "system"
+  email_notifications: boolean
+  push_notifications: boolean
+  theme: "light" | "dark" | "auto"
+  timezone: string
 }
 
 export interface Organization {
@@ -84,7 +104,11 @@ export interface OnboardingData {
   // Step 1: Business Information
   businessInfo: {
     companyName: string
+    businessEmail?: string
+    businessPhone?: string
     industry: string
+    websiteUrl?: string
+    address?: string
     companySize: string
     salesGoal: string
     timezone: string
@@ -162,27 +186,59 @@ export type IntegrationType =
   | "webhook"
 
 export interface CRMIntegration {
-  provider: "hubspot" | "zoho" | "salesforce" | "none"
+  provider: "hubspot" | "zoho" | "salesforce" | "boostmydeal" | "none"
   apiKey?: string
   connected: boolean
 }
 
 export interface PhoneIntegration {
-  provider: "twilio" | "voxsun" | "none"
+  provider: "twilio" | "voxsun" | "boostmydeal" | "none"
   phoneNumbers: PhoneNumber[]
   connected: boolean
 }
 
+// Raw JSON:API item returned by PhoneNumberResource
+export interface PhoneNumberApiItem {
+  id: string
+  type: string
+  attributes: {
+    did: string
+    country_code: string
+    provider: "voxsun" | "twilio"
+    created_at: string
+    updated_at: string
+  }
+}
+
+// Flat shape used in components
 export interface PhoneNumber {
   id: string
-  number: string
-  label?: string
-  isDefault: boolean
-  status: "active" | "inactive" | "pending"
+  did: string
+  country_code: string
+  provider: "voxsun" | "twilio"
+  created_at: string
+  updated_at: string
+}
+
+export interface PhoneNumberProviderConfig {
+  // Twilio
+  account_sid?: string
+  auth_token?: string
+  // Voxsun
+  username?: string
+  secret?: string
+  sip_domain?: string
+}
+
+export interface AddPhoneNumberPayload {
+  did: string
+  country_code: string
+  provider: "voxsun" | "twilio"
+  provider_config: PhoneNumberProviderConfig
 }
 
 export interface EmailIntegration {
-  provider: "smtp" | "sendgrid" | "none"
+  provider: "smtp" | "sendgrid" | "google" | "microsoft" | "none"
   config?: SMTPConfig
   connected: boolean
 }
@@ -197,7 +253,7 @@ export interface SMTPConfig {
 }
 
 export interface CalendarIntegration {
-  provider: "google" | "outlook" | "none"
+  provider: "google" | "google_calendar" | "outlook" | "outlook_calendar" | "calendly" | "zoho_calendar" | "none"
   connected: boolean
   calendarId?: string
 }
@@ -206,60 +262,77 @@ export interface CalendarIntegration {
 // AI Agent Types
 // ============================================
 
+// Raw JSON:API item returned by AgentResource
+export interface AgentApiItem {
+  id: string
+  type: string
+  attributes: {
+    name: string
+    description?: string
+    language: string
+    mode: "pipeline" | "realtime"
+    llm_provider?: string
+    llm_model?: string
+    stt_provider?: string
+    stt_model?: string
+    tts_provider?: string
+    tts_voice?: string
+    realtime_provider?: string
+    first_message?: string
+    user_speaks_first: boolean
+    identity?: string
+    style?: string
+    goal?: string
+    voicemail_message?: string
+    response_guideline?: string
+    fallback?: string
+    temperature: number
+    call_recording: boolean
+    recording_format?: string
+    remember_lead_preference: boolean
+    enable_human_transfer: boolean
+    enable_background_sound: boolean
+    background_sound?: boolean
+    enable_interruptions: boolean
+    enable_vad: boolean
+    created_at: string
+    updated_at: string
+  }
+}
+
+// Flat shape used in components (id + attributes merged)
 export interface AIAgent {
   id: string
-  organizationId: string
-
-  // Tab 1: Basics
   name: string
   description?: string
   language: string
-  languages: string[]
-  modelProvider: "ChatGPT" | "Gemini Live"
-  aiModel: string
-  phoneNumberId?: string
-  firstMessage: string
-  userSpeaksFirst: boolean
-  workflowIds: string[]
-
-  // Tab 2: Persona (concatenated into systemPrompt)
-  systemPrompt: string
-  persona?: {
-    identity: string
-    style: string
-    goals: string
-    responseGuidelines: string
-    errorHandling: string
-  }
-
-  // Tab 3: Media & Knowledge
-  voiceProvider: "ElevenLabs" | "Rime" | "StreamElements" | "Smallest AI"
-  transcriber: "Deepgram" | "OpenAI Whisper"
-  voice: string
-  geminiLiveVoice?: string
-  knowledgeBase: string[]
-  speed: number
-
-  // Tab 4: Settings
-  callRecording: boolean
-  callRecordingFormat: "mp3" | "wav" | "m4a"
-  rememberLeadPreference: boolean
-  voicemailDetection: boolean
-  voicemailMessage: string
-  enableCallTransfer: boolean
-  transferPhoneNumber: string
-  keyboardSound: boolean
+  mode: "pipeline" | "realtime"
+  llm_provider?: string
+  llm_model?: string
+  stt_provider?: string
+  stt_model?: string
+  tts_provider?: string
+  tts_voice?: string
+  realtime_provider?: string
+  first_message?: string
+  user_speaks_first: boolean
+  identity?: string
+  style?: string
+  goal?: string
+  voicemail_message?: string
+  response_guideline?: string
+  fallback?: string
   temperature: number
-  maxTokens: number
-
-  // Tab 5: Post Call Analysis
-  userTags: string[]
-  systemTags: string[]
-
-  // Meta
-  status: "active" | "inactive" | "draft"
-  createdAt: string
-  updatedAt: string
+  call_recording: boolean
+  recording_format?: string
+  remember_lead_preference: boolean
+  enable_human_transfer: boolean
+  enable_background_sound: boolean
+  background_sound?: boolean
+  enable_interruptions: boolean
+  enable_vad: boolean
+  created_at: string
+  updated_at: string
 }
 
 export interface AgentFormData {
@@ -376,34 +449,38 @@ export interface Voice {
 // Call Types
 // ============================================
 
-export interface Call {
+// Raw JSON:API item shape returned by the backend
+export interface CallApiItem {
   id: string
-  organizationId: string
-  agentId: string
-  assistantId: {
-    _id: string
-    name: string
+  type: string
+  attributes: {
+    direction: "inbound" | "outbound"
+    status: CallStatus
+    from_number: string
+    to_number: string
+    duration_seconds: number
+    cost: number
+    recording_url: string | null
+    livekit_room: string | null
+    created_at: string
+    updated_at: string
   }
-  contactName: string
-  contactPhone: string
-  contactEmail?: string
-  callType: "inbound" | "outbound"
-  status: CallStatus
-  duration: number // in seconds
-  cost: number // in dollars (4 decimal places)
-  startedAt: string
-  endedAt?: string
-  createdAt: string
-  recording?: string // URL
-  roomName?: string
-  twilioSid?: string
-  voxsunCallId?: string
-  user_tags: string[]
-  errorMessage?: string
-  endReason?: string
-  crmSynced: boolean
 }
 
+// Flat shape used in components (id + attributes merged)
+export interface Call {
+  id: string
+  direction: "inbound" | "outbound"
+  status: CallStatus
+  from_number: string
+  to_number: string
+  duration_seconds: number
+  cost: number
+  recording_url: string | null
+  livekit_room: string | null
+  created_at: string
+  updated_at: string
+}
 
 export interface CreateCall {
   phone_number_id: string
@@ -412,28 +489,29 @@ export interface CreateCall {
   status: string
 }
 
-
 export type CallStatus =
-  | "queued"
-  | "in-progress"
-  | "ringing"
-  | "answered"
+  | "initiated"
+  | "in_progress"
   | "completed"
+  | "cancelled"
+  | "missed"
+  | "answered"
+  | "unknown"
   | "failed"
-  | "busy"
-  | "no-answer"
-  | "canceled"
-  | "voicemail"
 
-export interface CallFilters {
-  dateFrom?: string
-  dateTo?: string
-  callType?: "inbound" | "outbound"
-  agentId?: string
-  status?: CallStatus
-  contactName?: string
-  page?: number
-  limit?: number
+export interface CallFilters extends PaginatedRequest {
+  "filter[status]"?: CallStatus
+  "filter[direction]"?: "inbound" | "outbound"
+  "filter[phone_number_id]"?: string
+  "filter[agent_id]"?: string
+  "filter[from_number]"?: string
+  "filter[to_number]"?: string
+}
+
+export interface StartCallRequest {
+  agent_id: string
+  contact_name: string
+  to_number: string
 }
 
 export interface InitiateCallRequest {
@@ -622,58 +700,44 @@ export interface TeamInvitation {
 // ============================================
 
 export interface Notification {
-  id: string
-  userId: string
-  type: NotificationType
-  title: string
-  message: string
-  read: boolean
-  data?: Record<string, unknown>
-  createdAt: string
+  id: number
+  notification_type: string
+  data: Record<string, unknown>
+  read_at: string | null
 }
-
-export type NotificationType =
-  | "call_completed"
-  | "call_failed"
-  | "call_no_answer"
-  | "call_timeout"
-  | "call_busy"
-  | "system_error"
-  | "team_invite"
-  | "billing_alert"
 
 // ============================================
 // Billing Types
 // ============================================
 
-export interface BillingInfo {
-  organizationId: string
-  plan: "free" | "starter" | "professional" | "enterprise"
-  credits: number
-  usedCredits: number
-  billingEmail: string
-  paymentMethod?: PaymentMethod
-  invoices: Invoice[]
-  nextBillingDate?: string
+export interface Credits {
+  balance: number
+  total_purchased: number
+  total_used: number
 }
 
-export interface PaymentMethod {
-  id: string
-  type: "card" | "bank"
-  last4: string
-  brand?: string
-  expiryMonth?: number
-  expiryYear?: number
-}
-
-export interface Invoice {
-  id: string
+export interface Payment {
+  id: number
   amount: number
+  status: string
+  paid_at: string | null
+  user?: Record<string, unknown>
+  invoice?: Record<string, unknown>
+}
+
+export interface PaymentIntent {
+  client_secret: string
+  payment_intent_id: string
+  amount: number
+  credits_amount: number
   currency: string
-  status: "paid" | "pending" | "failed"
-  paidAt?: string
-  createdAt: string
-  downloadUrl?: string
+}
+
+export interface CreatePaymentIntentRequest {
+  amount: number
+  credits_amount: number
+  currency?: "usd" | "eur" | "gbp"
+  description?: string
 }
 
 // ============================================
@@ -681,27 +745,43 @@ export interface Invoice {
 // ============================================
 
 export interface DashboardMetrics {
-  totalCalls: number
-  completedCalls: number
-  avgCallDuration: number
-  successRate: number
-  callsToday: number
-  callsThisWeek: number
-  callsThisMonth: number
-  callsByStatus: Record<CallStatus, number>
-  callsByDay: { date: string; count: number }[]
-  topAgents: { agentId: string; name: string; calls: number }[]
+  total_calls: number
+  completed_calls: number
+  missed_calls: number
+  failed_calls: number
+  average_duration: number
+  total_cost: number
+  inbound_calls: number
+  outbound_calls: number
+  success_rate: number
 }
 
-export interface CallMetrics {
-  period: "day" | "week" | "month" | "year"
-  data: {
-    date: string
-    totalCalls: number
-    completedCalls: number
-    failedCalls: number
-    avgDuration: number
-  }[]
+export interface CallEvolution {
+  date: string
+  total_calls: number
+  completed_calls: number
+  missed_calls: number
+  average_duration: number
+}
+
+export interface AgentStats {
+  id: number
+  name: string
+  total_calls: number
+  completed_calls: number
+  missed_calls: number
+  average_duration: number
+  total_cost: number
+}
+
+export interface PhoneNumberStats {
+  id: number
+  did: string
+  total_calls: number
+  completed_calls: number
+  missed_calls: number
+  average_duration: number
+  total_cost: number
 }
 
 // ============================================
@@ -729,12 +809,8 @@ export interface Pagination {
 }
 
 export interface PaginatedRequest {
-  name?: string
-  mode?: string
+  [key: string]: unknown
   page?: number
-  limit?: number
-  sortBy?: string
-  sortOrder?: "asc" | "desc"
-  search?: string
-  filters?: Record<string, unknown>
+  per_page?: number
+  sort?: string
 }

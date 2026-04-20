@@ -2,89 +2,32 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
-import { Phone, PhoneIncoming, PhoneOutgoing, Clock, ArrowRight } from "lucide-react"
+import { PhoneIncoming, PhoneOutgoing, Clock, ArrowRight } from "lucide-react"
 import { cn } from "@/lib/utils"
 import Link from "next/link"
+import { useCalls } from "@/hooks/use-calls"
 
-interface CallItem {
-  id: string
-  contactName: string
-  contactInitials: string
-  phoneNumber: string
-  direction: "inbound" | "outbound"
-  status: "completed" | "missed" | "failed" | "in_progress"
-  duration?: string
-  time: string
-  agent: string
-}
-
-const recentCalls: CallItem[] = [
-  {
-    id: "1",
-    contactName: "Sarah Johnson",
-    contactInitials: "SJ",
-    phoneNumber: "+1 (555) 123-4567",
-    direction: "outbound",
-    status: "completed",
-    duration: "5:32",
-    time: "2 min ago",
-    agent: "Sales Agent",
-  },
-  {
-    id: "2",
-    contactName: "Mike Chen",
-    contactInitials: "MC",
-    phoneNumber: "+1 (555) 234-5678",
-    direction: "inbound",
-    status: "completed",
-    duration: "3:18",
-    time: "15 min ago",
-    agent: "Support Agent",
-  },
-  {
-    id: "3",
-    contactName: "Emily Davis",
-    contactInitials: "ED",
-    phoneNumber: "+1 (555) 345-6789",
-    direction: "outbound",
-    status: "missed",
-    time: "32 min ago",
-    agent: "Sales Agent",
-  },
-  {
-    id: "4",
-    contactName: "Alex Thompson",
-    contactInitials: "AT",
-    phoneNumber: "+1 (555) 456-7890",
-    direction: "outbound",
-    status: "in_progress",
-    duration: "2:45",
-    time: "Now",
-    agent: "Demo Agent",
-  },
-  {
-    id: "5",
-    contactName: "Lisa Wang",
-    contactInitials: "LW",
-    phoneNumber: "+1 (555) 567-8901",
-    direction: "inbound",
-    status: "completed",
-    duration: "8:12",
-    time: "1 hr ago",
-    agent: "Sales Agent",
-  },
-]
-
-const statusConfig = {
+const statusConfig: Record<string, { label: string; className: string }> = {
   completed: { label: "Completed", className: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-400" },
+  answered: { label: "Answered", className: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-400" },
   missed: { label: "Missed", className: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400" },
+  cancelled: { label: "Cancelled", className: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400" },
   failed: { label: "Failed", className: "bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400" },
   in_progress: { label: "In Progress", className: "bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400" },
+  initiated: { label: "Initiated", className: "bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400" },
+}
+
+function formatDuration(seconds: number) {
+  const m = Math.floor(seconds / 60)
+  const s = seconds % 60
+  return `${m}:${s.toString().padStart(2, "0")}`
 }
 
 export function RecentCalls() {
+  const { data, isLoading } = useCalls({ per_page: 5, sort: "-created_at" })
+  const calls = data?.data ?? []
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -96,50 +39,48 @@ export function RecentCalls() {
         </Link>
       </CardHeader>
       <CardContent>
-        <div className="space-y-3">
-          {recentCalls.map((call) => (
-            <div
-              key={call.id}
-              className="flex items-center justify-between p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors cursor-pointer"
-            >
-              <div className="flex items-center gap-3">
-                <Avatar className="h-10 w-10">
-                  <AvatarFallback className="bg-primary/10 text-primary text-sm font-medium">
-                    {call.contactInitials}
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <p className="text-sm font-medium">{call.contactName}</p>
-                    {call.direction === "inbound" ? (
-                      <PhoneIncoming className="w-3 h-3 text-emerald-500" />
-                    ) : (
-                      <PhoneOutgoing className="w-3 h-3 text-blue-500" />
-                    )}
+        {isLoading ? (
+          <div className="space-y-3">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="h-16 bg-muted animate-pulse rounded-lg" />
+            ))}
+          </div>
+        ) : calls.length === 0 ? (
+          <p className="text-sm text-muted-foreground text-center py-8">No recent calls</p>
+        ) : (
+          <div className="space-y-3">
+            {calls.map((call) => {
+              const config = statusConfig[call.status] ?? { label: call.status.replace("_", " "), className: "bg-gray-100 text-gray-800" }
+              return (
+                <div key={call.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors cursor-pointer">
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                      {call.direction === "inbound"
+                        ? <PhoneIncoming className="w-4 h-4 text-emerald-500" />
+                        : <PhoneOutgoing className="w-4 h-4 text-blue-500" />
+                      }
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium font-mono">{call.to_number}</p>
+                      <p className="text-xs text-muted-foreground capitalize">{call.direction}</p>
+                    </div>
                   </div>
-                  <p className="text-xs text-muted-foreground">{call.phoneNumber}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="text-right">
-                  <Badge variant="secondary" className={cn("text-xs", statusConfig[call.status].className)}>
-                    {statusConfig[call.status].label}
-                  </Badge>
-                  <div className="flex items-center gap-1 mt-1 justify-end">
-                    {call.duration && (
-                      <>
+                  <div className="text-right">
+                    <Badge variant="secondary" className={cn("text-xs", config.className)}>
+                      {config.label}
+                    </Badge>
+                    {call.duration_seconds > 0 && (
+                      <div className="flex items-center gap-1 mt-1 justify-end">
                         <Clock className="w-3 h-3 text-muted-foreground" />
-                        <span className="text-xs text-muted-foreground">{call.duration}</span>
-                        <span className="text-muted-foreground mx-1">-</span>
-                      </>
+                        <span className="text-xs text-muted-foreground">{formatDuration(call.duration_seconds)}</span>
+                      </div>
                     )}
-                    <span className="text-xs text-muted-foreground">{call.time}</span>
                   </div>
                 </div>
-              </div>
-            </div>
-          ))}
-        </div>
+              )
+            })}
+          </div>
+        )}
       </CardContent>
     </Card>
   )
