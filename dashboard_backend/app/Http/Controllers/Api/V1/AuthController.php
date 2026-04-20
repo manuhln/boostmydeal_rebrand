@@ -5,24 +5,26 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Resources\Api\V1\TenantResource;
 use App\Http\Resources\Api\V1\UserResource;
 use App\Interfaces\AuthServiceInterface;
+use App\Models\CentralUser;
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Validation\Rules\Password;
 
 /**
  * @authenticated
+ *
  * @group Authentication
  */
 class AuthController extends Controller
 {
     public function __construct(protected AuthServiceInterface $service) {}
+
     /**
      * Get the authenticated user's profile
      *
      * @authenticated
+     *
      * @response {"user": {"id": 1, "first_name": "John", "last_name": "Doe", "email": "john@example.com"}, "tenant": {"id": 1, "name": "Acme Inc"}}
      */
     public function me(Request $request): JsonResponse
@@ -43,8 +45,9 @@ class AuthController extends Controller
      * Login to a tenant
      * Final step of the authentication flow.
      * Uses the temporary login session (created after OTP verification) and the tenant identifier to authenticate the user within a tenant.
+     *
      * @unauthenticated
-     * 
+     *
      * @response 200 { "accessToken": "1|laravel_sanctum_token", "tenant": { "id": "tenant_123","name": "Acme Inc" }}
      * @response 401 { "error": "Unauthorized" }
      * @response 401 { "error": "Invalid session" }
@@ -69,7 +72,7 @@ class AuthController extends Controller
             return response()->json(['error' => 'Session mismatch'], 403);
         }
 
-        $centralUser = \App\Models\CentralUser::where('email', $session['email'])->firstOrFail();
+        $centralUser = CentralUser::where('email', $session['email'])->firstOrFail();
 
         $tenant = tenant();
 
@@ -81,7 +84,7 @@ class AuthController extends Controller
             return response()->json(['error' => 'Forbidden'], 403);
         }
 
-        $tenantUser = \App\Models\User::where('global_id', $centralUser->global_id)->firstOrFail();
+        $tenantUser = User::where('global_id', $centralUser->global_id)->firstOrFail();
 
         $tokens = $this->service->generateTokens($tenantUser);
 
@@ -99,6 +102,7 @@ class AuthController extends Controller
      * Refresh access token.
      *
      * Accept `{refreshToken: string}` from cookies.
+     *
      * @response array{data: array{accessToken: string}, status: bool}
      */
     public function refresh(Request $request): JsonResponse

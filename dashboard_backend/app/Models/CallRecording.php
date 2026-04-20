@@ -22,6 +22,8 @@ class CallRecording extends Model
     {
         return [
             'duration_seconds' => 'integer',
+            'file_size' => 'integer',
+            'metadata' => 'array',
         ];
     }
 

@@ -19,6 +19,7 @@ class InitiateLiveKitCall implements ShouldQueue
     use Dispatchable, Queueable;
 
     public int $tries = 3;
+
     public int $timeout = 120;
 
     public function __construct(
@@ -37,12 +38,13 @@ class InitiateLiveKitCall implements ShouldQueue
         $call = Call::find($this->callId);
         $agent = Agent::find($this->agentId);
 
-        if (!$call) {
+        if (! $call) {
             Log::error('[InitiateLiveKitCall] Call not found', ['call_id' => $this->callId]);
+
             return;
         }
 
-        if (!$agent) {
+        if (! $agent) {
             Log::error('[InitiateLiveKitCall] Agent not found', ['agent_id' => $this->agentId]);
             Notification::addNewNotification(
                 title: 'Call Initiation Failed',
@@ -50,12 +52,13 @@ class InitiateLiveKitCall implements ShouldQueue
                 body: "Failed to initiate call to {$this->toNumber} because the agent was not found."
             );
             $call->update(['status' => CallStatus::UNKNOWN->value]);
+
             return;
         }
 
         $phoneNumber = PhoneNumber::find($call->phone_number_id);
 
-        if (!$phoneNumber) {
+        if (! $phoneNumber) {
             Log::error('[InitiateLiveKitCall] Phone number not found', ['phone_number_id' => $call->phone_number_id]);
             Notification::addNewNotification(
                 title: 'Call Initiation Failed',
@@ -63,6 +66,7 @@ class InitiateLiveKitCall implements ShouldQueue
                 body: "Failed to initiate call to {$this->toNumber} because the phone number was not found."
             );
             $call->update(['status' => CallStatus::UNKNOWN->value]);
+
             return;
         }
 
@@ -76,7 +80,7 @@ class InitiateLiveKitCall implements ShouldQueue
 
         $apiUrl = config('services.livekit.url');
 
-        if (!$apiUrl) {
+        if (! $apiUrl) {
             Log::error('[InitiateLiveKitCall] LiveKit URL not configured');
             Notification::addNewNotification(
                 title: 'Call Initiation Failed',
@@ -84,6 +88,7 @@ class InitiateLiveKitCall implements ShouldQueue
                 body: "Failed to initiate call to {$this->toNumber} because the call service is not configured properly."
             );
             $call->update(['status' => CallStatus::UNKNOWN->value]);
+
             return;
         }
 
@@ -96,7 +101,7 @@ class InitiateLiveKitCall implements ShouldQueue
                     'X-API-Key' => $apiKey,
                     'X-Request-ID' => Str::uuid()->toString(),
                 ])
-                ->post($apiUrl . '/calls/outbound', $payload);
+                ->post($apiUrl.'/calls/outbound', $payload);
 
             if ($response->successful()) {
                 $responseData = $response->json();
@@ -162,7 +167,9 @@ class InitiateLiveKitCall implements ShouldQueue
     private function preparePayload(Agent $agent, Call $call, PhoneNumber $phoneNumber): array
     {
         $now = now();
-        $previousCallSummary = $this->getPreviousCallSummary($this->toNumber, $this->agentId);
+        $previousCallSummary = '';
+        $ttsProvider = $this->normalizeTtsProvider($agent->tts_provider);
+        $ttsModel = $agent->tts_model ?: $this->defaultTtsModel($ttsProvider);
 
         // Build comprehensive agent prompt from all personality fields
         $promptParts = [];
@@ -170,19 +177,16 @@ class InitiateLiveKitCall implements ShouldQueue
             $promptParts[] = $agent->identity;
         }
         if ($agent->style) {
-            $promptParts[] = "Communication Style: " . $agent->style;
+            $promptParts[] = 'Communication Style: '.$agent->style;
         }
         if ($agent->goal) {
-            $promptParts[] = "Goal: " . $agent->goal;
+            $promptParts[] = 'Goal: '.$agent->goal;
         }
         if ($agent->response_guideline) {
-            $promptParts[] = "Response Guidelines: " . $agent->response_guideline;
+            $promptParts[] = 'Response Guidelines: '.$agent->response_guideline;
         }
         if ($agent->fallback) {
-            $promptParts[] = "Fallback Responses: " . $agent->fallback;
-        }
-        if (!empty($previousCallSummary) && $previousCallSummary !== "No previous call history with this contact.") {
-            $promptParts[] = "Previous Call Context: " . $previousCallSummary;
+            $promptParts[] = 'Fallback Responses: '.$agent->fallback;
         }
 
         $agentPromptPreamble = implode("\n\n", $promptParts);
@@ -193,23 +197,30 @@ class InitiateLiveKitCall implements ShouldQueue
             'contact_name' => $this->contactName,
 
             // Agent identity and behavior
-            'agent_initial_message' => $agent->first_message ?? "Hello! How can I assist you today?",
+            'agent_initial_message' => $agent->first_message ?? 'Hello! How can I assist you today?',
             'agent_prompt_preamble' => $agentPromptPreamble,
             'user_speak_first' => (bool) ($agent->user_speaks_first ?? false),
+            'agent_identity' => $agent->identity ?? '',
+            'agent_style' => $agent->style ?? '',
+            'agent_goal' => $agent->goal ?? '',
+            'agent_response_guideline' => $agent->response_guideline ?? '',
+            'agent_fallback' => $agent->fallback ?? '',
             'mode' => $agent->mode ?? 'pipeline',
 
             // LLM configuration
             'llm_provider' => $agent->llm_provider,
             'llm_model' => $agent->llm_model ?? 'gpt-4o-mini',
             'temperature' => (float) ($agent->temperature ?? 0.7),
-            'language' => $agent->language ?? 'en',
+            'language' => $agent->language ?? 'en-US',
             'agent_speed' => 1.0,
+            'call_id' => $call->id,
+            'tenant_id' => (string) tenant('id'),
 
             // TTS configuration
             'tts' => [
-                'provider_name' => $agent->tts_provider ?? 'cartesia',
+                'provider_name' => $ttsProvider,
+                'model_id' => $ttsModel,
                 'voice_id' => $agent->tts_voice ?? '9626c31c-bec5-4cca-baa8-f8ba9e84c8bc',
-                'model_id' => $agent->tts_provider ?? 'sonic-3',
             ],
 
             // STT configuration
@@ -235,7 +246,7 @@ class InitiateLiveKitCall implements ShouldQueue
             'enable_call_transfer' => (bool) ($agent->enable_human_transfer ?? false),
             'transfer_phone_number' => '',
             'enable_background_sound' => (bool) ($agent->enable_background_sound ?? false),
-            'background_sound' => $agent->background_sound ?? '',
+            'background_sound' => is_string($agent->background_sound) ? $agent->background_sound : '',
             'remember_lead_preference' => (bool) ($agent->remember_lead_preference ?? false),
             'use_knowledge_base' => true,
             'knowledge_base_top_k' => 3,
@@ -247,52 +258,32 @@ class InitiateLiveKitCall implements ShouldQueue
 
             // Webhook
             'webhook_url' => config('services.livekit.webhook_url'),
+            'webhook_secret' => config('services.livekit.webhook_secret'),
 
             // Tags
             'user_tags' => [],
             'system_tags' => [],
+
+            'livekit_sip_trunk_id' => $phoneNumber->trunk_id,
         ];
     }
 
-    private function getPreviousCallSummary(string $toNumber, string $agentId): string
+    private function normalizeTtsProvider(?string $provider): string
     {
-        try {
-            $previousCalls = Call::where('to_number', $toNumber)
-                ->where('agent_id', $agentId)
-                ->whereIn('status', [CallStatus::COMPLETED->value, CallStatus::ANSWERED->value])
-                ->orderBy('created_at', 'desc')
-                ->limit(3)
-                ->get(['id', 'status', 'duration_seconds', 'created_at']);
-
-            if ($previousCalls->isEmpty()) {
-                return "No previous call history with this contact.";
-            }
-
-            $summaries = $previousCalls->map(function ($call) {
-                $date = $call->created_at?->format('M j, Y');
-                $duration = $call->duration_seconds ?? 0;
-                return "[{$date}, Duration: {$duration}s]";
-            })->toArray();
-
-            return "Previous call history with {$toNumber}:\n" . implode("\n", $summaries);
-        } catch (\Exception $e) {
-            Log::error('[InitiateLiveKitCall] Error fetching previous calls', [
-                'message' => $e->getMessage(),
-            ]);
-            return "No previous call history with this contact.";
-        }
+        return match (strtolower((string) $provider)) {
+            'eleven_labs' => 'elevenlabs',
+            'smallest_ai' => 'smallestai',
+            'elevenlabs', 'smallestai' => strtolower((string) $provider),
+            default => 'elevenlabs',
+        };
     }
 
-    private function getProviderApiKey(?string $provider): ?string
+    private function defaultTtsModel(string $provider): string
     {
-        return match (strtolower($provider ?? '')) {
-            'openai' => config('services.openai.api_key'),
-            'deepgram' => config('services.deepgram.api_key'),
-            'elevenlabs', 'eleven_labs' => config('services.elevenlabs.api_key'),
-            'rime' => config('services.rime.api_key'),
-            'streamelements', 'stream_elements' => config('services.streamelements.api_key'),
-            'smallest ai', 'smallest_ai' => config('services.smallest_ai.api_key'),
-            default => config('services.deepgram.api_key'),
+        return match ($provider) {
+            'smallestai' => 'lightning',
+            'elevenlabs' => 'eleven_turbo_v2_5',
+            default => 'eleven_turbo_v2_5',
         };
     }
 

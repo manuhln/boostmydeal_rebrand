@@ -3,16 +3,19 @@ import os
 import uuid
 from typing import Dict, Any
 import secrets
+import logging
 
 from dotenv import load_dotenv
 from fastapi import APIRouter, Depends, HTTPException
 from livekit import api
 from livekit.protocol.sip import CreateSIPParticipantRequest, SIPParticipantInfo
 
-from src.dependencies import verify_api_key, get_livekit_api
-from src.models.models import CallConfig, StartSIPCallRequest
+from dependencies import verify_api_key, get_livekit_api
+from models.models import CallConfig, StartSIPCallRequest
 
 load_dotenv(".env.local")
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(
     prefix="/calls", tags=["calls"], dependencies=[Depends(verify_api_key)]
@@ -35,24 +38,26 @@ async def start_outbound_call(
         room_name = f"call-{secrets.token_hex(16)}"
 
         # Step 1: Create dispatch request with agent configuration metadata
+        participant_identity = f"sip-{secrets.token_hex(16)}"
         metadata_dict = call_config.model_dump(mode="json")
         metadata_json = json.dumps(metadata_dict)
+        
+        # Create livekit room
+        room = await lk_api.room.create_room(api.CreateRoomRequest(name=room_name))
 
         await lk_api.agent_dispatch.create_dispatch(
             api.CreateAgentDispatchRequest(
-                agent_name="livekit-voice-agent", room=room_name, metadata=metadata_json
+                agent_name="voice-ai-agent", room=room_name, metadata=metadata_json
             )
         )
 
-        # Step 2: Create SIP participant to make the actual call
-        participant_identity = f"sip-{secrets.token_hex(16)}"
         sip_request = CreateSIPParticipantRequest(
             sip_trunk_id=call_config.livekit_sip_trunk_id,
             sip_call_to=call_config.to_phone,
             room_name=room_name,
             participant_identity=participant_identity,
             participant_name=call_config.contact_name,
-            wait_until_answered=False,
+            wait_until_answered=True,
             play_ringtone=True,
             hide_phone_number=False,
             participant_attributes={
@@ -76,8 +81,18 @@ async def start_outbound_call(
             "participant_id": participant_info.participant_id,
             "participant_identity": participant_info.participant_identity,
         }
-
+        
+    except api.TwirpError as e:
+        logger.error(f"LiveKit API error: {e.message}")
+        sip_code = e.metadata.get('sip_status_code')
+        # 486 = Busy Here, 603 = Decline — user actively rejected the call
+        # 408/480 = no answer or unavailable
+        # 5xx = SIP trunk/protocol failure
+        raise HTTPException(
+            status_code=e.code, detail=f"LiveKit API error: {e.message}"
+        )
     except Exception as e:
+        logger.error(f"Error initiating outbound call: {str(e)}")
         raise HTTPException(
             status_code=500, detail=f"Failed to initiate outbound call: {str(e)}"
         )

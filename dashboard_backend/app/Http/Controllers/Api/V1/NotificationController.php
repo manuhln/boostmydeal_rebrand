@@ -12,6 +12,7 @@ use Spatie\QueryBuilder\QueryBuilder;
 
 /**
  * @authenticated
+ *
  * @group Notifications
  */
 class NotificationController extends Controller
@@ -20,9 +21,11 @@ class NotificationController extends Controller
      * List all notifications
      *
      * @authenticated
+     *
      * @queryParam filter[read] bool optional Filter by read status (true/false)
      * @queryParam filter[notification_type] string optional Filter by notification type
      * @queryParam sort string optional Sort by field (created_at, updated_at, read_at)
+     *
      * @response {"data": [{"id": 1, "notification_type": "call_completed", "read_at": null}], "meta": {...}}
      */
     public function index(Request $request): AnonymousResourceCollection
@@ -53,7 +56,9 @@ class NotificationController extends Controller
      * Get a specific notification
      *
      * @authenticated
+     *
      * @urlParam notification int required The ID of the notification
+     *
      * @response {"id": 1, "notification_type": "call_completed", "data": {...}, "read_at": null}
      */
     public function show(Request $request, Notification $notification): NotificationResource
@@ -67,7 +72,9 @@ class NotificationController extends Controller
      * Mark a notification as read
      *
      * @authenticated
+     *
      * @urlParam notification int required The ID of the notification
+     *
      * @response {"message": "Notification marked as read"}
      */
     public function markRead(Notification $notification): JsonResponse
@@ -83,6 +90,7 @@ class NotificationController extends Controller
      * Mark all notifications as read
      *
      * @authenticated
+     *
      * @response {"message": "All notifications marked as read"}
      */
     public function markAllRead(Request $request): JsonResponse

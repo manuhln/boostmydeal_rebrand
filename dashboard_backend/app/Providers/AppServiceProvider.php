@@ -3,7 +3,10 @@
 namespace App\Providers;
 
 use App\Enums\TokenAbility;
-use App\Models\PersonalAccessToken;
+use App\Interfaces\AuthServiceInterface;
+use App\Interfaces\GeneratorInterface;
+use App\Services\AuthService;
+use App\Services\NumberGenerator;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Sanctum\Sanctum;
 
@@ -31,12 +34,12 @@ class AppServiceProvider extends ServiceProvider
         $this->overrideSanctumConfigurationToSupportRefreshToken();
 
         $this->app->bind(
-            \App\Interfaces\GeneratorInterface::class,
-            \App\Services\NumberGenerator::class,
+            GeneratorInterface::class,
+            NumberGenerator::class,
         );
         $this->app->bind(
-            \App\Interfaces\AuthServiceInterface::class,
-            \App\Services\AuthService::class,
+            AuthServiceInterface::class,
+            AuthService::class,
         );
     }
 
@@ -44,7 +47,7 @@ class AppServiceProvider extends ServiceProvider
     {
         Sanctum::$accessTokenAuthenticationCallback = function ($accessToken, $isValid) {
             $abilities = collect($accessToken->abilities);
-            if (!empty($abilities) && $abilities[0] === TokenAbility::ISSUE_ACCESS_TOKEN->value) {
+            if (! empty($abilities) && $abilities[0] === TokenAbility::ISSUE_ACCESS_TOKEN->value) {
                 return $accessToken->expires_at && $accessToken->expires_at->isFuture();
             }
 
@@ -52,7 +55,7 @@ class AppServiceProvider extends ServiceProvider
         };
 
         Sanctum::$accessTokenRetrievalCallback = function ($request) {
-            if (!$request->routeIs('refresh')) {
+            if (! $request->routeIs('refresh')) {
                 return str_replace('Bearer ', '', $request->headers->get('Authorization'));
             }
 

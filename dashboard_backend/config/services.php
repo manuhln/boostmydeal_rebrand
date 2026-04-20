@@ -39,6 +39,7 @@ return [
         'url' => env('FAST_API_URL'),
         'api_key' => env('FAST_API_KEY'),
         'webhook_url' => env('LIVEKIT_WEBHOOK_URL'),
+        'webhook_secret' => env('LIVEKIT_WEBHOOK_SECRET'),
     ],
 
     'openai' => [

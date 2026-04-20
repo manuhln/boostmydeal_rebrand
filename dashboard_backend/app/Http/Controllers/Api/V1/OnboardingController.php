@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Auth;
 
 /**
  * @authenticated
+ *
  * @group Onboarding
  */
 class OnboardingController extends Controller
@@ -17,6 +18,7 @@ class OnboardingController extends Controller
      * Get the current user's onboarding status
      *
      * @authenticated
+     *
      * @response {"onboarding": {"id": 1, "current_step": 2, "completed_at": null}}
      */
     public function status(Request $request): JsonResponse
@@ -40,6 +42,7 @@ class OnboardingController extends Controller
      * Save onboarding step data
      *
      * @authenticated
+     *
      * @bodyParam step int required Step number (1-5)
      * @bodyParam company_name string optional Step 1: Company name
      * @bodyParam company_size string optional Step 1: Company size (1-10, 11-50, 51-200, 201-500, 500+)
@@ -47,6 +50,7 @@ class OnboardingController extends Controller
      * @bodyParam agent_name string optional Step 2: Agent name
      * @bodyParam agent_description string optional Step 2: Agent description
      * @bodyParam agent_language string optional Step 2: Agent language
+     *
      * @response {"message": "Step saved successfully", "onboarding": {...}}
      */
     public function saveStep(Request $request): JsonResponse
@@ -114,6 +118,7 @@ class OnboardingController extends Controller
      * Skip onboarding
      *
      * @authenticated
+     *
      * @response {"message": "Onboarding skipped successfully", "onboarding": {...}}
      * @response 422 {"error": "Onboarding already completed"}
      */
@@ -143,11 +148,13 @@ class OnboardingController extends Controller
      * Mark onboarding as completed
      *
      * @authenticated
+     *
      * @bodyParam step_1_data array optional Step 1 data
      * @bodyParam step_2_data array optional Step 2 data
      * @bodyParam step_3_data array optional Step 3 data
      * @bodyParam step_4_data array optional Step 4 data
      * @bodyParam step_5_data array optional Step 5 data
+     *
      * @response {"message": "Onboarding completed successfully", "onboarding": {...}}
      */
     public function complete(Request $request): JsonResponse
@@ -191,7 +198,9 @@ class OnboardingController extends Controller
      * Get step data
      *
      * @authenticated
+     *
      * @urlParam step int required Step number (1-5)
+     *
      * @response {"step": 1, "data": {...}, "current_step": 3, "completed": false}
      */
     public function getStep(Request $request, int $step): JsonResponse

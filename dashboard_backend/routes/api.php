@@ -1,7 +1,7 @@
 <?php
 
+use App\Http\Controllers\Api\V1\CallWebhookController;
 use App\Http\Controllers\Api\V1\TenantController;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1/tenants')->group(function () {
@@ -15,3 +15,5 @@ Route::prefix('v1/tenants')->group(function () {
         Route::delete('{tenant}', [TenantController::class, 'destroy']);
     });
 });
+
+Route::post('v1/calls/webhook', CallWebhookController::class);

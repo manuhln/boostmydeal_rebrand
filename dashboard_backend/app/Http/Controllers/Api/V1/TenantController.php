@@ -21,9 +21,11 @@ class TenantController extends Controller
      * Register a new tenant
      *
      * @unauthenticated
+     *
      * @bodyParam name string required Tenant name
      * @bodyParam email string required Email address
      * @bodyParam password string required Password
+     *
      * @response {"id": 1, "name": "Acme Inc", "slug": "acme-inc", "email": "admin@acme.com"}
      */
     public function store(RegisterTenantData $data, RegisterTenantAction $action): JsonResponse|TenantResource
@@ -34,7 +36,7 @@ class TenantController extends Controller
             return new TenantResource($result);
         } catch (\Exception $e) {
             return response()->json([
-                'error' => 'Failed to register tenant: ' . $e->getMessage(),
+                'error' => 'Failed to register tenant: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -43,7 +45,9 @@ class TenantController extends Controller
      * Get tenant details
      *
      * @authenticated
+     *
      * @urlParam tenant int required The ID of the tenant
+     *
      * @response {"id": 1, "name": "Acme Inc", "slug": "acme-inc", "email": "admin@acme.com"}
      */
     public function show(Tenant $tenant): TenantResource
@@ -55,12 +59,15 @@ class TenantController extends Controller
      * Update tenant information
      *
      * @authenticated
+     *
      * @urlParam tenant int required The ID of the tenant
+     *
      * @bodyParam name string optional Tenant name
      * @bodyParam slug string optional Tenant slug (unique)
      * @bodyParam website string optional Website URL
      * @bodyParam phone string optional Phone number
      * @bodyParam status string optional Tenant status (active, inactive)
+     *
      * @response {"id": 1, "name": "Acme Inc", "slug": "acme-inc"}
      * @response 403 {"error": "You do not have permission to update tenant information"}
      */
@@ -76,7 +83,7 @@ class TenantController extends Controller
 
         $validated = $request->validate([
             'name' => 'sometimes|string|max:255',
-            'slug' => 'sometimes|string|max:255|regex:/^[a-z0-9-]+$/|unique:tenants,slug,' . $tenant->id,
+            'slug' => 'sometimes|string|max:255|regex:/^[a-z0-9-]+$/|unique:tenants,slug,'.$tenant->id,
             'website' => 'sometimes|nullable|string|max:255|url',
             'phone' => 'sometimes|nullable|string|max:20',
             'status' => 'sometimes|in:active,inactive',
@@ -91,7 +98,9 @@ class TenantController extends Controller
      * Delete a tenant
      *
      * @authenticated
+     *
      * @urlParam tenant int required The ID of the tenant
+     *
      * @response 204
      * @response 403 {"error": "You do not have permission to delete this tenant"}
      */
@@ -114,7 +123,9 @@ class TenantController extends Controller
      * Check email and send OTP
      *
      * @unauthenticated
+     *
      * @bodyParam email string required Email address
+     *
      * @response 204
      * @response 404 {"error": "User not found"}
      */
@@ -135,8 +146,10 @@ class TenantController extends Controller
      * Verify OTP and return user's tenants
      *
      * @unauthenticated
+     *
      * @bodyParam email string required Email address
      * @bodyParam otp string required OTP code
+     *
      * @response {"tenants": [{"id": "abc", "name": "Acme Inc", "slug": "acme-inc"}]}
      * @response 401 {"error": "Invalid or expired OTP"}
      */
@@ -159,6 +172,7 @@ class TenantController extends Controller
 
         if ($cached['attempts'] >= 5) {
             cache()->store('central')->forget($cacheKey);
+
             return response()->json(['error' => 'Too many attempts'], 429);
         }
 

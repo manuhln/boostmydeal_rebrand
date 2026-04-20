@@ -182,6 +182,12 @@ Final step of the authentication flow.</a>
                                                                                 <li class="tocify-item level-2" data-unique="calls-GETapi-v1-calls--call_id--webhooks">
                                 <a href="#calls-GETapi-v1-calls--call_id--webhooks">Get webhooks for a specific call</a>
                             </li>
+                                                                                <li class="tocify-item level-2" data-unique="calls-GETapi-v1-calls--call_id--transcript">
+                                <a href="#calls-GETapi-v1-calls--call_id--transcript">GET api/v1/calls/{call_id}/transcript</a>
+                            </li>
+                                                                                <li class="tocify-item level-2" data-unique="calls-POSTapi-v1-calls--call_id--recordings--recording_id--temporary-url">
+                                <a href="#calls-POSTapi-v1-calls--call_id--recordings--recording_id--temporary-url">POST api/v1/calls/{call_id}/recordings/{recording_id}/temporary-url</a>
+                            </li>
                                                                         </ul>
                             </ul>
                     <ul id="tocify-header-dashboard" class="tocify-header">
@@ -296,7 +302,14 @@ Final step of the authentication flow.</a>
                     <a href="#others">Others</a>
                 </li>
                                     <ul id="tocify-subheader-others" class="tocify-subheader">
+<<<<<<< HEAD
                                                     <li class="tocify-item level-2" data-unique="others-GETapi-csrf-cookie">
+=======
+                                                    <li class="tocify-item level-2" data-unique="others-POSTapi-v1-calls-webhook">
+                                <a href="#others-POSTapi-v1-calls-webhook">POST api/v1/calls/webhook</a>
+                            </li>
+                                                                                <li class="tocify-item level-2" data-unique="others-GETapi-csrf-cookie">
+>>>>>>> c957778 (Orchestrate calls with laravel api and livekit module, added calls transcript, calls recordings...)
                                 <a href="#others-GETapi-csrf-cookie">Return an empty response simply to trigger the storage of the CSRF cookie in the browser.</a>
                             </li>
                                                                         </ul>
@@ -461,7 +474,11 @@ Final step of the authentication flow.</a>
     </ul>
 
     <ul class="toc-footer" id="last-updated">
+<<<<<<< HEAD
         <li>Last updated: April 18, 2026</li>
+=======
+        <li>Last updated: April 20, 2026</li>
+>>>>>>> c957778 (Orchestrate calls with laravel api and livekit module, added calls transcript, calls recordings...)
     </ul>
 </div>
 
@@ -580,7 +597,11 @@ print_r(json_decode((string) $body));</code></pre></div>
     <pre><code class="language-python">import requests
 import json
 
+<<<<<<< HEAD
 url = 'http://localhost/api/v1/api-keys'
+=======
+url = 'http://localhost:8080/api/v1/api-keys'
+>>>>>>> c957778 (Orchestrate calls with laravel api and livekit module, added calls transcript, calls recordings...)
 params = {
   'filter[name]': 'architecto',
   'filter[status]': 'architecto',
@@ -820,7 +841,11 @@ print_r(json_decode((string) $body));</code></pre></div>
     <pre><code class="language-python">import requests
 import json
 
+<<<<<<< HEAD
 url = 'http://localhost/api/v1/api-keys'
+=======
+url = 'http://localhost:8080/api/v1/api-keys'
+>>>>>>> c957778 (Orchestrate calls with laravel api and livekit module, added calls transcript, calls recordings...)
 payload = {
     "name": "architecto",
     "key": "architecto",
@@ -1048,7 +1073,11 @@ print_r(json_decode((string) $body));</code></pre></div>
     <pre><code class="language-python">import requests
 import json
 
+<<<<<<< HEAD
 url = 'http://localhost/api/v1/api-keys/architecto'
+=======
+url = 'http://localhost:8080/api/v1/api-keys/architecto'
+>>>>>>> c957778 (Orchestrate calls with laravel api and livekit module, added calls transcript, calls recordings...)
 headers = {
   'Authorization': 'Bearer {YOUR_AUTH_TOKEN}',
   'Content-Type': 'application/json',
@@ -1273,7 +1302,11 @@ print_r(json_decode((string) $body));</code></pre></div>
     <pre><code class="language-python">import requests
 import json
 
+<<<<<<< HEAD
 url = 'http://localhost/api/v1/api-keys/architecto'
+=======
+url = 'http://localhost:8080/api/v1/api-keys/architecto'
+>>>>>>> c957778 (Orchestrate calls with laravel api and livekit module, added calls transcript, calls recordings...)
 payload = {
     "name": "architecto",
     "status": "architecto"
@@ -1516,7 +1549,11 @@ print_r(json_decode((string) $body));</code></pre></div>
     <pre><code class="language-python">import requests
 import json
 
+<<<<<<< HEAD
 url = 'http://localhost/api/v1/api-keys/architecto'
+=======
+url = 'http://localhost:8080/api/v1/api-keys/architecto'
+>>>>>>> c957778 (Orchestrate calls with laravel api and livekit module, added calls transcript, calls recordings...)
 headers = {
   'Authorization': 'Bearer {YOUR_AUTH_TOKEN}',
   'Content-Type': 'application/json',
@@ -1721,7 +1758,11 @@ print_r(json_decode((string) $body));</code></pre></div>
     <pre><code class="language-python">import requests
 import json
 
+<<<<<<< HEAD
 url = 'http://localhost/api/v1/api-keys/architecto/revoke'
+=======
+url = 'http://localhost:8080/api/v1/api-keys/architecto/revoke'
+>>>>>>> c957778 (Orchestrate calls with laravel api and livekit module, added calls transcript, calls recordings...)
 headers = {
   'Authorization': 'Bearer {YOUR_AUTH_TOKEN}',
   'Content-Type': 'application/json',
@@ -1953,7 +1994,11 @@ print_r(json_decode((string) $body));</code></pre></div>
     <pre><code class="language-python">import requests
 import json
 
+<<<<<<< HEAD
 url = 'http://localhost/api/v1/tokens'
+=======
+url = 'http://localhost:8080/api/v1/tokens'
+>>>>>>> c957778 (Orchestrate calls with laravel api and livekit module, added calls transcript, calls recordings...)
 payload = {
     "name": "architecto",
     "abilities": [
@@ -2172,7 +2217,11 @@ print_r(json_decode((string) $body));</code></pre></div>
     <pre><code class="language-python">import requests
 import json
 
+<<<<<<< HEAD
 url = 'http://localhost/api/v1/tokens'
+=======
+url = 'http://localhost:8080/api/v1/tokens'
+>>>>>>> c957778 (Orchestrate calls with laravel api and livekit module, added calls transcript, calls recordings...)
 headers = {
   'Authorization': 'Bearer {YOUR_AUTH_TOKEN}',
   'Content-Type': 'application/json',
@@ -2364,7 +2413,11 @@ print_r(json_decode((string) $body));</code></pre></div>
     <pre><code class="language-python">import requests
 import json
 
+<<<<<<< HEAD
 url = 'http://localhost/api/v1/tokens/architecto'
+=======
+url = 'http://localhost:8080/api/v1/tokens/architecto'
+>>>>>>> c957778 (Orchestrate calls with laravel api and livekit module, added calls transcript, calls recordings...)
 headers = {
   'Authorization': 'Bearer {YOUR_AUTH_TOKEN}',
   'Content-Type': 'application/json',
@@ -2581,7 +2634,11 @@ print_r(json_decode((string) $body));</code></pre></div>
     <pre><code class="language-python">import requests
 import json
 
+<<<<<<< HEAD
 url = 'http://localhost/api/v1/agents'
+=======
+url = 'http://localhost:8080/api/v1/agents'
+>>>>>>> c957778 (Orchestrate calls with laravel api and livekit module, added calls transcript, calls recordings...)
 params = {
   'name': 'architecto',
   'mode': 'architecto',
@@ -2850,7 +2907,11 @@ print_r(json_decode((string) $body));</code></pre></div>
     <pre><code class="language-python">import requests
 import json
 
+<<<<<<< HEAD
 url = 'http://localhost/api/v1/agents'
+=======
+url = 'http://localhost:8080/api/v1/agents'
+>>>>>>> c957778 (Orchestrate calls with laravel api and livekit module, added calls transcript, calls recordings...)
 payload = {
     "name": "architecto",
     "description": "Eius et animi quos velit et.",
@@ -3101,7 +3162,11 @@ print_r(json_decode((string) $body));</code></pre></div>
     <pre><code class="language-python">import requests
 import json
 
+<<<<<<< HEAD
 url = 'http://localhost/api/v1/agents/architecto'
+=======
+url = 'http://localhost:8080/api/v1/agents/architecto'
+>>>>>>> c957778 (Orchestrate calls with laravel api and livekit module, added calls transcript, calls recordings...)
 params = {
   'filter[phoneNumbers]': 'architecto',
   'filter[knowledgeBases]': 'architecto',
@@ -3360,7 +3425,11 @@ print_r(json_decode((string) $body));</code></pre></div>
     <pre><code class="language-python">import requests
 import json
 
+<<<<<<< HEAD
 url = 'http://localhost/api/v1/agents/architecto'
+=======
+url = 'http://localhost:8080/api/v1/agents/architecto'
+>>>>>>> c957778 (Orchestrate calls with laravel api and livekit module, added calls transcript, calls recordings...)
 payload = {
     "name": "architecto",
     "description": "Eius et animi quos velit et.",
@@ -3617,7 +3686,11 @@ print_r(json_decode((string) $body));</code></pre></div>
     <pre><code class="language-python">import requests
 import json
 
+<<<<<<< HEAD
 url = 'http://localhost/api/v1/agents/architecto'
+=======
+url = 'http://localhost:8080/api/v1/agents/architecto'
+>>>>>>> c957778 (Orchestrate calls with laravel api and livekit module, added calls transcript, calls recordings...)
 headers = {
   'Authorization': 'Bearer {YOUR_AUTH_TOKEN}',
   'Content-Type': 'application/json',
@@ -3811,7 +3884,11 @@ print_r(json_decode((string) $body));</code></pre></div>
     <pre><code class="language-python">import requests
 import json
 
+<<<<<<< HEAD
 url = 'http://localhost/api/v1/login'
+=======
+url = 'http://localhost:8080/api/v1/login'
+>>>>>>> c957778 (Orchestrate calls with laravel api and livekit module, added calls transcript, calls recordings...)
 headers = {
   'Content-Type': 'application/json',
   'Accept': 'application/json',
@@ -4021,7 +4098,11 @@ print_r(json_decode((string) $body));</code></pre></div>
     <pre><code class="language-python">import requests
 import json
 
+<<<<<<< HEAD
 url = 'http://localhost/api/v1/me'
+=======
+url = 'http://localhost:8080/api/v1/me'
+>>>>>>> c957778 (Orchestrate calls with laravel api and livekit module, added calls transcript, calls recordings...)
 headers = {
   'Authorization': 'Bearer {YOUR_AUTH_TOKEN}',
   'Content-Type': 'application/json',
@@ -4213,7 +4294,11 @@ print_r(json_decode((string) $body));</code></pre></div>
     <pre><code class="language-python">import requests
 import json
 
+<<<<<<< HEAD
 url = 'http://localhost/api/v1/refresh-token'
+=======
+url = 'http://localhost:8080/api/v1/refresh-token'
+>>>>>>> c957778 (Orchestrate calls with laravel api and livekit module, added calls transcript, calls recordings...)
 headers = {
   'Authorization': 'Bearer {YOUR_AUTH_TOKEN}',
   'Content-Type': 'application/json',
@@ -4394,7 +4479,11 @@ print_r(json_decode((string) $body));</code></pre></div>
     <pre><code class="language-python">import requests
 import json
 
+<<<<<<< HEAD
 url = 'http://localhost/api/v1/logout'
+=======
+url = 'http://localhost:8080/api/v1/logout'
+>>>>>>> c957778 (Orchestrate calls with laravel api and livekit module, added calls transcript, calls recordings...)
 headers = {
   'Authorization': 'Bearer {YOUR_AUTH_TOKEN}',
   'Content-Type': 'application/json',
@@ -4600,7 +4689,11 @@ print_r(json_decode((string) $body));</code></pre></div>
     <pre><code class="language-python">import requests
 import json
 
+<<<<<<< HEAD
 url = 'http://localhost/api/v1/calls'
+=======
+url = 'http://localhost:8080/api/v1/calls'
+>>>>>>> c957778 (Orchestrate calls with laravel api and livekit module, added calls transcript, calls recordings...)
 params = {
   'filter[status]': 'architecto',
   'filter[direction]': 'architecto',
@@ -4903,7 +4996,11 @@ print_r(json_decode((string) $body));</code></pre></div>
     <pre><code class="language-python">import requests
 import json
 
+<<<<<<< HEAD
 url = 'http://localhost/api/v1/calls'
+=======
+url = 'http://localhost:8080/api/v1/calls'
+>>>>>>> c957778 (Orchestrate calls with laravel api and livekit module, added calls transcript, calls recordings...)
 payload = {
     "phone_number_id": "architecto",
     "agent_id": "architecto",
@@ -5143,7 +5240,11 @@ print_r(json_decode((string) $body));</code></pre></div>
     <pre><code class="language-python">import requests
 import json
 
+<<<<<<< HEAD
 url = 'http://localhost/api/v1/calls/architecto'
+=======
+url = 'http://localhost:8080/api/v1/calls/architecto'
+>>>>>>> c957778 (Orchestrate calls with laravel api and livekit module, added calls transcript, calls recordings...)
 headers = {
   'Authorization': 'Bearer {YOUR_AUTH_TOKEN}',
   'Content-Type': 'application/json',
@@ -5353,7 +5454,11 @@ print_r(json_decode((string) $body));</code></pre></div>
     <pre><code class="language-python">import requests
 import json
 
+<<<<<<< HEAD
 url = 'http://localhost/api/v1/calls/architecto'
+=======
+url = 'http://localhost:8080/api/v1/calls/architecto'
+>>>>>>> c957778 (Orchestrate calls with laravel api and livekit module, added calls transcript, calls recordings...)
 headers = {
   'Authorization': 'Bearer {YOUR_AUTH_TOKEN}',
   'Content-Type': 'application/json',
@@ -5567,7 +5672,11 @@ print_r(json_decode((string) $body));</code></pre></div>
     <pre><code class="language-python">import requests
 import json
 
+<<<<<<< HEAD
 url = 'http://localhost/api/v1/calls/architecto'
+=======
+url = 'http://localhost:8080/api/v1/calls/architecto'
+>>>>>>> c957778 (Orchestrate calls with laravel api and livekit module, added calls transcript, calls recordings...)
 headers = {
   'Authorization': 'Bearer {YOUR_AUTH_TOKEN}',
   'Content-Type': 'application/json',
@@ -5789,7 +5898,11 @@ print_r(json_decode((string) $body));</code></pre></div>
     <pre><code class="language-python">import requests
 import json
 
+<<<<<<< HEAD
 url = 'http://localhost/api/v1/calls/start'
+=======
+url = 'http://localhost:8080/api/v1/calls/start'
+>>>>>>> c957778 (Orchestrate calls with laravel api and livekit module, added calls transcript, calls recordings...)
 payload = {
     "agent_id": "architecto",
     "contact_name": "architecto",
@@ -6032,7 +6145,11 @@ print_r(json_decode((string) $body));</code></pre></div>
     <pre><code class="language-python">import requests
 import json
 
+<<<<<<< HEAD
 url = 'http://localhost/api/v1/calls/export-csv'
+=======
+url = 'http://localhost:8080/api/v1/calls/export-csv'
+>>>>>>> c957778 (Orchestrate calls with laravel api and livekit module, added calls transcript, calls recordings...)
 params = {
   'start_date': 'architecto',
   'end_date': 'architecto',
@@ -6268,7 +6385,11 @@ print_r(json_decode((string) $body));</code></pre></div>
     <pre><code class="language-python">import requests
 import json
 
+<<<<<<< HEAD
 url = 'http://localhost/api/v1/calls/architecto/webhooks'
+=======
+url = 'http://localhost:8080/api/v1/calls/architecto/webhooks'
+>>>>>>> c957778 (Orchestrate calls with laravel api and livekit module, added calls transcript, calls recordings...)
 headers = {
   'Authorization': 'Bearer {YOUR_AUTH_TOKEN}',
   'Content-Type': 'application/json',
@@ -6412,6 +6533,409 @@ You can check the Dev Tools console for debugging information.</code></pre>
             </div>
                     </form>
 
+                    <h2 id="calls-GETapi-v1-calls--call_id--transcript">GET api/v1/calls/{call_id}/transcript</h2>
+
+<p>
+<small class="badge badge-darkred">requires authentication</small>
+</p>
+
+
+
+<span id="example-requests-GETapi-v1-calls--call_id--transcript">
+<blockquote>Example request:</blockquote>
+
+
+<div class="bash-example">
+    <pre><code class="language-bash">curl --request GET \
+    --get "http://localhost:8080/api/v1/calls/architecto/transcript" \
+    --header "Authorization: Bearer {YOUR_AUTH_TOKEN}" \
+    --header "Content-Type: application/json" \
+    --header "Accept: application/json" \
+    --header "X-Tenant-ID: {YOUR_TENANT_ID}"</code></pre></div>
+
+
+<div class="javascript-example">
+    <pre><code class="language-javascript">const url = new URL(
+    "http://localhost:8080/api/v1/calls/architecto/transcript"
+);
+
+const headers = {
+    "Authorization": "Bearer {YOUR_AUTH_TOKEN}",
+    "Content-Type": "application/json",
+    "Accept": "application/json",
+    "X-Tenant-ID": "{YOUR_TENANT_ID}",
+};
+
+
+fetch(url, {
+    method: "GET",
+    headers,
+}).then(response =&gt; response.json());</code></pre></div>
+
+
+<div class="php-example">
+    <pre><code class="language-php">$client = new \GuzzleHttp\Client();
+$url = 'http://localhost:8080/api/v1/calls/architecto/transcript';
+$response = $client-&gt;get(
+    $url,
+    [
+        'headers' =&gt; [
+            'Authorization' =&gt; 'Bearer {YOUR_AUTH_TOKEN}',
+            'Content-Type' =&gt; 'application/json',
+            'Accept' =&gt; 'application/json',
+            'X-Tenant-ID' =&gt; '{YOUR_TENANT_ID}',
+        ],
+    ]
+);
+$body = $response-&gt;getBody();
+print_r(json_decode((string) $body));</code></pre></div>
+
+
+<div class="python-example">
+    <pre><code class="language-python">import requests
+import json
+
+url = 'http://localhost:8080/api/v1/calls/architecto/transcript'
+headers = {
+  'Authorization': 'Bearer {YOUR_AUTH_TOKEN}',
+  'Content-Type': 'application/json',
+  'Accept': 'application/json',
+  'X-Tenant-ID': '{YOUR_TENANT_ID}'
+}
+
+response = requests.request('GET', url, headers=headers)
+response.json()</code></pre></div>
+
+</span>
+
+<span id="example-responses-GETapi-v1-calls--call_id--transcript">
+            <blockquote>
+            <p>Example response (500):</p>
+        </blockquote>
+                <details class="annotation">
+            <summary style="cursor: pointer;">
+                <small onclick="textContent = parentElement.parentElement.open ? 'Show headers' : 'Hide headers'">Show headers</small>
+            </summary>
+            <pre><code class="language-http">cache-control: no-cache, private
+content-type: application/json
+access-control-allow-origin: http://localhost:3000
+access-control-allow-credentials: true
+ </code></pre></details>         <pre>
+
+<code class="language-json" style="max-height: 300px;">{
+    &quot;message&quot;: &quot;Server Error&quot;
+}</code>
+ </pre>
+    </span>
+<span id="execution-results-GETapi-v1-calls--call_id--transcript" hidden>
+    <blockquote>Received response<span
+                id="execution-response-status-GETapi-v1-calls--call_id--transcript"></span>:
+    </blockquote>
+    <pre class="json"><code id="execution-response-content-GETapi-v1-calls--call_id--transcript"
+      data-empty-response-text="<Empty response>" style="max-height: 400px;"></code></pre>
+</span>
+<span id="execution-error-GETapi-v1-calls--call_id--transcript" hidden>
+    <blockquote>Request failed with error:</blockquote>
+    <pre><code id="execution-error-message-GETapi-v1-calls--call_id--transcript">
+
+Tip: Check that you&#039;re properly connected to the network.
+If you&#039;re a maintainer of ths API, verify that your API is running and you&#039;ve enabled CORS.
+You can check the Dev Tools console for debugging information.</code></pre>
+</span>
+<form id="form-GETapi-v1-calls--call_id--transcript" data-method="GET"
+      data-path="api/v1/calls/{call_id}/transcript"
+      data-authed="1"
+      data-hasfiles="0"
+      data-isarraybody="0"
+      autocomplete="off"
+      onsubmit="event.preventDefault(); executeTryOut('GETapi-v1-calls--call_id--transcript', this);">
+    <h3>
+        Request&nbsp;&nbsp;&nbsp;
+                    <button type="button"
+                    style="background-color: #8fbcd4; padding: 5px 10px; border-radius: 5px; border-width: thin;"
+                    id="btn-tryout-GETapi-v1-calls--call_id--transcript"
+                    onclick="tryItOut('GETapi-v1-calls--call_id--transcript');">Try it out ⚡
+            </button>
+            <button type="button"
+                    style="background-color: #c97a7e; padding: 5px 10px; border-radius: 5px; border-width: thin;"
+                    id="btn-canceltryout-GETapi-v1-calls--call_id--transcript"
+                    onclick="cancelTryOut('GETapi-v1-calls--call_id--transcript');" hidden>Cancel 🛑
+            </button>&nbsp;&nbsp;
+            <button type="submit"
+                    style="background-color: #6ac174; padding: 5px 10px; border-radius: 5px; border-width: thin;"
+                    id="btn-executetryout-GETapi-v1-calls--call_id--transcript"
+                    data-initial-text="Send Request 💥"
+                    data-loading-text="⏱ Sending..."
+                    hidden>Send Request 💥
+            </button>
+            </h3>
+            <p>
+            <small class="badge badge-green">GET</small>
+            <b><code>api/v1/calls/{call_id}/transcript</code></b>
+        </p>
+                <h4 class="fancy-heading-panel"><b>Headers</b></h4>
+                                <div style="padding-left: 28px; clear: unset;">
+                <b style="line-height: 2;"><code>Authorization</code></b>&nbsp;&nbsp;
+&nbsp;
+ &nbsp;
+ &nbsp;
+                <input type="text" style="display: none"
+                              name="Authorization" class="auth-value"               data-endpoint="GETapi-v1-calls--call_id--transcript"
+               value="Bearer {YOUR_AUTH_TOKEN}"
+               data-component="header">
+    <br>
+<p>Example: <code>Bearer {YOUR_AUTH_TOKEN}</code></p>
+            </div>
+                                <div style="padding-left: 28px; clear: unset;">
+                <b style="line-height: 2;"><code>Content-Type</code></b>&nbsp;&nbsp;
+&nbsp;
+ &nbsp;
+ &nbsp;
+                <input type="text" style="display: none"
+                              name="Content-Type"                data-endpoint="GETapi-v1-calls--call_id--transcript"
+               value="application/json"
+               data-component="header">
+    <br>
+<p>Example: <code>application/json</code></p>
+            </div>
+                                <div style="padding-left: 28px; clear: unset;">
+                <b style="line-height: 2;"><code>Accept</code></b>&nbsp;&nbsp;
+&nbsp;
+ &nbsp;
+ &nbsp;
+                <input type="text" style="display: none"
+                              name="Accept"                data-endpoint="GETapi-v1-calls--call_id--transcript"
+               value="application/json"
+               data-component="header">
+    <br>
+<p>Example: <code>application/json</code></p>
+            </div>
+                                <div style="padding-left: 28px; clear: unset;">
+                <b style="line-height: 2;"><code>X-Tenant-ID</code></b>&nbsp;&nbsp;
+&nbsp;
+ &nbsp;
+ &nbsp;
+                <input type="text" style="display: none"
+                              name="X-Tenant-ID"                data-endpoint="GETapi-v1-calls--call_id--transcript"
+               value="{YOUR_TENANT_ID}"
+               data-component="header">
+    <br>
+<p>Example: <code>{YOUR_TENANT_ID}</code></p>
+            </div>
+                        <h4 class="fancy-heading-panel"><b>URL Parameters</b></h4>
+                    <div style="padding-left: 28px; clear: unset;">
+                <b style="line-height: 2;"><code>call_id</code></b>&nbsp;&nbsp;
+<small>string</small>&nbsp;
+ &nbsp;
+ &nbsp;
+                <input type="text" style="display: none"
+                              name="call_id"                data-endpoint="GETapi-v1-calls--call_id--transcript"
+               value="architecto"
+               data-component="url">
+    <br>
+<p>The ID of the call. Example: <code>architecto</code></p>
+            </div>
+                    </form>
+
+                    <h2 id="calls-POSTapi-v1-calls--call_id--recordings--recording_id--temporary-url">POST api/v1/calls/{call_id}/recordings/{recording_id}/temporary-url</h2>
+
+<p>
+<small class="badge badge-darkred">requires authentication</small>
+</p>
+
+
+
+<span id="example-requests-POSTapi-v1-calls--call_id--recordings--recording_id--temporary-url">
+<blockquote>Example request:</blockquote>
+
+
+<div class="bash-example">
+    <pre><code class="language-bash">curl --request POST \
+    "http://localhost:8080/api/v1/calls/architecto/recordings/architecto/temporary-url" \
+    --header "Authorization: Bearer {YOUR_AUTH_TOKEN}" \
+    --header "Content-Type: application/json" \
+    --header "Accept: application/json" \
+    --header "X-Tenant-ID: {YOUR_TENANT_ID}"</code></pre></div>
+
+
+<div class="javascript-example">
+    <pre><code class="language-javascript">const url = new URL(
+    "http://localhost:8080/api/v1/calls/architecto/recordings/architecto/temporary-url"
+);
+
+const headers = {
+    "Authorization": "Bearer {YOUR_AUTH_TOKEN}",
+    "Content-Type": "application/json",
+    "Accept": "application/json",
+    "X-Tenant-ID": "{YOUR_TENANT_ID}",
+};
+
+
+fetch(url, {
+    method: "POST",
+    headers,
+}).then(response =&gt; response.json());</code></pre></div>
+
+
+<div class="php-example">
+    <pre><code class="language-php">$client = new \GuzzleHttp\Client();
+$url = 'http://localhost:8080/api/v1/calls/architecto/recordings/architecto/temporary-url';
+$response = $client-&gt;post(
+    $url,
+    [
+        'headers' =&gt; [
+            'Authorization' =&gt; 'Bearer {YOUR_AUTH_TOKEN}',
+            'Content-Type' =&gt; 'application/json',
+            'Accept' =&gt; 'application/json',
+            'X-Tenant-ID' =&gt; '{YOUR_TENANT_ID}',
+        ],
+    ]
+);
+$body = $response-&gt;getBody();
+print_r(json_decode((string) $body));</code></pre></div>
+
+
+<div class="python-example">
+    <pre><code class="language-python">import requests
+import json
+
+url = 'http://localhost:8080/api/v1/calls/architecto/recordings/architecto/temporary-url'
+headers = {
+  'Authorization': 'Bearer {YOUR_AUTH_TOKEN}',
+  'Content-Type': 'application/json',
+  'Accept': 'application/json',
+  'X-Tenant-ID': '{YOUR_TENANT_ID}'
+}
+
+response = requests.request('POST', url, headers=headers)
+response.json()</code></pre></div>
+
+</span>
+
+<span id="example-responses-POSTapi-v1-calls--call_id--recordings--recording_id--temporary-url">
+</span>
+<span id="execution-results-POSTapi-v1-calls--call_id--recordings--recording_id--temporary-url" hidden>
+    <blockquote>Received response<span
+                id="execution-response-status-POSTapi-v1-calls--call_id--recordings--recording_id--temporary-url"></span>:
+    </blockquote>
+    <pre class="json"><code id="execution-response-content-POSTapi-v1-calls--call_id--recordings--recording_id--temporary-url"
+      data-empty-response-text="<Empty response>" style="max-height: 400px;"></code></pre>
+</span>
+<span id="execution-error-POSTapi-v1-calls--call_id--recordings--recording_id--temporary-url" hidden>
+    <blockquote>Request failed with error:</blockquote>
+    <pre><code id="execution-error-message-POSTapi-v1-calls--call_id--recordings--recording_id--temporary-url">
+
+Tip: Check that you&#039;re properly connected to the network.
+If you&#039;re a maintainer of ths API, verify that your API is running and you&#039;ve enabled CORS.
+You can check the Dev Tools console for debugging information.</code></pre>
+</span>
+<form id="form-POSTapi-v1-calls--call_id--recordings--recording_id--temporary-url" data-method="POST"
+      data-path="api/v1/calls/{call_id}/recordings/{recording_id}/temporary-url"
+      data-authed="1"
+      data-hasfiles="0"
+      data-isarraybody="0"
+      autocomplete="off"
+      onsubmit="event.preventDefault(); executeTryOut('POSTapi-v1-calls--call_id--recordings--recording_id--temporary-url', this);">
+    <h3>
+        Request&nbsp;&nbsp;&nbsp;
+                    <button type="button"
+                    style="background-color: #8fbcd4; padding: 5px 10px; border-radius: 5px; border-width: thin;"
+                    id="btn-tryout-POSTapi-v1-calls--call_id--recordings--recording_id--temporary-url"
+                    onclick="tryItOut('POSTapi-v1-calls--call_id--recordings--recording_id--temporary-url');">Try it out ⚡
+            </button>
+            <button type="button"
+                    style="background-color: #c97a7e; padding: 5px 10px; border-radius: 5px; border-width: thin;"
+                    id="btn-canceltryout-POSTapi-v1-calls--call_id--recordings--recording_id--temporary-url"
+                    onclick="cancelTryOut('POSTapi-v1-calls--call_id--recordings--recording_id--temporary-url');" hidden>Cancel 🛑
+            </button>&nbsp;&nbsp;
+            <button type="submit"
+                    style="background-color: #6ac174; padding: 5px 10px; border-radius: 5px; border-width: thin;"
+                    id="btn-executetryout-POSTapi-v1-calls--call_id--recordings--recording_id--temporary-url"
+                    data-initial-text="Send Request 💥"
+                    data-loading-text="⏱ Sending..."
+                    hidden>Send Request 💥
+            </button>
+            </h3>
+            <p>
+            <small class="badge badge-black">POST</small>
+            <b><code>api/v1/calls/{call_id}/recordings/{recording_id}/temporary-url</code></b>
+        </p>
+                <h4 class="fancy-heading-panel"><b>Headers</b></h4>
+                                <div style="padding-left: 28px; clear: unset;">
+                <b style="line-height: 2;"><code>Authorization</code></b>&nbsp;&nbsp;
+&nbsp;
+ &nbsp;
+ &nbsp;
+                <input type="text" style="display: none"
+                              name="Authorization" class="auth-value"               data-endpoint="POSTapi-v1-calls--call_id--recordings--recording_id--temporary-url"
+               value="Bearer {YOUR_AUTH_TOKEN}"
+               data-component="header">
+    <br>
+<p>Example: <code>Bearer {YOUR_AUTH_TOKEN}</code></p>
+            </div>
+                                <div style="padding-left: 28px; clear: unset;">
+                <b style="line-height: 2;"><code>Content-Type</code></b>&nbsp;&nbsp;
+&nbsp;
+ &nbsp;
+ &nbsp;
+                <input type="text" style="display: none"
+                              name="Content-Type"                data-endpoint="POSTapi-v1-calls--call_id--recordings--recording_id--temporary-url"
+               value="application/json"
+               data-component="header">
+    <br>
+<p>Example: <code>application/json</code></p>
+            </div>
+                                <div style="padding-left: 28px; clear: unset;">
+                <b style="line-height: 2;"><code>Accept</code></b>&nbsp;&nbsp;
+&nbsp;
+ &nbsp;
+ &nbsp;
+                <input type="text" style="display: none"
+                              name="Accept"                data-endpoint="POSTapi-v1-calls--call_id--recordings--recording_id--temporary-url"
+               value="application/json"
+               data-component="header">
+    <br>
+<p>Example: <code>application/json</code></p>
+            </div>
+                                <div style="padding-left: 28px; clear: unset;">
+                <b style="line-height: 2;"><code>X-Tenant-ID</code></b>&nbsp;&nbsp;
+&nbsp;
+ &nbsp;
+ &nbsp;
+                <input type="text" style="display: none"
+                              name="X-Tenant-ID"                data-endpoint="POSTapi-v1-calls--call_id--recordings--recording_id--temporary-url"
+               value="{YOUR_TENANT_ID}"
+               data-component="header">
+    <br>
+<p>Example: <code>{YOUR_TENANT_ID}</code></p>
+            </div>
+                        <h4 class="fancy-heading-panel"><b>URL Parameters</b></h4>
+                    <div style="padding-left: 28px; clear: unset;">
+                <b style="line-height: 2;"><code>call_id</code></b>&nbsp;&nbsp;
+<small>string</small>&nbsp;
+ &nbsp;
+ &nbsp;
+                <input type="text" style="display: none"
+                              name="call_id"                data-endpoint="POSTapi-v1-calls--call_id--recordings--recording_id--temporary-url"
+               value="architecto"
+               data-component="url">
+    <br>
+<p>The ID of the call. Example: <code>architecto</code></p>
+            </div>
+                    <div style="padding-left: 28px; clear: unset;">
+                <b style="line-height: 2;"><code>recording_id</code></b>&nbsp;&nbsp;
+<small>string</small>&nbsp;
+ &nbsp;
+ &nbsp;
+                <input type="text" style="display: none"
+                              name="recording_id"                data-endpoint="POSTapi-v1-calls--call_id--recordings--recording_id--temporary-url"
+               value="architecto"
+               data-component="url">
+    <br>
+<p>The ID of the recording. Example: <code>architecto</code></p>
+            </div>
+                    </form>
+
                 <h1 id="dashboard">Dashboard</h1>
 
     
@@ -6489,7 +7013,11 @@ print_r(json_decode((string) $body));</code></pre></div>
     <pre><code class="language-python">import requests
 import json
 
+<<<<<<< HEAD
 url = 'http://localhost/api/v1/dashboard/metrics'
+=======
+url = 'http://localhost:8080/api/v1/dashboard/metrics'
+>>>>>>> c957778 (Orchestrate calls with laravel api and livekit module, added calls transcript, calls recordings...)
 params = {
   'start_date': 'architecto',
   'end_date': 'architecto',
@@ -6722,7 +7250,11 @@ print_r(json_decode((string) $body));</code></pre></div>
     <pre><code class="language-python">import requests
 import json
 
+<<<<<<< HEAD
 url = 'http://localhost/api/v1/dashboard/call-evolution'
+=======
+url = 'http://localhost:8080/api/v1/dashboard/call-evolution'
+>>>>>>> c957778 (Orchestrate calls with laravel api and livekit module, added calls transcript, calls recordings...)
 params = {
   'start_date': 'architecto',
   'end_date': 'architecto',
@@ -6964,7 +7496,11 @@ print_r(json_decode((string) $body));</code></pre></div>
     <pre><code class="language-python">import requests
 import json
 
+<<<<<<< HEAD
 url = 'http://localhost/api/v1/dashboard/agent-stats'
+=======
+url = 'http://localhost:8080/api/v1/dashboard/agent-stats'
+>>>>>>> c957778 (Orchestrate calls with laravel api and livekit module, added calls transcript, calls recordings...)
 params = {
   'start_date': 'architecto',
   'end_date': 'architecto',
@@ -7195,7 +7731,11 @@ print_r(json_decode((string) $body));</code></pre></div>
     <pre><code class="language-python">import requests
 import json
 
+<<<<<<< HEAD
 url = 'http://localhost/api/v1/dashboard/phone-number-stats'
+=======
+url = 'http://localhost:8080/api/v1/dashboard/phone-number-stats'
+>>>>>>> c957778 (Orchestrate calls with laravel api and livekit module, added calls transcript, calls recordings...)
 params = {
   'start_date': 'architecto',
   'end_date': 'architecto',
@@ -7430,7 +7970,11 @@ print_r(json_decode((string) $body));</code></pre></div>
     <pre><code class="language-python">import requests
 import json
 
+<<<<<<< HEAD
 url = 'http://localhost/api/v1/invoices'
+=======
+url = 'http://localhost:8080/api/v1/invoices'
+>>>>>>> c957778 (Orchestrate calls with laravel api and livekit module, added calls transcript, calls recordings...)
 params = {
   'status': 'architecto',
   'per_page': '16',
@@ -7457,7 +8001,12 @@ response.json()</code></pre></div>
             </summary>
             <pre><code class="language-http">cache-control: no-cache, private
 content-type: application/json
+<<<<<<< HEAD
 vary: Origin
+=======
+access-control-allow-origin: http://localhost:3000
+access-control-allow-credentials: true
+>>>>>>> c957778 (Orchestrate calls with laravel api and livekit module, added calls transcript, calls recordings...)
  </code></pre></details>         <pre>
 
 <code class="language-json" style="max-height: 300px;">{
@@ -7676,7 +8225,11 @@ print_r(json_decode((string) $body));</code></pre></div>
     <pre><code class="language-python">import requests
 import json
 
+<<<<<<< HEAD
 url = 'http://localhost/api/v1/invoices'
+=======
+url = 'http://localhost:8080/api/v1/invoices'
+>>>>>>> c957778 (Orchestrate calls with laravel api and livekit module, added calls transcript, calls recordings...)
 payload = {
     "amount": 16,
     "credits_purchased": 16,
@@ -7950,7 +8503,11 @@ print_r(json_decode((string) $body));</code></pre></div>
     <pre><code class="language-python">import requests
 import json
 
+<<<<<<< HEAD
 url = 'http://localhost/api/v1/invoices/architecto'
+=======
+url = 'http://localhost:8080/api/v1/invoices/architecto'
+>>>>>>> c957778 (Orchestrate calls with laravel api and livekit module, added calls transcript, calls recordings...)
 headers = {
   'Authorization': 'Bearer {YOUR_AUTH_TOKEN}',
   'Content-Type': 'application/json',
@@ -8156,7 +8713,11 @@ print_r(json_decode((string) $body));</code></pre></div>
     <pre><code class="language-python">import requests
 import json
 
+<<<<<<< HEAD
 url = 'http://localhost/api/v1/invoices/architecto'
+=======
+url = 'http://localhost:8080/api/v1/invoices/architecto'
+>>>>>>> c957778 (Orchestrate calls with laravel api and livekit module, added calls transcript, calls recordings...)
 headers = {
   'Authorization': 'Bearer {YOUR_AUTH_TOKEN}',
   'Content-Type': 'application/json',
@@ -8379,7 +8940,11 @@ print_r(json_decode((string) $body));</code></pre></div>
     <pre><code class="language-python">import requests
 import json
 
+<<<<<<< HEAD
 url = 'http://localhost/api/v1/invoices/architecto/send'
+=======
+url = 'http://localhost:8080/api/v1/invoices/architecto/send'
+>>>>>>> c957778 (Orchestrate calls with laravel api and livekit module, added calls transcript, calls recordings...)
 headers = {
   'Authorization': 'Bearer {YOUR_AUTH_TOKEN}',
   'Content-Type': 'application/json',
@@ -8608,7 +9173,11 @@ print_r(json_decode((string) $body));</code></pre></div>
     <pre><code class="language-python">import requests
 import json
 
+<<<<<<< HEAD
 url = 'http://localhost/api/v1/invoices/architecto/status'
+=======
+url = 'http://localhost:8080/api/v1/invoices/architecto/status'
+>>>>>>> c957778 (Orchestrate calls with laravel api and livekit module, added calls transcript, calls recordings...)
 payload = {
     "status": "architecto",
     "notes": "architecto"
@@ -8862,7 +9431,11 @@ print_r(json_decode((string) $body));</code></pre></div>
     <pre><code class="language-python">import requests
 import json
 
+<<<<<<< HEAD
 url = 'http://localhost/api/v1/knowledge-bases'
+=======
+url = 'http://localhost:8080/api/v1/knowledge-bases'
+>>>>>>> c957778 (Orchestrate calls with laravel api and livekit module, added calls transcript, calls recordings...)
 params = {
   'filter[name]': 'architecto',
   'filter[document_type]': 'architecto',
@@ -9115,7 +9688,11 @@ print_r(json_decode((string) $body));</code></pre></div>
     <pre><code class="language-python">import requests
 import json
 
+<<<<<<< HEAD
 url = 'http://localhost/api/v1/knowledge-bases'
+=======
+url = 'http://localhost:8080/api/v1/knowledge-bases'
+>>>>>>> c957778 (Orchestrate calls with laravel api and livekit module, added calls transcript, calls recordings...)
 payload = {
     "name": "architecto",
     "description": "Eius et animi quos velit et.",
@@ -9351,7 +9928,11 @@ print_r(json_decode((string) $body));</code></pre></div>
     <pre><code class="language-python">import requests
 import json
 
+<<<<<<< HEAD
 url = 'http://localhost/api/v1/knowledge-bases/architecto'
+=======
+url = 'http://localhost:8080/api/v1/knowledge-bases/architecto'
+>>>>>>> c957778 (Orchestrate calls with laravel api and livekit module, added calls transcript, calls recordings...)
 params = {
   'filter[agents]': 'architecto',
 }
@@ -9590,7 +10171,11 @@ print_r(json_decode((string) $body));</code></pre></div>
     <pre><code class="language-python">import requests
 import json
 
+<<<<<<< HEAD
 url = 'http://localhost/api/v1/knowledge-bases/architecto'
+=======
+url = 'http://localhost:8080/api/v1/knowledge-bases/architecto'
+>>>>>>> c957778 (Orchestrate calls with laravel api and livekit module, added calls transcript, calls recordings...)
 payload = {
     "name": "architecto",
     "description": "Eius et animi quos velit et.",
@@ -9846,7 +10431,11 @@ print_r(json_decode((string) $body));</code></pre></div>
     <pre><code class="language-python">import requests
 import json
 
+<<<<<<< HEAD
 url = 'http://localhost/api/v1/knowledge-bases/architecto'
+=======
+url = 'http://localhost:8080/api/v1/knowledge-bases/architecto'
+>>>>>>> c957778 (Orchestrate calls with laravel api and livekit module, added calls transcript, calls recordings...)
 headers = {
   'Authorization': 'Bearer {YOUR_AUTH_TOKEN}',
   'Content-Type': 'application/json',
@@ -10068,7 +10657,11 @@ print_r(json_decode((string) $body));</code></pre></div>
     <pre><code class="language-python">import requests
 import json
 
+<<<<<<< HEAD
 url = 'http://localhost/api/v1/notifications'
+=======
+url = 'http://localhost:8080/api/v1/notifications'
+>>>>>>> c957778 (Orchestrate calls with laravel api and livekit module, added calls transcript, calls recordings...)
 params = {
   'filter[read]': '0',
   'filter[notification_type]': 'architecto',
@@ -10301,7 +10894,11 @@ print_r(json_decode((string) $body));</code></pre></div>
     <pre><code class="language-python">import requests
 import json
 
+<<<<<<< HEAD
 url = 'http://localhost/api/v1/notifications/architecto'
+=======
+url = 'http://localhost:8080/api/v1/notifications/architecto'
+>>>>>>> c957778 (Orchestrate calls with laravel api and livekit module, added calls transcript, calls recordings...)
 headers = {
   'Authorization': 'Bearer {YOUR_AUTH_TOKEN}',
   'Content-Type': 'application/json',
@@ -10507,7 +11104,11 @@ print_r(json_decode((string) $body));</code></pre></div>
     <pre><code class="language-python">import requests
 import json
 
+<<<<<<< HEAD
 url = 'http://localhost/api/v1/notifications/architecto/mark-read'
+=======
+url = 'http://localhost:8080/api/v1/notifications/architecto/mark-read'
+>>>>>>> c957778 (Orchestrate calls with laravel api and livekit module, added calls transcript, calls recordings...)
 headers = {
   'Authorization': 'Bearer {YOUR_AUTH_TOKEN}',
   'Content-Type': 'application/json',
@@ -10715,7 +11316,11 @@ print_r(json_decode((string) $body));</code></pre></div>
     <pre><code class="language-python">import requests
 import json
 
+<<<<<<< HEAD
 url = 'http://localhost/api/v1/notifications/mark-all-read'
+=======
+url = 'http://localhost:8080/api/v1/notifications/mark-all-read'
+>>>>>>> c957778 (Orchestrate calls with laravel api and livekit module, added calls transcript, calls recordings...)
 headers = {
   'Authorization': 'Bearer {YOUR_AUTH_TOKEN}',
   'Content-Type': 'application/json',
@@ -10902,7 +11507,11 @@ print_r(json_decode((string) $body));</code></pre></div>
     <pre><code class="language-python">import requests
 import json
 
+<<<<<<< HEAD
 url = 'http://localhost/api/v1/onboarding/status'
+=======
+url = 'http://localhost:8080/api/v1/onboarding/status'
+>>>>>>> c957778 (Orchestrate calls with laravel api and livekit module, added calls transcript, calls recordings...)
 headers = {
   'Authorization': 'Bearer {YOUR_AUTH_TOKEN}',
   'Content-Type': 'application/json',
@@ -11118,7 +11727,11 @@ print_r(json_decode((string) $body));</code></pre></div>
     <pre><code class="language-python">import requests
 import json
 
+<<<<<<< HEAD
 url = 'http://localhost/api/v1/onboarding/step'
+=======
+url = 'http://localhost:8080/api/v1/onboarding/step'
+>>>>>>> c957778 (Orchestrate calls with laravel api and livekit module, added calls transcript, calls recordings...)
 payload = {
     "step": 16,
     "company_name": "architecto",
@@ -11393,7 +12006,11 @@ print_r(json_decode((string) $body));</code></pre></div>
     <pre><code class="language-python">import requests
 import json
 
+<<<<<<< HEAD
 url = 'http://localhost/api/v1/onboarding/skip'
+=======
+url = 'http://localhost:8080/api/v1/onboarding/skip'
+>>>>>>> c957778 (Orchestrate calls with laravel api and livekit module, added calls transcript, calls recordings...)
 headers = {
   'Authorization': 'Bearer {YOUR_AUTH_TOKEN}',
   'Content-Type': 'application/json',
@@ -11636,7 +12253,11 @@ print_r(json_decode((string) $body));</code></pre></div>
     <pre><code class="language-python">import requests
 import json
 
+<<<<<<< HEAD
 url = 'http://localhost/api/v1/onboarding/complete'
+=======
+url = 'http://localhost:8080/api/v1/onboarding/complete'
+>>>>>>> c957778 (Orchestrate calls with laravel api and livekit module, added calls transcript, calls recordings...)
 payload = {
     "step_1_data": [
         "architecto"
@@ -11905,7 +12526,11 @@ print_r(json_decode((string) $body));</code></pre></div>
     <pre><code class="language-python">import requests
 import json
 
+<<<<<<< HEAD
 url = 'http://localhost/api/v1/onboarding/step/16'
+=======
+url = 'http://localhost:8080/api/v1/onboarding/step/16'
+>>>>>>> c957778 (Orchestrate calls with laravel api and livekit module, added calls transcript, calls recordings...)
 headers = {
   'Authorization': 'Bearer {YOUR_AUTH_TOKEN}',
   'Content-Type': 'application/json',
@@ -12038,6 +12663,453 @@ You can check the Dev Tools console for debugging information.</code></pre>
                     </form>
 
                 <h1 id="others">Others</h1>
+<<<<<<< HEAD
+=======
+
+    
+
+                                <h2 id="others-POSTapi-v1-calls-webhook">POST api/v1/calls/webhook</h2>
+
+<p>
+<small class="badge badge-darkred">requires authentication</small>
+</p>
+
+
+
+<span id="example-requests-POSTapi-v1-calls-webhook">
+<blockquote>Example request:</blockquote>
+
+
+<div class="bash-example">
+    <pre><code class="language-bash">curl --request POST \
+    "http://localhost:8080/api/v1/calls/webhook" \
+    --header "Authorization: Bearer {YOUR_AUTH_TOKEN}" \
+    --header "Content-Type: application/json" \
+    --header "Accept: application/json" \
+    --header "X-Tenant-ID: {YOUR_TENANT_ID}" \
+    --data "{
+    \"event_id\": \"architecto\",
+    \"event\": \"architecto\",
+    \"call_id\": \"architecto\",
+    \"tenant_id\": \"architecto\"
+}"
+</code></pre></div>
+
+
+<div class="javascript-example">
+    <pre><code class="language-javascript">const url = new URL(
+    "http://localhost:8080/api/v1/calls/webhook"
+);
+
+const headers = {
+    "Authorization": "Bearer {YOUR_AUTH_TOKEN}",
+    "Content-Type": "application/json",
+    "Accept": "application/json",
+    "X-Tenant-ID": "{YOUR_TENANT_ID}",
+};
+
+let body = {
+    "event_id": "architecto",
+    "event": "architecto",
+    "call_id": "architecto",
+    "tenant_id": "architecto"
+};
+
+fetch(url, {
+    method: "POST",
+    headers,
+    body: JSON.stringify(body),
+}).then(response =&gt; response.json());</code></pre></div>
+
+
+<div class="php-example">
+    <pre><code class="language-php">$client = new \GuzzleHttp\Client();
+$url = 'http://localhost:8080/api/v1/calls/webhook';
+$response = $client-&gt;post(
+    $url,
+    [
+        'headers' =&gt; [
+            'Authorization' =&gt; 'Bearer {YOUR_AUTH_TOKEN}',
+            'Content-Type' =&gt; 'application/json',
+            'Accept' =&gt; 'application/json',
+            'X-Tenant-ID' =&gt; '{YOUR_TENANT_ID}',
+        ],
+        'json' =&gt; [
+            'event_id' =&gt; 'architecto',
+            'event' =&gt; 'architecto',
+            'call_id' =&gt; 'architecto',
+            'tenant_id' =&gt; 'architecto',
+        ],
+    ]
+);
+$body = $response-&gt;getBody();
+print_r(json_decode((string) $body));</code></pre></div>
+
+
+<div class="python-example">
+    <pre><code class="language-python">import requests
+import json
+
+url = 'http://localhost:8080/api/v1/calls/webhook'
+payload = {
+    "event_id": "architecto",
+    "event": "architecto",
+    "call_id": "architecto",
+    "tenant_id": "architecto"
+}
+headers = {
+  'Authorization': 'Bearer {YOUR_AUTH_TOKEN}',
+  'Content-Type': 'application/json',
+  'Accept': 'application/json',
+  'X-Tenant-ID': '{YOUR_TENANT_ID}'
+}
+
+response = requests.request('POST', url, headers=headers, json=payload)
+response.json()</code></pre></div>
+
+</span>
+
+<span id="example-responses-POSTapi-v1-calls-webhook">
+</span>
+<span id="execution-results-POSTapi-v1-calls-webhook" hidden>
+    <blockquote>Received response<span
+                id="execution-response-status-POSTapi-v1-calls-webhook"></span>:
+    </blockquote>
+    <pre class="json"><code id="execution-response-content-POSTapi-v1-calls-webhook"
+      data-empty-response-text="<Empty response>" style="max-height: 400px;"></code></pre>
+</span>
+<span id="execution-error-POSTapi-v1-calls-webhook" hidden>
+    <blockquote>Request failed with error:</blockquote>
+    <pre><code id="execution-error-message-POSTapi-v1-calls-webhook">
+
+Tip: Check that you&#039;re properly connected to the network.
+If you&#039;re a maintainer of ths API, verify that your API is running and you&#039;ve enabled CORS.
+You can check the Dev Tools console for debugging information.</code></pre>
+</span>
+<form id="form-POSTapi-v1-calls-webhook" data-method="POST"
+      data-path="api/v1/calls/webhook"
+      data-authed="1"
+      data-hasfiles="0"
+      data-isarraybody="0"
+      autocomplete="off"
+      onsubmit="event.preventDefault(); executeTryOut('POSTapi-v1-calls-webhook', this);">
+    <h3>
+        Request&nbsp;&nbsp;&nbsp;
+                    <button type="button"
+                    style="background-color: #8fbcd4; padding: 5px 10px; border-radius: 5px; border-width: thin;"
+                    id="btn-tryout-POSTapi-v1-calls-webhook"
+                    onclick="tryItOut('POSTapi-v1-calls-webhook');">Try it out ⚡
+            </button>
+            <button type="button"
+                    style="background-color: #c97a7e; padding: 5px 10px; border-radius: 5px; border-width: thin;"
+                    id="btn-canceltryout-POSTapi-v1-calls-webhook"
+                    onclick="cancelTryOut('POSTapi-v1-calls-webhook');" hidden>Cancel 🛑
+            </button>&nbsp;&nbsp;
+            <button type="submit"
+                    style="background-color: #6ac174; padding: 5px 10px; border-radius: 5px; border-width: thin;"
+                    id="btn-executetryout-POSTapi-v1-calls-webhook"
+                    data-initial-text="Send Request 💥"
+                    data-loading-text="⏱ Sending..."
+                    hidden>Send Request 💥
+            </button>
+            </h3>
+            <p>
+            <small class="badge badge-black">POST</small>
+            <b><code>api/v1/calls/webhook</code></b>
+        </p>
+                <h4 class="fancy-heading-panel"><b>Headers</b></h4>
+                                <div style="padding-left: 28px; clear: unset;">
+                <b style="line-height: 2;"><code>Authorization</code></b>&nbsp;&nbsp;
+&nbsp;
+ &nbsp;
+ &nbsp;
+                <input type="text" style="display: none"
+                              name="Authorization" class="auth-value"               data-endpoint="POSTapi-v1-calls-webhook"
+               value="Bearer {YOUR_AUTH_TOKEN}"
+               data-component="header">
+    <br>
+<p>Example: <code>Bearer {YOUR_AUTH_TOKEN}</code></p>
+            </div>
+                                <div style="padding-left: 28px; clear: unset;">
+                <b style="line-height: 2;"><code>Content-Type</code></b>&nbsp;&nbsp;
+&nbsp;
+ &nbsp;
+ &nbsp;
+                <input type="text" style="display: none"
+                              name="Content-Type"                data-endpoint="POSTapi-v1-calls-webhook"
+               value="application/json"
+               data-component="header">
+    <br>
+<p>Example: <code>application/json</code></p>
+            </div>
+                                <div style="padding-left: 28px; clear: unset;">
+                <b style="line-height: 2;"><code>Accept</code></b>&nbsp;&nbsp;
+&nbsp;
+ &nbsp;
+ &nbsp;
+                <input type="text" style="display: none"
+                              name="Accept"                data-endpoint="POSTapi-v1-calls-webhook"
+               value="application/json"
+               data-component="header">
+    <br>
+<p>Example: <code>application/json</code></p>
+            </div>
+                                <div style="padding-left: 28px; clear: unset;">
+                <b style="line-height: 2;"><code>X-Tenant-ID</code></b>&nbsp;&nbsp;
+&nbsp;
+ &nbsp;
+ &nbsp;
+                <input type="text" style="display: none"
+                              name="X-Tenant-ID"                data-endpoint="POSTapi-v1-calls-webhook"
+               value="{YOUR_TENANT_ID}"
+               data-component="header">
+    <br>
+<p>Example: <code>{YOUR_TENANT_ID}</code></p>
+            </div>
+                                <h4 class="fancy-heading-panel"><b>Body Parameters</b></h4>
+        <div style=" padding-left: 28px;  clear: unset;">
+            <b style="line-height: 2;"><code>event_id</code></b>&nbsp;&nbsp;
+<small>string</small>&nbsp;
+ &nbsp;
+ &nbsp;
+                <input type="text" style="display: none"
+                              name="event_id"                data-endpoint="POSTapi-v1-calls-webhook"
+               value="architecto"
+               data-component="body">
+    <br>
+<p>Example: <code>architecto</code></p>
+        </div>
+                <div style=" padding-left: 28px;  clear: unset;">
+            <b style="line-height: 2;"><code>event</code></b>&nbsp;&nbsp;
+<small>string</small>&nbsp;
+ &nbsp;
+ &nbsp;
+                <input type="text" style="display: none"
+                              name="event"                data-endpoint="POSTapi-v1-calls-webhook"
+               value="architecto"
+               data-component="body">
+    <br>
+<p>Example: <code>architecto</code></p>
+        </div>
+                <div style=" padding-left: 28px;  clear: unset;">
+            <b style="line-height: 2;"><code>call_id</code></b>&nbsp;&nbsp;
+<small>string</small>&nbsp;
+ &nbsp;
+ &nbsp;
+                <input type="text" style="display: none"
+                              name="call_id"                data-endpoint="POSTapi-v1-calls-webhook"
+               value="architecto"
+               data-component="body">
+    <br>
+<p>Example: <code>architecto</code></p>
+        </div>
+                <div style=" padding-left: 28px;  clear: unset;">
+            <b style="line-height: 2;"><code>tenant_id</code></b>&nbsp;&nbsp;
+<small>string</small>&nbsp;
+ &nbsp;
+ &nbsp;
+                <input type="text" style="display: none"
+                              name="tenant_id"                data-endpoint="POSTapi-v1-calls-webhook"
+               value="architecto"
+               data-component="body">
+    <br>
+<p>Example: <code>architecto</code></p>
+        </div>
+        </form>
+
+                    <h2 id="others-GETapi-csrf-cookie">Return an empty response simply to trigger the storage of the CSRF cookie in the browser.</h2>
+
+<p>
+<small class="badge badge-darkred">requires authentication</small>
+</p>
+
+
+
+<span id="example-requests-GETapi-csrf-cookie">
+<blockquote>Example request:</blockquote>
+
+
+<div class="bash-example">
+    <pre><code class="language-bash">curl --request GET \
+    --get "http://localhost:8080/api/csrf-cookie" \
+    --header "Authorization: Bearer {YOUR_AUTH_TOKEN}" \
+    --header "Content-Type: application/json" \
+    --header "Accept: application/json" \
+    --header "X-Tenant-ID: {YOUR_TENANT_ID}"</code></pre></div>
+
+
+<div class="javascript-example">
+    <pre><code class="language-javascript">const url = new URL(
+    "http://localhost:8080/api/csrf-cookie"
+);
+
+const headers = {
+    "Authorization": "Bearer {YOUR_AUTH_TOKEN}",
+    "Content-Type": "application/json",
+    "Accept": "application/json",
+    "X-Tenant-ID": "{YOUR_TENANT_ID}",
+};
+
+
+fetch(url, {
+    method: "GET",
+    headers,
+}).then(response =&gt; response.json());</code></pre></div>
+
+
+<div class="php-example">
+    <pre><code class="language-php">$client = new \GuzzleHttp\Client();
+$url = 'http://localhost:8080/api/csrf-cookie';
+$response = $client-&gt;get(
+    $url,
+    [
+        'headers' =&gt; [
+            'Authorization' =&gt; 'Bearer {YOUR_AUTH_TOKEN}',
+            'Content-Type' =&gt; 'application/json',
+            'Accept' =&gt; 'application/json',
+            'X-Tenant-ID' =&gt; '{YOUR_TENANT_ID}',
+        ],
+    ]
+);
+$body = $response-&gt;getBody();
+print_r(json_decode((string) $body));</code></pre></div>
+
+
+<div class="python-example">
+    <pre><code class="language-python">import requests
+import json
+
+url = 'http://localhost:8080/api/csrf-cookie'
+headers = {
+  'Authorization': 'Bearer {YOUR_AUTH_TOKEN}',
+  'Content-Type': 'application/json',
+  'Accept': 'application/json',
+  'X-Tenant-ID': '{YOUR_TENANT_ID}'
+}
+
+response = requests.request('GET', url, headers=headers)
+response.json()</code></pre></div>
+
+</span>
+
+<span id="example-responses-GETapi-csrf-cookie">
+            <blockquote>
+            <p>Example response (500):</p>
+        </blockquote>
+                <details class="annotation">
+            <summary style="cursor: pointer;">
+                <small onclick="textContent = parentElement.parentElement.open ? 'Show headers' : 'Hide headers'">Show headers</small>
+            </summary>
+            <pre><code class="language-http">cache-control: no-cache, private
+content-type: application/json
+access-control-allow-origin: http://localhost:3000
+access-control-allow-credentials: true
+ </code></pre></details>         <pre>
+
+<code class="language-json" style="max-height: 300px;">{
+    &quot;message&quot;: &quot;Server Error&quot;
+}</code>
+ </pre>
+    </span>
+<span id="execution-results-GETapi-csrf-cookie" hidden>
+    <blockquote>Received response<span
+                id="execution-response-status-GETapi-csrf-cookie"></span>:
+    </blockquote>
+    <pre class="json"><code id="execution-response-content-GETapi-csrf-cookie"
+      data-empty-response-text="<Empty response>" style="max-height: 400px;"></code></pre>
+</span>
+<span id="execution-error-GETapi-csrf-cookie" hidden>
+    <blockquote>Request failed with error:</blockquote>
+    <pre><code id="execution-error-message-GETapi-csrf-cookie">
+
+Tip: Check that you&#039;re properly connected to the network.
+If you&#039;re a maintainer of ths API, verify that your API is running and you&#039;ve enabled CORS.
+You can check the Dev Tools console for debugging information.</code></pre>
+</span>
+<form id="form-GETapi-csrf-cookie" data-method="GET"
+      data-path="api/csrf-cookie"
+      data-authed="1"
+      data-hasfiles="0"
+      data-isarraybody="0"
+      autocomplete="off"
+      onsubmit="event.preventDefault(); executeTryOut('GETapi-csrf-cookie', this);">
+    <h3>
+        Request&nbsp;&nbsp;&nbsp;
+                    <button type="button"
+                    style="background-color: #8fbcd4; padding: 5px 10px; border-radius: 5px; border-width: thin;"
+                    id="btn-tryout-GETapi-csrf-cookie"
+                    onclick="tryItOut('GETapi-csrf-cookie');">Try it out ⚡
+            </button>
+            <button type="button"
+                    style="background-color: #c97a7e; padding: 5px 10px; border-radius: 5px; border-width: thin;"
+                    id="btn-canceltryout-GETapi-csrf-cookie"
+                    onclick="cancelTryOut('GETapi-csrf-cookie');" hidden>Cancel 🛑
+            </button>&nbsp;&nbsp;
+            <button type="submit"
+                    style="background-color: #6ac174; padding: 5px 10px; border-radius: 5px; border-width: thin;"
+                    id="btn-executetryout-GETapi-csrf-cookie"
+                    data-initial-text="Send Request 💥"
+                    data-loading-text="⏱ Sending..."
+                    hidden>Send Request 💥
+            </button>
+            </h3>
+            <p>
+            <small class="badge badge-green">GET</small>
+            <b><code>api/csrf-cookie</code></b>
+        </p>
+                <h4 class="fancy-heading-panel"><b>Headers</b></h4>
+                                <div style="padding-left: 28px; clear: unset;">
+                <b style="line-height: 2;"><code>Authorization</code></b>&nbsp;&nbsp;
+&nbsp;
+ &nbsp;
+ &nbsp;
+                <input type="text" style="display: none"
+                              name="Authorization" class="auth-value"               data-endpoint="GETapi-csrf-cookie"
+               value="Bearer {YOUR_AUTH_TOKEN}"
+               data-component="header">
+    <br>
+<p>Example: <code>Bearer {YOUR_AUTH_TOKEN}</code></p>
+            </div>
+                                <div style="padding-left: 28px; clear: unset;">
+                <b style="line-height: 2;"><code>Content-Type</code></b>&nbsp;&nbsp;
+&nbsp;
+ &nbsp;
+ &nbsp;
+                <input type="text" style="display: none"
+                              name="Content-Type"                data-endpoint="GETapi-csrf-cookie"
+               value="application/json"
+               data-component="header">
+    <br>
+<p>Example: <code>application/json</code></p>
+            </div>
+                                <div style="padding-left: 28px; clear: unset;">
+                <b style="line-height: 2;"><code>Accept</code></b>&nbsp;&nbsp;
+&nbsp;
+ &nbsp;
+ &nbsp;
+                <input type="text" style="display: none"
+                              name="Accept"                data-endpoint="GETapi-csrf-cookie"
+               value="application/json"
+               data-component="header">
+    <br>
+<p>Example: <code>application/json</code></p>
+            </div>
+                                <div style="padding-left: 28px; clear: unset;">
+                <b style="line-height: 2;"><code>X-Tenant-ID</code></b>&nbsp;&nbsp;
+&nbsp;
+ &nbsp;
+ &nbsp;
+                <input type="text" style="display: none"
+                              name="X-Tenant-ID"                data-endpoint="GETapi-csrf-cookie"
+               value="{YOUR_TENANT_ID}"
+               data-component="header">
+    <br>
+<p>Example: <code>{YOUR_TENANT_ID}</code></p>
+            </div>
+                        </form>
+
+                <h1 id="payments">Payments</h1>
+>>>>>>> c957778 (Orchestrate calls with laravel api and livekit module, added calls transcript, calls recordings...)
 
     
 
@@ -12103,6 +13175,7 @@ print_r(json_decode((string) $body));</code></pre></div>
     <pre><code class="language-python">import requests
 import json
 
+<<<<<<< HEAD
 url = 'http://localhost/api/csrf-cookie'
 headers = {
   'Authorization': 'Bearer {YOUR_AUTH_TOKEN}',
@@ -12298,6 +13371,9 @@ print_r(json_decode((string) $body));</code></pre></div>
 import json
 
 url = 'http://localhost/api/v1/credits'
+=======
+url = 'http://localhost:8080/api/v1/credits'
+>>>>>>> c957778 (Orchestrate calls with laravel api and livekit module, added calls transcript, calls recordings...)
 headers = {
   'Authorization': 'Bearer {YOUR_AUTH_TOKEN}',
   'Content-Type': 'application/json',
@@ -12502,7 +13578,11 @@ print_r(json_decode((string) $body));</code></pre></div>
     <pre><code class="language-python">import requests
 import json
 
+<<<<<<< HEAD
 url = 'http://localhost/api/v1/payments/create-intent'
+=======
+url = 'http://localhost:8080/api/v1/payments/create-intent'
+>>>>>>> c957778 (Orchestrate calls with laravel api and livekit module, added calls transcript, calls recordings...)
 payload = {
     "amount": 16,
     "credits_amount": 16,
@@ -12755,7 +13835,11 @@ print_r(json_decode((string) $body));</code></pre></div>
     <pre><code class="language-python">import requests
 import json
 
+<<<<<<< HEAD
 url = 'http://localhost/api/v1/payments'
+=======
+url = 'http://localhost:8080/api/v1/payments'
+>>>>>>> c957778 (Orchestrate calls with laravel api and livekit module, added calls transcript, calls recordings...)
 params = {
   'status': 'architecto',
   'per_page': '16',
@@ -12965,7 +14049,11 @@ print_r(json_decode((string) $body));</code></pre></div>
     <pre><code class="language-python">import requests
 import json
 
+<<<<<<< HEAD
 url = 'http://localhost/api/v1/payments/architecto'
+=======
+url = 'http://localhost:8080/api/v1/payments/architecto'
+>>>>>>> c957778 (Orchestrate calls with laravel api and livekit module, added calls transcript, calls recordings...)
 headers = {
   'Authorization': 'Bearer {YOUR_AUTH_TOKEN}',
   'Content-Type': 'application/json',
@@ -13192,7 +14280,11 @@ print_r(json_decode((string) $body));</code></pre></div>
     <pre><code class="language-python">import requests
 import json
 
+<<<<<<< HEAD
 url = 'http://localhost/api/v1/phone-numbers'
+=======
+url = 'http://localhost:8080/api/v1/phone-numbers'
+>>>>>>> c957778 (Orchestrate calls with laravel api and livekit module, added calls transcript, calls recordings...)
 params = {
   'filter[did]': 'architecto',
   'filter[provider]': 'architecto',
@@ -13481,7 +14573,11 @@ print_r(json_decode((string) $body));</code></pre></div>
     <pre><code class="language-python">import requests
 import json
 
+<<<<<<< HEAD
 url = 'http://localhost/api/v1/phone-numbers'
+=======
+url = 'http://localhost:8080/api/v1/phone-numbers'
+>>>>>>> c957778 (Orchestrate calls with laravel api and livekit module, added calls transcript, calls recordings...)
 payload = {
     "did": "architecto",
     "provider": "architecto",
@@ -13800,7 +14896,11 @@ print_r(json_decode((string) $body));</code></pre></div>
     <pre><code class="language-python">import requests
 import json
 
+<<<<<<< HEAD
 url = 'http://localhost/api/v1/phone-numbers/architecto'
+=======
+url = 'http://localhost:8080/api/v1/phone-numbers/architecto'
+>>>>>>> c957778 (Orchestrate calls with laravel api and livekit module, added calls transcript, calls recordings...)
 params = {
   'filter[agents]': 'architecto',
 }
@@ -14047,7 +15147,11 @@ print_r(json_decode((string) $body));</code></pre></div>
     <pre><code class="language-python">import requests
 import json
 
+<<<<<<< HEAD
 url = 'http://localhost/api/v1/phone-numbers/architecto'
+=======
+url = 'http://localhost:8080/api/v1/phone-numbers/architecto'
+>>>>>>> c957778 (Orchestrate calls with laravel api and livekit module, added calls transcript, calls recordings...)
 payload = {
     "did": "architecto",
     "country_code": "architecto",
@@ -14361,7 +15465,11 @@ print_r(json_decode((string) $body));</code></pre></div>
     <pre><code class="language-python">import requests
 import json
 
+<<<<<<< HEAD
 url = 'http://localhost/api/v1/phone-numbers/architecto'
+=======
+url = 'http://localhost:8080/api/v1/phone-numbers/architecto'
+>>>>>>> c957778 (Orchestrate calls with laravel api and livekit module, added calls transcript, calls recordings...)
 headers = {
   'Authorization': 'Bearer {YOUR_AUTH_TOKEN}',
   'Content-Type': 'application/json',
@@ -14571,7 +15679,11 @@ print_r(json_decode((string) $body));</code></pre></div>
     <pre><code class="language-python">import requests
 import json
 
+<<<<<<< HEAD
 url = 'http://localhost/api/v1/invitations'
+=======
+url = 'http://localhost:8080/api/v1/invitations'
+>>>>>>> c957778 (Orchestrate calls with laravel api and livekit module, added calls transcript, calls recordings...)
 params = {
   'filter[email]': 'architecto',
   'filter[role]': 'architecto',
@@ -14811,7 +15923,11 @@ print_r(json_decode((string) $body));</code></pre></div>
     <pre><code class="language-python">import requests
 import json
 
+<<<<<<< HEAD
 url = 'http://localhost/api/v1/invitations'
+=======
+url = 'http://localhost:8080/api/v1/invitations'
+>>>>>>> c957778 (Orchestrate calls with laravel api and livekit module, added calls transcript, calls recordings...)
 payload = {
     "email": "gbailey@example.net",
     "name": "architecto",
@@ -15039,7 +16155,11 @@ print_r(json_decode((string) $body));</code></pre></div>
     <pre><code class="language-python">import requests
 import json
 
+<<<<<<< HEAD
 url = 'http://localhost/api/v1/invitations/architecto'
+=======
+url = 'http://localhost:8080/api/v1/invitations/architecto'
+>>>>>>> c957778 (Orchestrate calls with laravel api and livekit module, added calls transcript, calls recordings...)
 headers = {
   'Authorization': 'Bearer {YOUR_AUTH_TOKEN}',
   'Content-Type': 'application/json',
@@ -15250,7 +16370,11 @@ print_r(json_decode((string) $body));</code></pre></div>
     <pre><code class="language-python">import requests
 import json
 
+<<<<<<< HEAD
 url = 'http://localhost/api/v1/invitations/architecto'
+=======
+url = 'http://localhost:8080/api/v1/invitations/architecto'
+>>>>>>> c957778 (Orchestrate calls with laravel api and livekit module, added calls transcript, calls recordings...)
 headers = {
   'Authorization': 'Bearer {YOUR_AUTH_TOKEN}',
   'Content-Type': 'application/json',
@@ -15464,7 +16588,11 @@ print_r(json_decode((string) $body));</code></pre></div>
     <pre><code class="language-python">import requests
 import json
 
+<<<<<<< HEAD
 url = 'http://localhost/api/v1/invitations/architecto/accept'
+=======
+url = 'http://localhost:8080/api/v1/invitations/architecto/accept'
+>>>>>>> c957778 (Orchestrate calls with laravel api and livekit module, added calls transcript, calls recordings...)
 headers = {
   'Authorization': 'Bearer {YOUR_AUTH_TOKEN}',
   'Content-Type': 'application/json',
@@ -15699,7 +16827,11 @@ print_r(json_decode((string) $body));</code></pre></div>
     <pre><code class="language-python">import requests
 import json
 
+<<<<<<< HEAD
 url = 'http://localhost/api/v1/tenants/register'
+=======
+url = 'http://localhost:8080/api/v1/tenants/register'
+>>>>>>> c957778 (Orchestrate calls with laravel api and livekit module, added calls transcript, calls recordings...)
 payload = {
     "name": "architecto",
     "email": "gbailey@example.net",
@@ -15921,7 +17053,11 @@ print_r(json_decode((string) $body));</code></pre></div>
     <pre><code class="language-python">import requests
 import json
 
+<<<<<<< HEAD
 url = 'http://localhost/api/v1/tenants/signup.checkEmail'
+=======
+url = 'http://localhost:8080/api/v1/tenants/signup.checkEmail'
+>>>>>>> c957778 (Orchestrate calls with laravel api and livekit module, added calls transcript, calls recordings...)
 payload = {
     "email": "gbailey@example.net"
 }
@@ -16123,7 +17259,11 @@ print_r(json_decode((string) $body));</code></pre></div>
     <pre><code class="language-python">import requests
 import json
 
+<<<<<<< HEAD
 url = 'http://localhost/api/v1/tenants/signup.verifyOtp'
+=======
+url = 'http://localhost:8080/api/v1/tenants/signup.verifyOtp'
+>>>>>>> c957778 (Orchestrate calls with laravel api and livekit module, added calls transcript, calls recordings...)
 payload = {
     "email": "gbailey@example.net",
     "otp": "architecto"
@@ -16337,7 +17477,11 @@ print_r(json_decode((string) $body));</code></pre></div>
     <pre><code class="language-python">import requests
 import json
 
+<<<<<<< HEAD
 url = 'http://localhost/api/v1/tenants/architecto'
+=======
+url = 'http://localhost:8080/api/v1/tenants/architecto'
+>>>>>>> c957778 (Orchestrate calls with laravel api and livekit module, added calls transcript, calls recordings...)
 headers = {
   'Authorization': 'Bearer {YOUR_AUTH_TOKEN}',
   'Content-Type': 'application/json',
@@ -16571,7 +17715,11 @@ print_r(json_decode((string) $body));</code></pre></div>
     <pre><code class="language-python">import requests
 import json
 
+<<<<<<< HEAD
 url = 'http://localhost/api/v1/tenants/architecto'
+=======
+url = 'http://localhost:8080/api/v1/tenants/architecto'
+>>>>>>> c957778 (Orchestrate calls with laravel api and livekit module, added calls transcript, calls recordings...)
 payload = {
     "name": "architecto",
     "slug": "architecto",
@@ -16858,7 +18006,11 @@ print_r(json_decode((string) $body));</code></pre></div>
     <pre><code class="language-python">import requests
 import json
 
+<<<<<<< HEAD
 url = 'http://localhost/api/v1/tenants/architecto'
+=======
+url = 'http://localhost:8080/api/v1/tenants/architecto'
+>>>>>>> c957778 (Orchestrate calls with laravel api and livekit module, added calls transcript, calls recordings...)
 headers = {
   'Authorization': 'Bearer {YOUR_AUTH_TOKEN}',
   'Content-Type': 'application/json',
@@ -17076,7 +18228,11 @@ print_r(json_decode((string) $body));</code></pre></div>
     <pre><code class="language-python">import requests
 import json
 
+<<<<<<< HEAD
 url = 'http://localhost/api/v1/preferences'
+=======
+url = 'http://localhost:8080/api/v1/preferences'
+>>>>>>> c957778 (Orchestrate calls with laravel api and livekit module, added calls transcript, calls recordings...)
 headers = {
   'Authorization': 'Bearer {YOUR_AUTH_TOKEN}',
   'Content-Type': 'application/json',
@@ -17287,7 +18443,11 @@ print_r(json_decode((string) $body));</code></pre></div>
     <pre><code class="language-python">import requests
 import json
 
+<<<<<<< HEAD
 url = 'http://localhost/api/v1/preferences'
+=======
+url = 'http://localhost:8080/api/v1/preferences'
+>>>>>>> c957778 (Orchestrate calls with laravel api and livekit module, added calls transcript, calls recordings...)
 payload = {
     "language": "architecto",
     "email_notifications": false,
@@ -17585,7 +18745,11 @@ print_r(json_decode((string) $body));</code></pre></div>
     <pre><code class="language-python">import requests
 import json
 
+<<<<<<< HEAD
 url = 'http://localhost/api/v1/users'
+=======
+url = 'http://localhost:8080/api/v1/users'
+>>>>>>> c957778 (Orchestrate calls with laravel api and livekit module, added calls transcript, calls recordings...)
 params = {
   'filter[name]': 'architecto',
   'filter[email]': 'architecto',
@@ -17808,7 +18972,11 @@ print_r(json_decode((string) $body));</code></pre></div>
     <pre><code class="language-python">import requests
 import json
 
+<<<<<<< HEAD
 url = 'http://localhost/api/v1/users/architecto'
+=======
+url = 'http://localhost:8080/api/v1/users/architecto'
+>>>>>>> c957778 (Orchestrate calls with laravel api and livekit module, added calls transcript, calls recordings...)
 headers = {
   'Authorization': 'Bearer {YOUR_AUTH_TOKEN}',
   'Content-Type': 'application/json',
@@ -18014,7 +19182,11 @@ print_r(json_decode((string) $body));</code></pre></div>
     <pre><code class="language-python">import requests
 import json
 
+<<<<<<< HEAD
 url = 'http://localhost/api/v1/users/architecto'
+=======
+url = 'http://localhost:8080/api/v1/users/architecto'
+>>>>>>> c957778 (Orchestrate calls with laravel api and livekit module, added calls transcript, calls recordings...)
 headers = {
   'Authorization': 'Bearer {YOUR_AUTH_TOKEN}',
   'Content-Type': 'application/json',
@@ -18263,7 +19435,11 @@ print_r(json_decode((string) $body));</code></pre></div>
     <pre><code class="language-python">import requests
 import json
 
+<<<<<<< HEAD
 url = 'http://localhost/api/v1/workflows'
+=======
+url = 'http://localhost:8080/api/v1/workflows'
+>>>>>>> c957778 (Orchestrate calls with laravel api and livekit module, added calls transcript, calls recordings...)
 params = {
   'is_active': '0',
   'trigger_type': 'architecto',
@@ -18525,7 +19701,11 @@ print_r(json_decode((string) $body));</code></pre></div>
     <pre><code class="language-python">import requests
 import json
 
+<<<<<<< HEAD
 url = 'http://localhost/api/v1/workflows'
+=======
+url = 'http://localhost:8080/api/v1/workflows'
+>>>>>>> c957778 (Orchestrate calls with laravel api and livekit module, added calls transcript, calls recordings...)
 payload = {
     "name": "architecto",
     "description": "Eius et animi quos velit et.",
@@ -18788,7 +19968,11 @@ print_r(json_decode((string) $body));</code></pre></div>
     <pre><code class="language-python">import requests
 import json
 
+<<<<<<< HEAD
 url = 'http://localhost/api/v1/workflows/architecto'
+=======
+url = 'http://localhost:8080/api/v1/workflows/architecto'
+>>>>>>> c957778 (Orchestrate calls with laravel api and livekit module, added calls transcript, calls recordings...)
 headers = {
   'Authorization': 'Bearer {YOUR_AUTH_TOKEN}',
   'Content-Type': 'application/json',
@@ -19023,7 +20207,11 @@ print_r(json_decode((string) $body));</code></pre></div>
     <pre><code class="language-python">import requests
 import json
 
+<<<<<<< HEAD
 url = 'http://localhost/api/v1/workflows/architecto'
+=======
+url = 'http://localhost:8080/api/v1/workflows/architecto'
+>>>>>>> c957778 (Orchestrate calls with laravel api and livekit module, added calls transcript, calls recordings...)
 payload = {
     "name": "architecto",
     "description": "Eius et animi quos velit et.",
@@ -19315,7 +20503,11 @@ print_r(json_decode((string) $body));</code></pre></div>
     <pre><code class="language-python">import requests
 import json
 
+<<<<<<< HEAD
 url = 'http://localhost/api/v1/workflows/architecto'
+=======
+url = 'http://localhost:8080/api/v1/workflows/architecto'
+>>>>>>> c957778 (Orchestrate calls with laravel api and livekit module, added calls transcript, calls recordings...)
 headers = {
   'Authorization': 'Bearer {YOUR_AUTH_TOKEN}',
   'Content-Type': 'application/json',
@@ -19531,7 +20723,8 @@ print_r(json_decode((string) $body));</code></pre></div>
     <pre><code class="language-python">import requests
 import json
 
-url = 'http://localhost/api/v1/workflows/architecto/executions'
+
+url = 'http://localhost:8080/api/v1/workflows/architecto/executions'
 params = {
   'status': 'architecto',
   'per_page': '16',
@@ -19786,7 +20979,11 @@ print_r(json_decode((string) $body));</code></pre></div>
     <pre><code class="language-python">import requests
 import json
 
+<<<<<<< HEAD
 url = 'http://localhost/api/v1/workflows/architecto/trigger'
+=======
+url = 'http://localhost:8080/api/v1/workflows/architecto/trigger'
+>>>>>>> c957778 (Orchestrate calls with laravel api and livekit module, added calls transcript, calls recordings...)
 payload = {
     "input_data": [
         "architecto"
@@ -20025,7 +21222,11 @@ print_r(json_decode((string) $body));</code></pre></div>
     <pre><code class="language-python">import requests
 import json
 
+<<<<<<< HEAD
 url = 'http://localhost/api/v1/workflows/architecto/activate'
+=======
+url = 'http://localhost:8080/api/v1/workflows/architecto/activate'
+>>>>>>> c957778 (Orchestrate calls with laravel api and livekit module, added calls transcript, calls recordings...)
 headers = {
   'Authorization': 'Bearer {YOUR_AUTH_TOKEN}',
   'Content-Type': 'application/json',
@@ -20231,7 +21432,9 @@ print_r(json_decode((string) $body));</code></pre></div>
     <pre><code class="language-python">import requests
 import json
 
-url = 'http://localhost/api/v1/workflows/architecto/deactivate'
+
+url = 'http://localhost:8080/api/v1/workflows/architecto/deactivate'
+
 headers = {
   'Authorization': 'Bearer {YOUR_AUTH_TOKEN}',
   'Content-Type': 'application/json',

@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Auth;
 
 /**
  * @authenticated
+ *
  * @group User Preferences
  */
 class UserPreferenceController extends Controller
@@ -17,6 +18,7 @@ class UserPreferenceController extends Controller
      * Get the authenticated user's preferences
      *
      * @authenticated
+     *
      * @response {"id": 1, "language": "en", "email_notifications": true, "push_notifications": true, "theme": "light", "timezone": "UTC"}
      */
     public function index(Request $request): JsonResponse
@@ -38,11 +40,13 @@ class UserPreferenceController extends Controller
      * Update the authenticated user's preferences
      *
      * @authenticated
+     *
      * @bodyParam language string optional Language code (max: 10)
      * @bodyParam email_notifications bool optional Enable email notifications
      * @bodyParam push_notifications bool optional Enable push notifications
      * @bodyParam theme string optional Theme (light, dark, auto)
      * @bodyParam timezone string optional Timezone (max: 50)
+     *
      * @response {"message": "Preferences updated successfully", "preferences": {...}}
      */
     public function update(Request $request): JsonResponse

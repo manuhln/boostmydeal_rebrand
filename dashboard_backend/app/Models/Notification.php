@@ -23,6 +23,7 @@ class Notification extends Model
             'read_at' => 'datetime',
         ];
     }
+
     public static function addNewNotification(string $title, string $type, string $body): self
     {
         return self::create([

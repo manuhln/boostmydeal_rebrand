@@ -22,7 +22,6 @@ use App\Http\Middleware\UseTenantGuard;
 use Illuminate\Support\Facades\Route;
 use Laravel\Sanctum\Http\Controllers\CsrfCookieController;
 use Stancl\Tenancy\Middleware\InitializeTenancyByRequestData;
-use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 
 // Configure the header name for request data identification
 InitializeTenancyByRequestData::$header = 'X-Tenant-ID';
@@ -50,7 +49,7 @@ Route::group(['prefix' => config('sanctum.prefix', 'sanctum')], static function 
 Route::middleware([
     InitializeTenancyByRequestData::class,
     'web',
-    UseTenantGuard::class
+    UseTenantGuard::class,
 ])->prefix('api/v1')->group(function () {
     Route::post('/login', [AuthController::class, 'login'])->name('login');
 });
@@ -106,6 +105,8 @@ Route::middleware([
     Route::post('/calls/start', [CallController::class, 'startCall']);
     Route::get('/calls/export-csv', [CallController::class, 'exportCsv']);
     Route::get('/calls/{call}/webhooks', [CallController::class, 'webhooks']);
+    Route::get('/calls/{call}/transcript', [CallController::class, 'transcript']);
+    Route::post('/calls/{call}/recordings/{recording}/temporary-url', [CallController::class, 'temporaryRecordingUrl']);
 
     // Workflows
     Route::apiResource('workflows', WorkflowController::class);

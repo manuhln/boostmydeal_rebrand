@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * @authenticated
+ *
  * @group Dashboard
  */
 class DashboardController extends Controller
@@ -20,8 +21,10 @@ class DashboardController extends Controller
      * Get aggregated dashboard metrics
      *
      * @authenticated
+     *
      * @queryParam start_date date optional Start date for metrics (default: 30 days ago)
      * @queryParam end_date date optional End date for metrics (default: now)
+     *
      * @response {"total_calls": 100, "completed_calls": 80, "missed_calls": 15, "failed_calls": 5, "average_duration": 120, "total_cost": 5000, "inbound_calls": 60, "outbound_calls": 40, "success_rate": 80.0}
      */
     public function metrics(Request $request): JsonResponse
@@ -75,9 +78,11 @@ class DashboardController extends Controller
      * Get call evolution data for charts
      *
      * @authenticated
+     *
      * @queryParam start_date date optional Start date (default: 30 days ago)
      * @queryParam end_date date optional End date (default: now)
      * @queryParam group_by string optional Group by hour/day/week/month (default: day)
+     *
      * @response [{"date": "2024-01-01", "total_calls": 10, "completed_calls": 8, "missed_calls": 2, "average_duration": 120}]
      */
     public function callEvolution(Request $request): JsonResponse
@@ -122,8 +127,10 @@ class DashboardController extends Controller
      * Get statistics by agent
      *
      * @authenticated
+     *
      * @queryParam start_date date optional Start date (default: 30 days ago)
      * @queryParam end_date date optional End date (default: now)
+     *
      * @response [{"id": 1, "name": "Sales Agent", "total_calls": 50, "completed_calls": 40, "missed_calls": 10, "average_duration": 120, "total_cost": 2500}]
      */
     public function agentStats(Request $request): JsonResponse
@@ -163,8 +170,10 @@ class DashboardController extends Controller
      * Get statistics by phone number
      *
      * @authenticated
+     *
      * @queryParam start_date date optional Start date (default: 30 days ago)
      * @queryParam end_date date optional End date (default: now)
+     *
      * @response [{"id": 1, "did": "+1234567890", "total_calls": 30, "completed_calls": 25, "missed_calls": 5, "average_duration": 115, "total_cost": 1500}]
      */
     public function phoneNumberStats(Request $request): JsonResponse

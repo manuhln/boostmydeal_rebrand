@@ -10,6 +10,8 @@ enum CallEventType: string
     case CALL_VOICEMAIL = 'call_voicemail';
     case CALL_ERROR = 'call_error';
     case LIVE_TRANSCRIPT = 'live_transcript';
+    case TRANSCRIPT_COMPLETED = 'transcript_completed';
+    case RECORDING_COMPLETED = 'recording_completed';
     case CALL_COMPLETED = 'call_completed';
     case CALL_ABORTED = 'call_aborted';
 }

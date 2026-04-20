@@ -5,7 +5,6 @@ use Knuckles\Scribe\Config\Defaults;
 use Knuckles\Scribe\Extracting\Strategies;
 
 use function Knuckles\Scribe\Config\configureStrategy;
-use function Knuckles\Scribe\Config\removeStrategies;
 
 // Only the most common configs are shown. See the docs for all.
 return [

@@ -7,16 +7,19 @@ use App\Data\Api\V1\CallData;
 use App\Data\Api\V1\InitiateCallData;
 use App\Http\Resources\Api\V1\CallResource;
 use App\Models\Call;
+use App\Models\CallRecording;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Response;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
 
 /**
  * @authenticated
+ *
  * @group Calls
  */
 class CallController extends Controller
@@ -25,6 +28,7 @@ class CallController extends Controller
      * List all calls
      *
      * @authenticated
+     *
      * @queryParam filter[status] string Filter by call status
      * @queryParam filter[direction] string Filter by call direction (inbound/outbound)
      * @queryParam filter[phone_number_id] string Filter by phone number ID
@@ -32,6 +36,7 @@ class CallController extends Controller
      * @queryParam filter[from_number] string Filter by from number (partial match)
      * @queryParam filter[to_number] string Filter by to number (partial match)
      * @queryParam sort string Sort by field (created_at, updated_at, duration_seconds, cost)
+     *
      * @response {"data": [{"id": 1, "status": "completed", "duration_seconds": 120}]}
      */
     public function index(Request $request): AnonymousResourceCollection
@@ -69,10 +74,12 @@ class CallController extends Controller
      * Create a new call
      *
      * @authenticated
+     *
      * @bodyParam phone_number_id string required Phone number ID
      * @bodyParam agent_id string required Agent ID
      * @bodyParam direction string required Call direction (inbound/outbound)
      * @bodyParam status string required Call status
+     *
      * @response {"id": 1, "status": "completed", "duration_seconds": 120}
      */
     public function store(CallData $data): CallResource
@@ -86,7 +93,9 @@ class CallController extends Controller
      * Get a specific call
      *
      * @authenticated
+     *
      * @urlParam call int required The ID of the call
+     *
      * @response {"id": 1, "status": "completed", "duration_seconds": 120}
      */
     public function show(Request $request, Call $call): CallResource
@@ -108,7 +117,9 @@ class CallController extends Controller
      * Update a call
      *
      * @authenticated
+     *
      * @urlParam call int required The ID of the call
+     *
      * @response {"id": 1, "status": "updated", "duration_seconds": 120}
      */
     public function update(CallData $data, Call $call): CallResource
@@ -122,7 +133,9 @@ class CallController extends Controller
      * Delete a call
      *
      * @authenticated
+     *
      * @urlParam call int required The ID of the call
+     *
      * @response 204
      */
     public function destroy(Call $call): JsonResponse
@@ -136,10 +149,12 @@ class CallController extends Controller
      * Export calls to CSV
      *
      * @authenticated
+     *
      * @queryParam start_date date optional Start date for export (default: 30 days ago)
      * @queryParam end_date date optional End date for export (default: now)
      * @queryParam filter[status] string Filter by call status
      * @queryParam filter[direction] string Filter by call direction
+     *
      * @response text/csv CSV file
      */
     public function exportCsv(Request $request)
@@ -217,7 +232,9 @@ class CallController extends Controller
      * Get webhooks for a specific call
      *
      * @authenticated
+     *
      * @urlParam call int required The ID of the call
+     *
      * @response {"call_id": 1, "webhooks": [{"id": 1, "event_type": "call.started", "payload": {...}}], "total_webhooks": 5}
      */
     public function webhooks(Call $call): JsonResponse
@@ -241,20 +258,79 @@ class CallController extends Controller
         ]);
     }
 
+    public function transcript(Call $call): JsonResponse
+    {
+        $segments = $call->transcripts()
+            ->orderBy('sequence')
+            ->orderBy('timestamp_ms')
+            ->get([
+                'segment_id',
+                'speaker',
+                'content',
+                'timestamp_ms',
+                'sequence',
+                'is_final',
+                'metadata',
+            ])
+            ->map(fn ($segment) => [
+                'segment_id' => $segment->segment_id,
+                'speaker' => $segment->speaker,
+                'content' => $segment->content,
+                'timestamp_ms' => $segment->timestamp_ms,
+                'sequence' => $segment->sequence,
+                'is_final' => $segment->is_final,
+                'metadata' => $segment->metadata,
+            ]);
+
+        return response()->json([
+            'call_id' => $call->id,
+            'segments' => $segments,
+            'full_text' => $segments
+                ->pluck('content')
+                ->filter()
+                ->implode("\n\n"),
+        ]);
+    }
+
+    public function temporaryRecordingUrl(Call $call, CallRecording $recording): JsonResponse
+    {
+        abort_unless($recording->call_id === $call->id, 404);
+
+        if (! $recording->object_key) {
+            return response()->json([
+                'message' => 'Recording file is not available.',
+            ], 404);
+        }
+
+        $url = Storage::disk($recording->disk)->temporaryUrl(
+            $recording->object_key,
+            now()->addMinutes(15),
+        );
+
+        return response()->json([
+            'call_id' => $call->id,
+            'recording_id' => $recording->id,
+            'url' => $url,
+            'expires_at' => now()->addMinutes(15)->toIso8601String(),
+        ]);
+    }
+
     /**
      * Start a new call
      *
      * @authenticated
+     *
      * @bodyParam agent_id string required Agent ID
      * @bodyParam contact_name string required Contact name
      * @bodyParam to_number string required Phone number to call
+     *
      * @response {"data": {"call_id": "uuid", "message": "Call initiated successfully"}}
      */
     public function startCall(InitiateCallData $data, InitiateCallAction $initiateCallAction): JsonResponse
     {
         $result = $initiateCallAction->execute($data->toArray());
 
-        if (!$result['success']) {
+        if (! $result['success']) {
             return $this->errorResponse($result['message']);
         }
 

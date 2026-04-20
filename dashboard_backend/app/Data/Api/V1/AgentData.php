@@ -27,6 +27,7 @@ class AgentData extends Data
         public Optional|string $stt_provider,
         public Optional|string $stt_model,
         public Optional|string $tts_provider,
+        public Optional|string $tts_model,
         public Optional|string $tts_voice,
         public Optional|string $realtime_provider,
         public Optional|string $first_message,
@@ -45,8 +46,8 @@ class AgentData extends Data
         public bool $enable_human_transfer,
         public bool $enable_background_sound,
         public Optional|bool $background_sound,
-        public bool $enable_interruptions = true,
-        public bool $enable_vad = true,
+        public bool $enable_interruptions,
+        public bool $enable_vad,
         public Optional|string $phone_number_id,
     ) {
         // Cast mode to enum

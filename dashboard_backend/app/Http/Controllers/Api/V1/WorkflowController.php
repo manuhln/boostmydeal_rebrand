@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 
 /**
  * @authenticated
+ *
  * @group Workflows
  */
 class WorkflowController extends Controller
@@ -18,9 +19,11 @@ class WorkflowController extends Controller
      * List all workflows
      *
      * @authenticated
+     *
      * @queryParam is_active bool optional Filter by active status
      * @queryParam trigger_type string optional Filter by trigger type (phone_call_connected, transcript_complete, call_summary, etc.)
      * @queryParam per_page int optional Items per page (default: 15)
+     *
      * @response {"data": [{"id": 1, "name": "Follow-up Workflow", "is_active": true}], "meta": {...}}
      */
     public function index(Request $request): JsonResponse
@@ -43,11 +46,13 @@ class WorkflowController extends Controller
      * Store a new workflow
      *
      * @authenticated
+     *
      * @bodyParam name string required Workflow name
      * @bodyParam description string optional Workflow description
      * @bodyParam is_active bool optional Initial active status (default: false)
      * @bodyParam trigger_type string optional Trigger type (phone_call_connected, transcript_complete, call_summary, phone_call_ended, live_transcript, manual)
      * @bodyParam trigger_config array optional Trigger configuration
+     *
      * @response {"message": "Workflow created successfully", "workflow": {...}}
      */
     public function store(Request $request): JsonResponse
@@ -72,7 +77,9 @@ class WorkflowController extends Controller
      * Get a specific workflow
      *
      * @authenticated
+     *
      * @urlParam workflow int required The ID of the workflow
+     *
      * @response {"workflow": {"id": 1, "name": "Follow-up Workflow", "nodes": [...]}}
      */
     public function show(Workflow $workflow): JsonResponse
@@ -88,12 +95,15 @@ class WorkflowController extends Controller
      * Update a workflow
      *
      * @authenticated
+     *
      * @urlParam workflow int required The ID of the workflow
+     *
      * @bodyParam name string optional Workflow name
      * @bodyParam description string optional Workflow description
      * @bodyParam is_active bool optional Active status
      * @bodyParam trigger_type string optional Trigger type
      * @bodyParam trigger_config array optional Trigger configuration
+     *
      * @response {"message": "Workflow updated successfully", "workflow": {...}}
      */
     public function update(Request $request, Workflow $workflow): JsonResponse
@@ -118,7 +128,9 @@ class WorkflowController extends Controller
      * Delete a workflow
      *
      * @authenticated
+     *
      * @urlParam workflow int required The ID of the workflow
+     *
      * @response 204
      */
     public function destroy(Workflow $workflow): JsonResponse
@@ -132,9 +144,12 @@ class WorkflowController extends Controller
      * Get workflow execution history
      *
      * @authenticated
+     *
      * @urlParam workflow int required The ID of the workflow
+     *
      * @queryParam status string optional Filter by execution status
      * @queryParam per_page int optional Items per page (default: 15)
+     *
      * @response {"data": [{"id": 1, "status": "completed", "created_at": "2024-01-01T00:00:00Z"}], "meta": {...}}
      */
     public function executions(Request $request, Workflow $workflow): JsonResponse
@@ -153,9 +168,12 @@ class WorkflowController extends Controller
      * Trigger a workflow manually
      *
      * @authenticated
+     *
      * @urlParam workflow int required The ID of the workflow
+     *
      * @bodyParam input_data array optional Input data for the workflow
      * @bodyParam call_id string optional Call ID to associate with the execution
+     *
      * @response {"message": "Workflow triggered successfully", "execution": {...}}
      */
     public function trigger(Request $request, Workflow $workflow): JsonResponse
@@ -193,7 +211,9 @@ class WorkflowController extends Controller
      * Activate a workflow
      *
      * @authenticated
+     *
      * @urlParam workflow int required The ID of the workflow
+     *
      * @response {"message": "Workflow activated successfully", "workflow": {...}}
      */
     public function activate(Workflow $workflow): JsonResponse
@@ -210,7 +230,9 @@ class WorkflowController extends Controller
      * Deactivate a workflow
      *
      * @authenticated
+     *
      * @urlParam workflow int required The ID of the workflow
+     *
      * @response {"message": "Workflow deactivated successfully", "workflow": {...}}
      */
     public function deactivate(Workflow $workflow): JsonResponse

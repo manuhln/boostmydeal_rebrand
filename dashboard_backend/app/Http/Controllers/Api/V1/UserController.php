@@ -9,11 +9,11 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\Auth;
 use Spatie\QueryBuilder\AllowedFilter;
-use Spatie\QueryBuilder\AllowedSort;
 use Spatie\QueryBuilder\QueryBuilder;
 
 /**
  * @authenticated
+ *
  * @group Users
  */
 class UserController extends Controller
@@ -22,9 +22,11 @@ class UserController extends Controller
      * List all users in tenant
      *
      * @authenticated
+     *
      * @queryParam filter[name] string optional Filter by name (matches first_name or last_name)
      * @queryParam filter[email] string optional Filter by email (partial match)
      * @queryParam sort string optional Sort by field (first_name, email, created_at)
+     *
      * @response {"data": [{"id": 1, "first_name": "John", "last_name": "Doe", "email": "john@example.com"}], "meta": {...}}
      */
     public function index(Request $request): AnonymousResourceCollection
@@ -54,7 +56,9 @@ class UserController extends Controller
      * Get a specific user
      *
      * @authenticated
+     *
      * @urlParam user int required The ID of the user
+     *
      * @response {"id": 1, "first_name": "John", "last_name": "Doe", "email": "john@example.com", "roles": [...]}
      */
     public function show(Request $request, User $user): UserResource
@@ -66,7 +70,9 @@ class UserController extends Controller
      * Delete a user
      *
      * @authenticated
+     *
      * @urlParam user int required The ID of the user
+     *
      * @response 204
      * @response 403 {"error": "Cannot delete yourself"}
      * @response 403 {"error": "You do not have permission to delete users"}

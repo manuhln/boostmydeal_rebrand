@@ -18,11 +18,11 @@ services:
 
   laravel.test:
     build:
-      context: ./dashboard_backend/vendor/laravel/sail/runtimes/8.5
+      context: ./dashboard_backend
       dockerfile: Dockerfile
       args:
         WWWGROUP: "${WWWGROUP}"
-    image: sail-8.5/app
+    image: boostmydeal-laravel:latest
     extra_hosts:
       - "host.docker.internal:host-gateway"
     ports:
@@ -30,6 +30,12 @@ services:
       - "${VITE_PORT:-5173}:${VITE_PORT:-5173}"
     env_file:
         - ./dashboard_backend/.env
+    environment:
+      WWWUSER: "${WWWUSER}"
+      LARAVEL_SAIL: 1
+      XDEBUG_MODE: "${SAIL_XDEBUG_MODE:-off}"
+      XDEBUG_CONFIG: "${SAIL_XDEBUG_CONFIG:-client_host=host.docker.internal}"
+      IGNITION_LOCAL_SITES_PATH: "${PWD}"
     volumes:
       - "./dashboard_backend:/var/www/html"
       - "./dashboard_backend/supervisord.conf:/etc/supervisor/conf.d/supervisord.conf"

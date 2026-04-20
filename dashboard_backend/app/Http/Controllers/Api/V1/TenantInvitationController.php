@@ -18,6 +18,7 @@ use Spatie\QueryBuilder\QueryBuilder;
 
 /**
  * @authenticated
+ *
  * @group Tenant Invitations
  */
 class TenantInvitationController extends Controller
@@ -26,9 +27,11 @@ class TenantInvitationController extends Controller
      * List all tenant invitations
      *
      * @authenticated
+     *
      * @queryParam filter[email] string optional Filter by email (partial match)
      * @queryParam filter[role] string optional Filter by role
      * @queryParam sort string optional Sort by field (created_at, expires_at)
+     *
      * @response {"data": [{"id": 1, "email": "invited@example.com", "role": "admin", "expires_at": "2024-02-01"}], "meta": {...}}
      */
     public function index(Request $request): AnonymousResourceCollection
@@ -54,9 +57,11 @@ class TenantInvitationController extends Controller
      * Create a new tenant invitation
      *
      * @authenticated
+     *
      * @bodyParam email string required Email to invite
      * @bodyParam name string optional Display name for the invitee
      * @bodyParam role string optional Role to assign (default: member)
+     *
      * @response {"id": 1, "email": "invited@example.com", "role": "admin", "expires_at": "2024-02-01"}
      */
     public function store(InviteUserData $data): TenantInvitationResource|JsonResponse
@@ -107,7 +112,9 @@ class TenantInvitationController extends Controller
      * Get a specific tenant invitation
      *
      * @authenticated
+     *
      * @urlParam invitation int required The ID of the invitation
+     *
      * @response {"id": 1, "email": "invited@example.com", "role": "admin", "accepted_at": null}
      */
     public function show(Request $request, TenantInvitation $invitation): TenantInvitationResource
@@ -119,7 +126,9 @@ class TenantInvitationController extends Controller
      * Accept a tenant invitation
      *
      * @authenticated
+     *
      * @urlParam invitation int required The ID of the invitation
+     *
      * @response {"message": "Invitation accepted successfully", "role": "admin"}
      * @response 422 {"error": "Invitation is expired or already accepted"}
      */
@@ -147,7 +156,9 @@ class TenantInvitationController extends Controller
      * Reject a tenant invitation
      *
      * @authenticated
+     *
      * @urlParam invitation int required The ID of the invitation
+     *
      * @response 204
      */
     public function reject(TenantInvitation $invitation): JsonResponse
@@ -161,7 +172,9 @@ class TenantInvitationController extends Controller
      * Cancel a tenant invitation
      *
      * @authenticated
+     *
      * @urlParam invitation int required The ID of the invitation
+     *
      * @response 204
      * @response 403 {"error": "You do not have permission to cancel invitations"}
      */

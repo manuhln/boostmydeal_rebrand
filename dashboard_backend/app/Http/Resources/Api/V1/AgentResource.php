@@ -16,6 +16,7 @@ class AgentResource extends JsonApiResource
         'stt_provider',
         'stt_model',
         'tts_provider',
+        'tts_model',
         'tts_voice',
         'realtime_provider',
         'first_message',

@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Auth;
 
 /**
  * @authenticated
+ *
  * @group Invoices
  */
 class InvoiceController extends Controller
@@ -19,6 +20,7 @@ class InvoiceController extends Controller
      * Get user's invoices
      *
      * @authenticated
+     *
      * @queryParam status string optional Filter by invoice status
      * @queryParam per_page int optional Items per page (default: 15)
      *response {"data": [{"id": 1, "invoice_number": "INV-20240101-ABCD", "amount": 10000, "status": "paid"}], "meta": {...}}
@@ -42,7 +44,9 @@ class InvoiceController extends Controller
      * Get specific invoice details
      *
      * @authenticated
+     *
      * @urlParam invoice int required The ID of the invoice
+     *
      * @response {"id": 1, "invoice_number": "INV-20240101-ABCD", "amount": 10000, "status": "paid", "user": {...}, "payments": [...]}
      */
     public function show(Invoice $invoice): JsonResponse
@@ -56,7 +60,9 @@ class InvoiceController extends Controller
      * Send invoice manually
      *
      * @authenticated
+     *
      * @urlParam invoice int required The ID of the invoice
+     *
      * @response {"message": "Invoice sent successfully", "invoice": {...}}
      * @response 403 {"error": "You do not have permission to send this invoice"}
      */
@@ -99,12 +105,14 @@ class InvoiceController extends Controller
      * Create a new invoice manually
      *
      * @authenticated
+     *
      * @bodyParam amount int required Invoice amount in cents
      * @bodyParam credits_purchased int required Number of credits purchased
      * @bodyParam description string optional Invoice description
      * @bodyParam billing_period_start date required Billing period start date
      * @bodyParam billing_period_end date required Billing period end date
      * @bodyParam currency string optional Currency code (usd, eur, gbp) default: usd
+     *
      * @response {"message": "Invoice created successfully", "invoice": {...}}
      */
     public function store(Request $request): JsonResponse
@@ -144,9 +152,12 @@ class InvoiceController extends Controller
      * Update invoice status
      *
      * @authenticated
+     *
      * @urlParam invoice int required The ID of the invoice
+     *
      * @bodyParam status string required New status (draft, pending, paid, failed, cancelled)
      * @bodyParam notes string optional Notes about the status update
+     *
      * @response {"message": "Invoice updated successfully", "invoice": {...}}
      */
     public function updateStatus(Request $request, Invoice $invoice): JsonResponse
@@ -187,7 +198,9 @@ class InvoiceController extends Controller
      * Delete invoice
      *
      * @authenticated
+     *
      * @urlParam invoice int required The ID of the invoice
+     *
      * @response 204
      * @response 403 {"error": "You do not have permission to delete this invoice"}
      * @response 422 {"error": "Cannot delete paid invoice"}

@@ -2,10 +2,10 @@
 
 namespace App\Actions;
 
-use App\Enums\{CallDirection, CallStatus};
+use App\Enums\CallDirection;
+use App\Enums\CallStatus;
 use App\Jobs\InitiateLiveKitCall;
 use App\Models\Agent;
-
 
 class InitiateCallAction
 {
@@ -15,7 +15,7 @@ class InitiateCallAction
 
         $phoneNumber = $agent->phoneNumber()->first();
 
-        if (!$phoneNumber) {
+        if (! $phoneNumber) {
             return [
                 'success' => false,
                 'message' => 'Agent has no phone number configured',

@@ -7,12 +7,11 @@ use Symfony\Component\HttpFoundation\Response;
 
 trait HttpApiResponse
 {
-
     public function successResponse($data = [], $message = 'Success.', $code = Response::HTTP_OK): JsonResponse
     {
         return response()->json([
             'data' => $data,
-            'message' => $message
+            'message' => $message,
         ], $code);
     }
 
@@ -24,7 +23,7 @@ trait HttpApiResponse
         return response()->json([
             'status' => false,
             'data' => $data,
-            'message' => $message
+            'message' => $message,
         ], $code);
     }
 

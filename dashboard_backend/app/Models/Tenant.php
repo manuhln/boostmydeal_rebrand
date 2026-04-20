@@ -10,7 +10,7 @@ use Stancl\Tenancy\Database\Models\Tenant as BaseTenant;
 
 class Tenant extends BaseTenant implements TenantWithDatabase
 {
-    use Billable, HasDomains, HasDatabase;
+    use Billable, HasDatabase, HasDomains;
 
     protected $casts = [
         'data' => 'array',

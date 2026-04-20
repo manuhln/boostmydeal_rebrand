@@ -15,6 +15,7 @@ use Spatie\QueryBuilder\QueryBuilder;
 
 /**
  * @authenticated
+ *
  * @group API Keys
  */
 class ApiKeyController extends Controller
@@ -23,9 +24,11 @@ class ApiKeyController extends Controller
      * List all API keys
      *
      * @authenticated
+     *
      * @queryParam filter[name] string optional Filter by name (partial match)
      * @queryParam filter[status] string optional Filter by status
      * @queryParam sort string optional Sort by field (name, created_at, updated_at)
+     *
      * @response {"data": [{"id": 1, "name": "My App", "status": "active"}], "meta": {...}}
      */
     public function index(Request $request): AnonymousResourceCollection
@@ -50,9 +53,11 @@ class ApiKeyController extends Controller
      * Create a new API key
      *
      * @authenticated
+     *
      * @bodyParam name string required API key name
      * @bodyParam key string optional API key value (auto-generated if not provided)
      * @bodyParam status string optional Key status (default: active)
+     *
      * @response {"id": 1, "name": "My App", "status": "active", "last_used_at": null}
      */
     public function store(ApiKeyData $data): ApiKeyResource
@@ -70,7 +75,9 @@ class ApiKeyController extends Controller
      * Get a specific API key
      *
      * @authenticated
+     *
      * @urlParam apiKey int required The ID of the API key
+     *
      * @response {"id": 1, "name": "My App", "status": "active", "last_used_at": null}
      */
     public function show(Request $request, ApiKey $apiKey): ApiKeyResource
@@ -84,9 +91,12 @@ class ApiKeyController extends Controller
      * Update an API key
      *
      * @authenticated
+     *
      * @urlParam apiKey int required The ID of the API key
+     *
      * @bodyParam name string optional API key name
      * @bodyParam status string optional Key status
+     *
      * @response {"id": 1, "name": "Updated App", "status": "active"}
      */
     public function update(ApiKeyData $data, ApiKey $apiKey): ApiKeyResource
@@ -100,7 +110,9 @@ class ApiKeyController extends Controller
      * Delete an API key
      *
      * @authenticated
+     *
      * @urlParam apiKey int required The ID of the API key
+     *
      * @response 204
      */
     public function destroy(ApiKey $apiKey): JsonResponse
@@ -114,7 +126,9 @@ class ApiKeyController extends Controller
      * Revoke an API key
      *
      * @authenticated
+     *
      * @urlParam apiKey int required The ID of the API key
+     *
      * @response {"message": "API key revoked successfully"}
      */
     public function revoke(ApiKey $apiKey): JsonResponse

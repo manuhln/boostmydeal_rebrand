@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * @authenticated
+ *
  * @group Payments
  */
 class PaymentController extends Controller
@@ -20,6 +21,7 @@ class PaymentController extends Controller
      * Get current user's credit balance
      *
      * @authenticated
+     *
      * @response {"balance": 5000, "total_purchased": 10000, "total_used": 5000}
      */
     public function credits(Request $request): JsonResponse
@@ -43,10 +45,12 @@ class PaymentController extends Controller
      * Create a payment intent for purchasing credits
      *
      * @authenticated
+     *
      * @bodyParam amount int required Amount in cents (min: 500, max: 100000)
      * @bodyParam credits_amount int required Number of credits to purchase (min: 100, max: 10000)
      * @bodyParam currency string optional Currency code (usd, eur, gbp) default: usd
      * @bodyParam description string optional Payment description
+     *
      * @response {"client_secret": "pi_...", "payment_intent_id": "pi_...", "amount": 5000, "credits_amount": 100, "currency": "usd"}
      */
     public function createIntent(Request $request): JsonResponse
@@ -92,6 +96,7 @@ class PaymentController extends Controller
      * Handle Stripe payment webhook
      *
      * @unauthenticated
+     *
      * @response {"message": "Webhook processed successfully"}
      */
     public function handleWebhook(Request $request): JsonResponse
@@ -236,8 +241,10 @@ class PaymentController extends Controller
      * Get payment history
      *
      * @authenticated
+     *
      * @queryParam status string optional Filter by payment status
      * @queryParam per_page int optional Items per page (default: 15)
+     *
      * @response {"data": [{"id": 1, "amount": 5000, "status": "completed", "paid_at": "2024-01-01T00:00:00Z"}], "meta": {...}}
      */
     public function history(Request $request): JsonResponse
@@ -259,7 +266,9 @@ class PaymentController extends Controller
      * Get payment details
      *
      * @authenticated
+     *
      * @urlParam payment int required The ID of the payment
+     *
      * @response {"id": 1, "amount": 5000, "status": "completed", "user": {...}, "invoice": {...}}
      */
     public function show(Payment $payment): JsonResponse

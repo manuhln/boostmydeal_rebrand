@@ -2,8 +2,8 @@
 
 namespace App\Services;
 
-use App\Interfaces\AuthServiceInterface;
 use App\Enums\TokenAbility;
+use App\Interfaces\AuthServiceInterface;
 
 final class AuthService implements AuthServiceInterface
 {

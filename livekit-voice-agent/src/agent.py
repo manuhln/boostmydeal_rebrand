@@ -1,195 +1,309 @@
 import json
 import logging
+import asyncio
+import time
+import uuid
 
 from dotenv import load_dotenv
 from livekit.agents import (
-    Agent,
     AgentServer,
     AgentSession,
     JobContext,
     JobProcess,
     cli,
-    inference,
     room_io,
 )
-from livekit.plugins import ai_coustics, silero
-from livekit.plugins.turn_detector.multilingual import MultilingualModel
+from livekit import rtc
+from livekit.plugins import silero
+from livekit.plugins import ai_coustics
+from livekit.agents import AutoSubscribe
+from livekit.agents.llm import ChatMessage
 
-logger = logging.getLogger("agent")
+from models.models import CallConfig
+from lib.agent.session.session_builder import SessionBuilder
+from lib.agent.session.prompt_builder import PromptBuilder
+from lib.agent.features.configurator import FeatureConfigurator
+from lib.agent.assistant import Assistant
+from lib.agent.language import normalize_language_code
+from lib.agent.recording import RoomRecordingManager
+from dependencies import create_livekit_api
+
+logger = logging.getLogger("worker")
 
 load_dotenv(".env.local")
-
-AGENT_MODEL = "openai/gpt-5.3-chat-latest"
-
-
-class Assistant(Agent):
-    def __init__(self, instructions: str | None = None) -> None:
-        default_instructions = """You are a helpful voice AI assistant. The user is interacting with you via voice, even if you perceive the conversation as text.
-            You eagerly assist users with their questions by providing information from your extensive knowledge.
-            Your responses are concise, to the point, and without any complex formatting or punctuation including emojis, asterisks, or other symbols.
-            You are curious, friendly, and have a sense of humor."""
-
-        super().__init__(
-            instructions=instructions or default_instructions,
-        )
-
-    # To add tools, use the @function_tool decorator.
-    # Here's an example that adds a simple weather tool.
-    # You also have to add `from livekit.agents import function_tool, RunContext` to the top of this file
-    # @function_tool
-    # async def lookup_weather(self, context: RunContext, location: str):
-    #     """Use this tool to look up current weather information in the given location.
-    #
-    #     If the location is not supported by the weather service, the tool will indicate this. You must tell the user the location's weather is unavailable.
-    #
-    #     Args:
-    #         location: The location to look up weather information for (e.g. city name)
-    #     """
-    #
-    #     logger.info(f"Looking up weather for {location}")
-    #
-    #     return "sunny with a temperature of 70 degrees."
-
 
 server = AgentServer()
 
 
-def prewarm(proc: JobProcess):
+class TranscriptTracker:
+    def __init__(self) -> None:
+        self.sequence = 0
+        self._open_customer_segment_id: str | None = None
+        self._last_customer_timestamp_ms = 0
+
+    def next_customer_segment(self) -> tuple[str, int]:
+        if self._open_customer_segment_id is None:
+            self.sequence += 1
+            self._open_customer_segment_id = f"segment_{uuid.uuid4().hex}"
+        return self._open_customer_segment_id, self.sequence
+
+    def finalize_customer_segment(self) -> None:
+        self._open_customer_segment_id = None
+
+    def next_agent_segment(self) -> tuple[str, int]:
+        self.sequence += 1
+        return f"segment_{uuid.uuid4().hex}", self.sequence
+
+    def next_customer_timestamp(self) -> int:
+        self._last_customer_timestamp_ms += 1
+        return self._last_customer_timestamp_ms
+
+
+def prewarm(proc: JobProcess) -> None:
+    """
+    Load heavy models once into process memory so each job starts fast.
+    Add any other expensive imports/loads here (e.g. turn detector).
+    """
+    logger.info("Prewarming VAD...")
     proc.userdata["vad"] = silero.VAD.load()
+    logger.info("Prewarm complete")
 
 
 server.setup_fnc = prewarm
 
 
-@server.rtc_session(agent_name="livekit-voice-agent")
-async def my_agent(ctx: JobContext):
-    # Logging setup
-    # Add any other context you want in all log entries here
-    ctx.log_context_fields = {
-        "room": ctx.room.name,
-    }
+# ---------------------------------------------------------------------------
+# Config loader
+# ---------------------------------------------------------------------------
 
-    # Parse metadata for agent configuration
+def load_config(ctx: JobContext) -> CallConfig:
+    """
+    Parse CallConfig from the job's metadata string.
+
+    The dispatch request from your FastAPI should set:
+        metadata = json.dumps(call_config.model_dump())
+
+    Raises ValueError with a clear message if metadata is missing or invalid.
+    """
+    raw = getattr(ctx.job, "metadata", None)
+    if not raw:
+        raise ValueError(
+            "Job metadata is empty. "
+            "Ensure your dispatch sets metadata=json.dumps(call_config.model_dump())"
+        )
     try:
-        metadata = json.loads(ctx.job.metadata) if ctx.job.metadata else {}
-        logger.info(f"Parsed job metadata: {list(metadata.keys())}")
-    except json.JSONDecodeError as e:
-        logger.error(f"Failed to parse job metadata: {e}")
-        metadata = {}
+        data = json.loads(raw)
+    except json.JSONDecodeError as exc:
+        raise ValueError(f"Job metadata is not valid JSON: {exc}") from exc
 
-    # Build agent instructions from metadata
-    instructions_parts = []
-    if metadata.get("agent_prompt_preamble"):
-        instructions_parts.append(metadata["agent_prompt_preamble"])
-    if metadata.get("style"):
-        instructions_parts.append(f"Communication Style: {metadata['style']}")
-    if metadata.get("goal"):
-        instructions_parts.append(f"Goal: {metadata['goal']}")
-    if metadata.get("response_guideline"):
-        instructions_parts.append(
-            f"Response Guidelines: {metadata['response_guideline']}"
-        )
-    if metadata.get("fallback"):
-        instructions_parts.append(f"Fallback Responses: {metadata['fallback']}")
-    if metadata.get("previous_call_summary"):
-        instructions_parts.append(
-            f"Previous Call Context: {metadata['previous_call_summary']}"
-        )
-    if metadata.get("current_date"):
-        instructions_parts.append(f"Date: {metadata['current_date']}")
-    if metadata.get("current_time"):
-        instructions_parts.append(f"Time: {metadata['current_time']}")
-
-    instructions = "\n\n".join(instructions_parts) if instructions_parts else None
-    logger.info(
-        f"Agent instructions: {len(instructions) if instructions else 0} characters"
-    )
-
-    # Get model configurations from metadata
-    llm_model = metadata.get("llm_model", "openai/gpt-4o-mini")
-    stt_config = metadata.get("stt", {})
-    stt_provider = stt_config.get("provider_name", "deepgram")
-    stt_model = stt_config.get("model", "nova-2")
-    stt_language = metadata.get("language", "multi")
-
-    tts_config = metadata.get("tts", {})
-    tts_provider = tts_config.get("provider_name", "cartesia")
-    tts_model = tts_config.get("model_id", "sonic-3")
-    tts_voice = tts_config.get("voice_id", "9626c31c-bec5-4cca-baa8-f8ba9e84c8bc")
-
-    # Build model identifiers
-    stt_model_id = (
-        f"{stt_provider}/{stt_model}"
-        if stt_provider != "deepgram"
-        else f"deepgram/{stt_model}"
-    )
-    tts_model_id = (
-        f"{tts_provider}/{tts_model}"
-        if tts_provider != "cartesia"
-        else "cartesia/sonic-3"
-    )
+    try:
+        config = CallConfig(**data)
+    except Exception as exc:
+        raise ValueError(f"CallConfig validation failed: {exc}") from exc
 
     logger.info(
-        f"Model configuration - LLM: {llm_model}, STT: {stt_model_id}, TTS: {tts_model_id}"
+        "CallConfig loaded | mode=%s to=%s contact=%s",
+        config.mode,
+        config.to_phone,
+        config.contact_name,
+    )
+    return config
+
+
+# ---------------------------------------------------------------------------
+# Session entrypoint
+# ---------------------------------------------------------------------------
+
+@server.rtc_session(agent_name="voice-ai-agent")
+async def session_handler(ctx: JobContext) -> None:
+    ctx.log_context_fields = {"room": ctx.room.name}
+
+    try:
+        config = load_config(ctx)
+    except ValueError as exc:
+        logger.error("Failed to load CallConfig: %s", exc)
+        return
+
+    features = FeatureConfigurator(config)
+    features.set_prewarmed_vad(ctx.proc.userdata.get("vad"))
+
+    prompt = PromptBuilder(config).build()
+
+    # ── Build session (STT/LLM/TTS or realtime) ────────────────────────────
+    session: AgentSession = SessionBuilder(config).build()
+
+    assistant = Assistant(
+        instructions=prompt
     )
 
-    # VAD configuration
-    use_vad = metadata.get("enable_vad", True)
-    vad = ctx.proc.userdata["vad"] if use_vad else None
-
-    # Set up a voice AI pipeline using configurable models
-    session = AgentSession(
-        # Speech-to-text (STT) is your agent's ears, turning the user's speech into text that the LLM can understand
-        # See all available models at https://docs.livekit.io/agents/models/stt/
-        stt=inference.STT(model=stt_model_id, language=stt_language),
-        # A Large Language Model (LLM) is your agent's brain, processing user input and generating a response
-        # See all available models at https://docs.livekit.io/agents/models/llm/
-        llm=inference.LLM(model=llm_model),
-        # Text-to-speech (TTS) is your agent's voice, turning the LLM's text into speech that the user can hear
-        # See all available models as well as voice selections at https://docs.livekit.io/agents/models/tts/
-        tts=inference.TTS(model=tts_model_id, voice=tts_voice),
-        # VAD and turn detection are used to determine when the user is speaking and when the agent should respond
-        # See more at https://docs.livekit.io/agents/build/turns
-        turn_detection=MultilingualModel(),
-        vad=vad,
-        # allow the LLM to generate a response while waiting for the end of turn
-        # See more at https://docs.livekit.io/agents/build/audio/#preemptive-generation
-        preemptive_generation=True,
-    )
-
-    # To use a realtime model instead of a voice pipeline, use the following session setup instead.
-    # (Note: This is for the OpenAI Realtime API. For other providers, see https://docs.livekit.io/agents/models/realtime/))
-    # 1. Install livekit-agents[openai]
-    # 2. Set OPENAI_API_KEY in .env.local
-    # 3. Add `from livekit.plugins import openai` to the top of this file
-    # 4. Use the following session setup instead of the version above
-    # session = AgentSession(
-    #     llm=openai.realtime.RealtimeModel(voice="marin")
-    # )
-
-    # # Add a virtual avatar to the session, if desired
-    # # For other providers, see https://docs.livekit.io/agents/models/avatar/
-    # avatar = hedra.AvatarSession(
-    #   avatar_id="...",  # See https://docs.livekit.io/agents/models/avatar/plugins/hedra
-    # )
-    # # Start the avatar and wait for it to join
-    # await avatar.start(session, room=ctx.room)
-
-    # Start the session, which initializes the voice pipeline and warms up the models
-    await session.start(
-        agent=Assistant(instructions=instructions),
-        room=ctx.room,
-        room_options=room_io.RoomOptions(
-            audio_input=room_io.AudioInputOptions(
-                noise_cancellation=ai_coustics.audio_enhancement(
-                    model=ai_coustics.EnhancerModel.QUAIL_VF_L
-                ),
+    room_options = room_io.RoomOptions(
+        audio_input=room_io.AudioInputOptions(
+            noise_cancellation=ai_coustics.audio_enhancement(
+                model=ai_coustics.EnhancerModel.QUAIL_VF_L
             ),
-        ),
+        )
     )
 
-    # Join the room and connect to the user
-    await ctx.connect()
+    emitter = features.webhook_emitter()
+    language = normalize_language_code(config.language)
+    tracker = TranscriptTracker()
+    call_started_at = time.time()
+    lk_api = await create_livekit_api()
+    recording = RoomRecordingManager(config, ctx.room.name)
+    call_ended_emitted = False
+
+    def emit_event(event_name: str, payload: dict) -> None:
+        if not emitter:
+            return
+
+        asyncio.create_task(
+            emitter.emit(event_name, {
+                "event_id": f"evt_{uuid.uuid4().hex}",
+                "call_id": config.call_id,
+                "tenant_id": config.tenant_id,
+                "room_name": ctx.room.name,
+                "language": language,
+                "occurred_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+                **payload,
+            })
+        )
+
+    await ctx.connect(auto_subscribe=AutoSubscribe.AUDIO_ONLY)
+    participant = await ctx.wait_for_participant()
+    logger.info(
+        f"connected to room {ctx.room.name} with participant {participant.identity}")
+
+    # ── Step 2: Start the session (initialises pipeline, warms models) ────
+    await session.start(
+        agent=assistant,
+        room=ctx.room,
+        room_options=room_options,
+    )
+    logger.info("Session started")
+
+    await recording.start(lk_api)
+
+    emit_event("call.started", {
+        "to_phone": config.to_phone,
+        "from_phone": config.from_phone,
+        "contact_name": config.contact_name,
+        "mode": config.mode,
+    })
+
+    @session.on("user_input_transcribed")
+    def _on_user_input_transcribed(event):
+        segment_id, sequence = tracker.next_customer_segment()
+        timestamp_ms = tracker.next_customer_timestamp()
+        emit_event("call.transcript.segment", {
+            "segment_id": segment_id,
+            "sequence": sequence,
+            "speaker": "customer",
+            "content": event.transcript,
+            "timestamp_ms": timestamp_ms,
+            "is_final": event.is_final,
+        })
+        if event.is_final:
+            tracker.finalize_customer_segment()
+
+    @session.on("conversation_item_added")
+    def _on_conversation_item_added(event):
+        item = event.item
+        if not isinstance(item, ChatMessage):
+            return
+        if item.role != "assistant":
+            return
+        content = item.text_content or ""
+        if not content.strip():
+            return
+
+        segment_id, sequence = tracker.next_agent_segment()
+        emit_event("call.transcript.segment", {
+            "segment_id": segment_id,
+            "sequence": sequence,
+            "speaker": "agent",
+            "content": content,
+            "timestamp_ms": int((item.created_at - call_started_at) * 1000),
+            "is_final": True,
+        })
+
+    @session.on("error")
+    def _on_error(event):
+        emit_event("call.error", {
+            "message": str(event.error),
+        }
+        )
+
+    if config.user_speak_first:
+        logger.info("user_speak_first=True — agent waiting for user to speak")
+    else:
+        initial_message = config.agent_initial_message
+        # small delay to ensure TTS is ready before saying anything
+        await asyncio.sleep(0.5)
+        if initial_message and initial_message.strip():
+            logger.info("Sending initial message: %.80s", initial_message)
+            # Realtime models use generate_reply() instead of say()
+            if config.mode == "realtime":
+                await session.generate_reply(
+                    instructions=initial_message,
+                    allow_interruptions=True,
+                )
+            else:
+                await session.say(
+                    initial_message,
+                    allow_interruptions=True,
+                )
+
+    # Wait for session to close or room to disconnect
+    done_fut = asyncio.Future()
+
+    @ctx.room.on("participant_disconnected")
+    def participant_disconnected(participant: rtc.Participant):
+        nonlocal call_ended_emitted
+        reason = participant.disconnect_reason
+        if reason == rtc.DisconnectReason.USER_REJECTED:
+            logger.info("Callee rejected the call")
+        elif reason == rtc.DisconnectReason.USER_UNAVAILABLE:
+            logger.info("Callee was unavailable")
+        elif reason == rtc.DisconnectReason.SIP_TRUNK_FAILURE:
+            logger.info("SIP trunk or protocol failure")
+        else:
+            logger.info(
+                f"Callee disconnected: {rtc.DisconnectReason.Name(reason)}")
+
+        emit_event("call.ended", {
+            "to_phone": config.to_phone,
+            "contact_name": config.contact_name,
+            "duration_ms": int((time.time() - call_started_at) * 1000),
+        })
+        call_ended_emitted = True
+        if not done_fut.done():
+            done_fut.set_result(None)
+
+    @session.on("close")
+    def on_session_close():
+        logger.info("Session closed")
+        if not done_fut.done():
+            done_fut.set_result(None)
+
+    try:
+        await done_fut
+
+        if not call_ended_emitted:
+            emit_event("call.ended", {
+                "to_phone": config.to_phone,
+                "contact_name": config.contact_name,
+                "duration_ms": int((time.time() - call_started_at) * 1000),
+            })
+
+        emit_event("call.transcript.completed", {
+            "duration_ms": int((time.time() - call_started_at) * 1000),
+        })
+
+        recording_result = await recording.stop(lk_api)
+        if recording_result:
+            emit_event("call.recording.completed", recording_result)
+    finally:
+        await lk_api.aclose()
 
 
 if __name__ == "__main__":

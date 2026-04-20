@@ -15,7 +15,7 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->string('stripe_invoice_id')->nullable()->unique();
             $table->string('invoice_number')->unique(); // Human-readable invoice number
-            $table->unsignedBigInteger('amount'); //? Amount in cents
+            $table->unsignedBigInteger('amount'); // ? Amount in cents
             $table->string('currency')->default('usd');
             $table->string('status')->default('draft'); // draft, pending, paid, failed, cancelled
             $table->date('billing_period_start');

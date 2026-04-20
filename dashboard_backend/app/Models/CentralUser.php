@@ -13,11 +13,16 @@ use Stancl\Tenancy\Database\Models\TenantPivot;
 
 class CentralUser extends Model implements SyncMaster
 {
-    use ResourceSyncing, CentralConnection, HasUuids, Notifiable;
+    use CentralConnection, HasUuids, Notifiable, ResourceSyncing;
+
     public $table = 'users';
+
     public $incrementing = false;
+
     protected $keyType = 'string';
+
     public $timestamps = false;
+
     protected $guarded = [];
 
     public function tenants(): BelongsToMany
@@ -30,6 +35,7 @@ class CentralUser extends Model implements SyncMaster
     {
         return User::class;
     }
+
     public function getGlobalIdentifierKey()
     {
         return $this->getAttribute($this->getGlobalIdentifierKeyName());

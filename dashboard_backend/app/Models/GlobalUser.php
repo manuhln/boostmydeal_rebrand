@@ -9,7 +9,9 @@ use Stancl\Tenancy\Database\Concerns\ResourceSyncing;
 class GlobalUser extends Model implements Syncable
 {
     use ResourceSyncing;
+
     protected $guarded = [];
+
     public $timestamps = false;
 
     public function getGlobalIdentifierKey()

@@ -16,7 +16,5 @@ class InitiateCallData extends Data
 
         #[Required]
         public string $to_number,
-    ) {
-        
-    }
+    ) {}
 }

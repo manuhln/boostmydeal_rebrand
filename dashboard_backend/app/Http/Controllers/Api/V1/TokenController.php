@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 
 /**
  * @authenticated
+ *
  * @group API Tokens
  */
 class TokenController extends Controller
@@ -16,8 +17,10 @@ class TokenController extends Controller
      * Create a new API token
      *
      * @authenticated
+     *
      * @bodyParam name string required The token name
      * @bodyParam abilities array optional The token abilities (default: all)
+     *
      * @response {"token": "1|abc123...", "abilities": ["*"]}
      */
     public function store(Request $request): JsonResponse
@@ -42,6 +45,7 @@ class TokenController extends Controller
      * List all API tokens for the authenticated user
      *
      * @authenticated
+     *
      * @response {"data": [{"id": 1, "name": "My Token", "abilities": ["*"], "created_at": "2024-01-01T00:00:00Z"}]}
      */
     public function index(Request $request): JsonResponse
@@ -66,7 +70,9 @@ class TokenController extends Controller
      * Delete an API token
      *
      * @authenticated
+     *
      * @urlParam tokenId string required The ID of the token to delete
+     *
      * @response {"message": "Token revoked successfully"}
      */
     public function destroy(Request $request, string $tokenId): JsonResponse

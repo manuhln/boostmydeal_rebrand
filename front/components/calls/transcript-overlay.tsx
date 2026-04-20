@@ -1,18 +1,19 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { X, User, Bot, Download, Copy, Check } from "lucide-react"
+import { X, User, Bot, Download, Copy, Check, Play } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Separator } from "@/components/ui/separator"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { cn } from "@/lib/utils"
+import { api } from "@/lib/api-client"
 
 interface TranscriptSegment {
   speaker: "agent" | "customer"
   text: string
   timestamp: string
+  isFinal: boolean
 }
 
 interface TranscriptOverlayProps {
@@ -21,40 +22,84 @@ interface TranscriptOverlayProps {
   callId: string
   contactName: string
   status: string
+  recordingId?: string
 }
 
-// Mock transcript data - in real app this would be fetched
-const mockTranscript: TranscriptSegment[] = [
-  { speaker: "agent", text: "Hi, this is Sarah from BoostMyDeal. Am I speaking with the decision maker regarding your sales operations?", timestamp: "0:00" },
-  { speaker: "customer", text: "Yes, this is John. How can I help you?", timestamp: "0:08" },
-  { speaker: "agent", text: "Great! I'm reaching out because we specialize in AI-powered sales automation. I noticed your company has been growing rapidly and wanted to see if you're currently looking to scale your outreach efforts.", timestamp: "0:12" },
-  { speaker: "customer", text: "Actually, yes. We've been struggling to keep up with lead follow-ups. What does your solution offer?", timestamp: "0:28" },
-  { speaker: "agent", text: "That's exactly what we help with. Our AI voice agents can handle outbound calls 24/7, qualify leads, and book meetings directly into your calendar. Most of our clients see a 40% increase in qualified meetings within the first month.", timestamp: "0:35" },
-  { speaker: "customer", text: "That sounds interesting. What about integration with our existing CRM?", timestamp: "0:55" },
-  { speaker: "agent", text: "We integrate seamlessly with HubSpot, Salesforce, Zoho, and most major CRMs. All call data, transcripts, and lead scores sync automatically.", timestamp: "1:02" },
-  { speaker: "customer", text: "Great. What's the pricing like?", timestamp: "1:15" },
-  { speaker: "agent", text: "We have plans starting at $99 per month for startups, and enterprise plans with custom pricing. Would you like me to schedule a demo so you can see it in action?", timestamp: "1:20" },
-  { speaker: "customer", text: "Yes, that would be helpful. I'm available next Tuesday afternoon.", timestamp: "1:38" },
-  { speaker: "agent", text: "Perfect! I'll send you a calendar invite for Tuesday at 2 PM. Is there anything specific you'd like us to cover in the demo?", timestamp: "1:45" },
-  { speaker: "customer", text: "I'd like to see the CRM integration and how you handle objections.", timestamp: "1:58" },
-  { speaker: "agent", text: "Absolutely, we'll make sure to cover those. You'll receive the invite shortly. Thank you for your time, John!", timestamp: "2:05" },
-]
+type TranscriptResponse = {
+  call_id: string
+  segments: Array<{
+    segment_id?: string
+    speaker: "agent" | "customer"
+    content: string
+    timestamp_ms: number
+    sequence: number
+    is_final: boolean
+  }>
+  full_text: string
+}
 
-export function TranscriptOverlay({ isOpen, onClose, callId, contactName, status }: TranscriptOverlayProps) {
+type TemporaryRecordingUrlResponse = {
+  url: string
+  expires_at: string
+}
+
+const formatTimestamp = (timestampMs: number) => {
+  const totalSeconds = Math.max(0, Math.floor(timestampMs / 1000))
+  const minutes = Math.floor(totalSeconds / 60)
+  const seconds = totalSeconds % 60
+  return `${minutes}:${seconds.toString().padStart(2, "0")}`
+}
+
+export function TranscriptOverlay({ isOpen, onClose, callId, contactName, status, recordingId }: TranscriptOverlayProps) {
   const [transcript, setTranscript] = useState<TranscriptSegment[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [recordingUrl, setRecordingUrl] = useState<string | null>(null)
+  const [isLoadingRecording, setIsLoadingRecording] = useState(false)
 
   useEffect(() => {
-    if (isOpen && callId) {
+    if (!isOpen || !callId) return
+
+    let active = true
+    let intervalId: ReturnType<typeof setInterval> | undefined
+
+    const loadTranscript = async () => {
       setIsLoading(true)
-      // Simulate API call - in real app: fetch(`/api/calls/${callId}/transcript`)
-      setTimeout(() => {
-        setTranscript(mockTranscript)
-        setIsLoading(false)
-      }, 500)
+      try {
+        const response = await api.get<TranscriptResponse>(`/calls/${callId}/transcript`)
+        if (!active) return
+        setTranscript(
+          (response.segments ?? []).map((segment) => ({
+            speaker: segment.speaker,
+            text: segment.content,
+            timestamp: formatTimestamp(segment.timestamp_ms),
+            isFinal: segment.is_final,
+          }))
+        )
+      } catch (error) {
+        if (active) {
+          setTranscript([])
+        }
+      } finally {
+        if (active) {
+          setIsLoading(false)
+        }
+      }
     }
-  }, [isOpen, callId])
+
+    void loadTranscript()
+
+    if (status === "in_progress") {
+      intervalId = setInterval(() => {
+        void loadTranscript()
+      }, 1500)
+    }
+
+    return () => {
+      active = false
+      if (intervalId) clearInterval(intervalId)
+    }
+  }, [isOpen, callId, status])
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -81,6 +126,19 @@ export function TranscriptOverlay({ isOpen, onClose, callId, contactName, status
     navigator.clipboard.writeText(text)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
+  }
+
+  const openRecording = async () => {
+    if (!recordingId) return
+
+    setIsLoadingRecording(true)
+    try {
+      const response = await api.post<TemporaryRecordingUrlResponse>(`/calls/${callId}/recordings/${recordingId}/temporary-url`)
+      setRecordingUrl(response.url)
+      window.open(response.url, "_blank", "noopener,noreferrer")
+    } finally {
+      setIsLoadingRecording(false)
+    }
   }
 
   const downloadTranscript = () => {
@@ -114,6 +172,11 @@ export function TranscriptOverlay({ isOpen, onClose, callId, contactName, status
           </div>
         </div>
         <div className="flex items-center gap-2">
+          {recordingId ? (
+            <Button variant="ghost" size="icon" onClick={openRecording} disabled={isLoadingRecording}>
+              <Play className="h-4 w-4" />
+            </Button>
+          ) : null}
           <Button variant="ghost" size="icon" onClick={copyTranscript}>
             {copied ? <Check className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
           </Button>
@@ -151,12 +214,22 @@ export function TranscriptOverlay({ isOpen, onClose, callId, contactName, status
                       {segment.speaker === "agent" ? "AI Agent" : contactName}
                     </span>
                     <span className="text-xs text-muted-foreground">{segment.timestamp}</span>
+                    {!segment.isFinal ? (
+                      <Badge variant="secondary" className="text-[10px] uppercase tracking-wide">
+                        live
+                      </Badge>
+                    ) : null}
                   </div>
                   <p className="text-sm text-muted-foreground">{segment.text}</p>
                 </div>
               </div>
             ))
           )}
+          {recordingUrl ? (
+            <audio className="w-full" controls src={recordingUrl}>
+              Your browser does not support audio playback.
+            </audio>
+          ) : null}
         </div>
       </ScrollArea>
     </div>

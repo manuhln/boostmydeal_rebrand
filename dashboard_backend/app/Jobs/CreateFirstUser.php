@@ -22,7 +22,7 @@ class CreateFirstUser
     {
         DB::transaction(function () {
             Log::debug('RAW tenant', [
-                'id'         => $this->tenant->id,
+                'id' => $this->tenant->id,
                 'attributes' => $this->tenant->getAttributes(),
                 'first_user' => $this->tenant->first_user,
             ]);
@@ -43,10 +43,10 @@ class CreateFirstUser
 
             // tenancy()->end();
             $centralUser = CentralUser::create([
-                'global_id'  => (string) \Str::uuid7(),
-                'email'      => $userData['email'],
+                'global_id' => (string) \Str::uuid7(),
+                'email' => $userData['email'],
                 'first_name' => $userData['first_name'],
-                'last_name'  => $userData['last_name'],
+                'last_name' => $userData['last_name'],
             ]);
 
             // 2. Attach to tenant (THIS triggers sync)

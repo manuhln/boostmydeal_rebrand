@@ -14,6 +14,8 @@ class CallTranscript extends Model
 {
     use HasUuids;
 
+    protected $table = 'calls_transcripts';
+
     protected $keyType = 'string';
 
     public $incrementing = false;
@@ -22,6 +24,9 @@ class CallTranscript extends Model
     {
         return [
             'timestamp_ms' => 'integer',
+            'sequence' => 'integer',
+            'is_final' => 'boolean',
+            'metadata' => 'array',
         ];
     }
 

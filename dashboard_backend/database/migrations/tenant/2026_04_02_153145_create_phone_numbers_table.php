@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('country_code')->nullable(false);
             $table->string('provider')->nullable(false)->default(PhoneNumberProvider::VOXSUN->value);
             $table->json('provider_config')->nullable(false);
+            $table->string('trunk_id')->nullable();
             $table->timestamps();
         });
     }
