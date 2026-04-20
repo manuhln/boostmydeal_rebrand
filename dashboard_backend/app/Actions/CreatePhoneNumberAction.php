@@ -3,6 +3,7 @@
 namespace App\Actions;
 
 use App\Data\Api\V1\PhoneNumberData;
+use App\Enums\PhoneNumberProvider;
 use App\Models\PhoneNumber;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -16,35 +17,38 @@ class CreatePhoneNumberAction
 
             $phone_number = PhoneNumber::create($phoneNumberData->toArray());
 
-            $apiKey = config('services.livekit.api_key');
-            $apiUrl  = config('services.livekit.url');
+            if ($phoneNumberData->provider === PhoneNumberProvider::VOXSUN->value) {
 
-            $payload = $this->preparePayload($phone_number);
+                $apiKey = config('services.livekit.api_key');
+                $apiUrl  = config('services.livekit.url');
 
-            $result = Http::timeout(60)
-                ->withHeaders([
-                    'Content-Type' => 'application/json',
-                    'X-API-Key'    => $apiKey,
-                ])
-                ->post($apiUrl . '/sip-trunks/add/outbound', $payload);
+                $payload = $this->preparePayload($phone_number);
 
-            if ($result->failed()) {
-                Log::error('Failed to create SIP trunk in FastAPI', [
-                    'phone_number_id' => $phone_number->id,
-                    'response_status' => $result->status(),
-                    'response_body'   => $result->body(),
+                $result = Http::timeout(60)
+                    ->withHeaders([
+                        'Content-Type' => 'application/json',
+                        'X-API-Key'    => $apiKey,
+                    ])
+                    ->post($apiUrl . '/sip-trunks/add/outbound', $payload);
+
+                if ($result->failed()) {
+                    Log::error('Failed to create SIP trunk in FastAPI', [
+                        'phone_number_id' => $phone_number->id,
+                        'response_status' => $result->status(),
+                        'response_body'   => $result->body(),
+                    ]);
+                    throw new \Exception('Failed to create SIP trunk in FastAPI: ' . $result->body());
+                }
+
+                $phone_number->update([
+                    'trunk_id' => $result->json('trunk_id'),
                 ]);
-                throw new \Exception('Failed to create SIP trunk in FastAPI: ' . $result->body());
+
+                Log::info('Successfully created SIP trunk in FastAPI', [
+                    'phone_number_id' => $phone_number->id,
+                    'trunk_id'        => $result->json('trunk_id'),
+                ]);
             }
-
-            $phone_number->update([
-                'trunk_id' => $result->json('trunk_id'),
-            ]);
-
-            Log::info('Successfully created SIP trunk in FastAPI', [
-                'phone_number_id' => $phone_number->id,
-                'trunk_id'        => $result->json('trunk_id'),
-            ]);
 
             return $phone_number;
         });
