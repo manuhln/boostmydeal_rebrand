@@ -33,12 +33,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { 
-  Plus, 
-  Search, 
-  MoreVertical, 
-  Pencil, 
-  History, 
+import {
+  Plus,
+  Search,
+  MoreVertical,
+  Pencil,
+  History,
   Trash2,
   GitBranch,
   Play,
@@ -53,10 +53,9 @@ import { Workflow } from "@/lib/types"
 const mockWorkflows: Workflow[] = [
   {
     id: "wf-1",
-    organizationId: "org-1",
     name: "New Lead Follow-up",
     description: "Automatically process new leads after call",
-    isActive: true,
+    is_active: true,
     nodes: [
       { id: "TRIGGER-1", type: "TRIGGER", position: { x: 250, y: 50 }, data: { label: "Trigger", config: { triggerType: "PHONE_CALL_ENDED" } } },
       { id: "AI_AGENT-1", type: "AI_AGENT", position: { x: 250, y: 150 }, data: { label: "AI Agent", config: {} } },
@@ -66,15 +65,15 @@ const mockWorkflows: Workflow[] = [
       { id: "e1", source: "TRIGGER-1", target: "AI_AGENT-1" },
       { id: "e2", source: "AI_AGENT-1", target: "HUBSPOT_TOOL-1" },
     ],
-    createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-    updatedAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+    created_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+    updated_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
   },
   {
     id: "wf-2",
-    organizationId: "org-1",
+
     name: "Meeting Reminder Email",
     description: "Send confirmation emails after meetings are booked",
-    isActive: true,
+    is_active: true,
     nodes: [
       { id: "TRIGGER-1", type: "TRIGGER", position: { x: 250, y: 50 }, data: { label: "Trigger", config: { triggerType: "CALL_SUMMARY" } } },
       { id: "EMAIL_TOOL-1", type: "EMAIL_TOOL", position: { x: 250, y: 150 }, data: { label: "Send Email", config: {} } },
@@ -82,15 +81,15 @@ const mockWorkflows: Workflow[] = [
     edges: [
       { id: "e1", source: "TRIGGER-1", target: "EMAIL_TOOL-1" },
     ],
-    createdAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
-    updatedAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+    created_at: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
+    updated_at: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
   },
   {
     id: "wf-3",
-    organizationId: "org-1",
+
     name: "Zoho CRM Sync",
     description: "Sync call data to Zoho CRM",
-    isActive: false,
+    is_active: false,
     nodes: [
       { id: "TRIGGER-1", type: "TRIGGER", position: { x: 250, y: 50 }, data: { label: "Trigger", config: { triggerType: "TRANSCRIPT_COMPLETE" } } },
       { id: "ZOHO_TOOL-1", type: "ZOHO_TOOL", position: { x: 250, y: 150 }, data: { label: "Zoho CRM", config: { action: "update_deal" } } },
@@ -98,8 +97,8 @@ const mockWorkflows: Workflow[] = [
     edges: [
       { id: "e1", source: "TRIGGER-1", target: "ZOHO_TOOL-1" },
     ],
-    createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
-    updatedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+    created_at: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+    updated_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
   },
 ]
 
@@ -113,7 +112,7 @@ export default function WorkflowsPage() {
     workflow.name.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
-  const activeCount = workflows.filter((w) => w.isActive).length
+  const activeCount = workflows.filter((w) => w.is_active).length
   const totalExecutions = 4867 // Mock stat
   const successRate = 87 // Mock stat
   const failedToday = 12 // Mock stat
@@ -121,7 +120,7 @@ export default function WorkflowsPage() {
   const handleToggleWorkflow = (workflowId: string) => {
     setWorkflows((prev) =>
       prev.map((w) =>
-        w.id === workflowId ? { ...w, isActive: !w.isActive } : w
+        w.id === workflowId ? { ...w, is_active: !w.is_active } : w
       )
     )
     // API call: POST /api/workflows/:id/toggle
@@ -259,16 +258,16 @@ export default function WorkflowsPage() {
                     <TableCell>
                       <div className="flex items-center gap-3">
                         <Switch
-                          checked={workflow.isActive}
+                          checked={workflow.is_active}
                           onCheckedChange={() => handleToggleWorkflow(workflow.id)}
                         />
-                        <Badge variant={workflow.isActive ? "default" : "secondary"}>
-                          {workflow.isActive ? "Active" : "Inactive"}
+                        <Badge variant={workflow.is_active ? "default" : "secondary"}>
+                          {workflow.is_active ? "Active" : "Inactive"}
                         </Badge>
                       </div>
                     </TableCell>
                     <TableCell className="text-muted-foreground">
-                      {formatDistanceToNow(new Date(workflow.updatedAt), { addSuffix: true })}
+                      {formatDistanceToNow(new Date(workflow.updated_at), { addSuffix: true })}
                     </TableCell>
                     <TableCell className="text-right">
                       <DropdownMenu>
@@ -291,7 +290,7 @@ export default function WorkflowsPage() {
                             </Link>
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
-                          <DropdownMenuItem 
+                          <DropdownMenuItem
                             className="text-red-500 focus:text-red-500"
                             onClick={() => setDeleteWorkflow(workflow)}
                           >

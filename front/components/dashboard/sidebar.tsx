@@ -30,7 +30,6 @@ const menuItems = [
   { icon: GitBranch, label: "Workflows", href: "/workflows" },
   { icon: BookOpen, label: "Knowledge Base", href: "/knowledge" },
   { icon: Plug, label: "Integrations", href: "/integrations" },
-  { icon: BarChart3, label: "Analytics", href: "/analytics" },
 ]
 
 const teamItems = [
@@ -70,7 +69,7 @@ export function Sidebar() {
         {"badge" in item && item.badge && (
           <span className={cn(
             "ml-auto text-[10px] font-semibold px-1.5 py-0.5 rounded-full",
-            isActive 
+            isActive
               ? "bg-primary-foreground/20 text-primary-foreground"
               : "bg-primary text-primary-foreground"
           )}>

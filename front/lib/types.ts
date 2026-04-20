@@ -544,15 +544,59 @@ export interface TranscriptionSegment {
 
 export interface Workflow {
   id: string
-  organizationId: string
   name: string
-  description?: string
-  isActive: boolean
-  nodes: WorkflowNode[]
-  edges: WorkflowEdge[]
-  createdAt: string
-  updatedAt: string
+  description?: string | null
+  is_active: boolean
+  trigger_type?: string | null
+  trigger_config?: string[] | null
+  nodes?: WorkflowNode[]
+  edges?: WorkflowEdge[]
+  created_at?: string
+  updated_at?: string
 }
+
+export interface WorkflowListResponse {
+  data: Workflow[]
+  meta?: {
+    current_page: number
+    last_page: number
+    per_page: number
+    total: number
+  }
+}
+
+export interface WorkflowMutationResponse {
+  message: string
+  workflow: Workflow
+}
+
+export interface WorkflowExecution {
+  id: string
+  status: string
+  created_at: string
+}
+
+export interface CreateWorkflowPayload {
+  name: string
+  description?: string | null
+  is_active?: boolean
+  trigger_type?: string | null
+  trigger_config?: string[] | null
+}
+
+export interface UpdateWorkflowPayload {
+  name?: string
+  description?: string | null
+  is_active?: boolean
+  trigger_type?: string | null
+  trigger_config?: string[] | null
+}
+
+export interface TriggerWorkflowPayload {
+  input_data?: string[]
+  call_id?: string
+}
+
 
 export interface WorkflowNode {
   id: string
@@ -648,24 +692,34 @@ export interface AutomationRule {
 // Knowledge Base Types
 // ============================================
 
-export interface KnowledgeBase {
+export interface KnowledgeBaseApiItem {
   id: string
-  organizationId: string
-  name: string
-  description?: string
-  documents: KnowledgeDocument[]
-  createdAt: string
-  updatedAt: string
+  type: string
+  attributes: {
+    name: string
+    description?: string
+    document_url?: string
+    document_type: string
+    created_at: string
+    updated_at: string
+  }
 }
 
-export interface KnowledgeDocument {
+export interface KnowledgeBase {
   id: string
   name: string
-  type: "pdf" | "txt" | "doc" | "url"
-  size: number
-  url: string
-  status: "processing" | "ready" | "error"
-  createdAt: string
+  description?: string
+  document_url?: string
+  document_type: string
+  created_at: string
+  updated_at: string
+}
+
+export interface KnowledgeBasePayload {
+  name: string
+  document_type: string
+  description?: string
+  document_url?: string
 }
 
 // ============================================
