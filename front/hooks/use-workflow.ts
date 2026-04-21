@@ -107,7 +107,11 @@ export const useWorkflowExecutions = (
   params?: ListExecutionsParams
 ) => {
   return useQuery({
-    queryKey: queryKey.WorkFlows.executions(workflowId),
+    queryKey: queryKey.WorkFlows.executions(
+      workflowId,
+      params?.page ?? 1,
+      params?.status ?? "all",
+    ),
     queryFn: () =>
       api.get<WorkflowExecutionListResponse>(`/workflows/${workflowId}/executions`, params),
     enabled: !!workflowId,

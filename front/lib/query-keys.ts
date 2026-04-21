@@ -76,7 +76,8 @@ export const queryKey = {
     all: () => ["workflows"] as const,
     list: (page: number) => ["workflows", "list", page] as const,
     detail: (id: string) => ["workflows", id] as const,
-    executions: (workflowId: string) => ["workflows", workflowId, "executions"] as const,
+    executions: (workflowId: string, page: number = 1, status: string = "all") =>
+      ["workflows", workflowId, "executions", page, status] as const,
   },
 
   Notifications: {

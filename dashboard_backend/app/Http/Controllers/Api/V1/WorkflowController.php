@@ -3,10 +3,15 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Enums\WorkflowExecutionStatus;
+use App\Enums\WorkflowNodeType;
+use App\Enums\WorkflowTriggerType;
 use App\Models\Workflow;
 use App\Models\WorkflowExecution;
+use App\Models\WorkflowNode;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 /**
  * @authenticated
@@ -61,7 +66,7 @@ class WorkflowController extends Controller
             'name' => 'required|string|max:255',
             'description' => 'nullable|string|max:1000',
             'is_active' => 'sometimes|boolean',
-            'trigger_type' => 'nullable|string|in:phone_call_connected,transcript_complete,call_summary,phone_call_ended,live_transcript,manual',
+            'trigger_type' => ['nullable', Rule::enum(WorkflowTriggerType::class)],
             'trigger_config' => 'nullable|array',
         ]);
 
@@ -112,7 +117,7 @@ class WorkflowController extends Controller
             'name' => 'sometimes|string|max:255',
             'description' => 'nullable|string|max:1000',
             'is_active' => 'sometimes|boolean',
-            'trigger_type' => 'nullable|string|in:phone_call_connected,transcript_complete,call_summary,phone_call_ended,live_transcript,manual',
+            'trigger_type' => ['nullable', Rule::enum(WorkflowTriggerType::class)],
             'trigger_config' => 'nullable|array',
         ]);
 
@@ -242,6 +247,80 @@ class WorkflowController extends Controller
         return response()->json([
             'message' => 'Workflow deactivated successfully',
             'workflow' => $workflow,
+        ]);
+    }
+
+    /**
+     * Replace the full node graph of a workflow (replace-all semantics).
+     *
+     * @authenticated
+     *
+     * @urlParam workflow string required The UUID of the workflow
+     *
+     * @bodyParam nodes array required The complete list of nodes for this workflow
+     *
+     * @response {"message": "Workflow graph updated successfully", "workflow": {...}}
+     */
+    public function updateGraph(Request $request, Workflow $workflow): JsonResponse
+    {
+        $validated = $request->validate([
+            'nodes' => 'required|array',
+            'nodes.*.id' => 'required|uuid',
+            'nodes.*.node_type' => ['required', Rule::enum(WorkflowNodeType::class)],
+            'nodes.*.name' => 'required|string|max:255',
+            'nodes.*.description' => 'nullable|string|max:1000',
+            'nodes.*.position_x' => 'required|integer',
+            'nodes.*.position_y' => 'required|integer',
+            'nodes.*.config' => 'nullable|array',
+            'nodes.*.conditions' => 'nullable|array',
+            'nodes.*.next_node_id' => 'nullable|uuid',
+            'nodes.*.true_node_id' => 'nullable|uuid',
+            'nodes.*.false_node_id' => 'nullable|uuid',
+        ]);
+
+        // Every pointer must reference an id present in the same payload.
+        $nodeIds = collect($validated['nodes'])->pluck('id')->all();
+        foreach ($validated['nodes'] as $node) {
+            foreach (['next_node_id', 'true_node_id', 'false_node_id'] as $pointer) {
+                if (! empty($node[$pointer]) && ! in_array($node[$pointer], $nodeIds, true)) {
+                    return response()->json([
+                        'message' => "Node {$node['id']} references a missing node via {$pointer}.",
+                    ], 422);
+                }
+            }
+        }
+
+        DB::transaction(function () use ($workflow, $validated) {
+            $workflow->nodes()->delete();
+
+            // Pass 1: insert nodes without pointers so FK constraints don't fire.
+            foreach ($validated['nodes'] as $node) {
+                WorkflowNode::forceCreate([
+                    'id' => $node['id'],
+                    'workflow_id' => $workflow->id,
+                    'node_type' => $node['node_type'],
+                    'name' => $node['name'],
+                    'description' => $node['description'] ?? null,
+                    'position_x' => $node['position_x'],
+                    'position_y' => $node['position_y'],
+                    'config' => $node['config'] ?? null,
+                    'conditions' => $node['conditions'] ?? null,
+                ]);
+            }
+
+            // Pass 2: resolve pointers now that every row exists.
+            foreach ($validated['nodes'] as $node) {
+                WorkflowNode::where('id', $node['id'])->update([
+                    'next_node_id' => $node['next_node_id'] ?? null,
+                    'true_node_id' => $node['true_node_id'] ?? null,
+                    'false_node_id' => $node['false_node_id'] ?? null,
+                ]);
+            }
+        });
+
+        return response()->json([
+            'message' => 'Workflow graph updated successfully',
+            'workflow' => $workflow->fresh(['nodes']),
         ]);
     }
 }

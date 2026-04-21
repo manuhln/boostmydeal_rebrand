@@ -114,6 +114,7 @@ Route::middleware([
     Route::post('/workflows/{workflow}/trigger', [WorkflowController::class, 'trigger']);
     Route::post('/workflows/{workflow}/activate', [WorkflowController::class, 'activate']);
     Route::post('/workflows/{workflow}/deactivate', [WorkflowController::class, 'deactivate']);
+    Route::put('/workflows/{workflow}/graph', [WorkflowController::class, 'updateGraph']);
 
     // Billing & Payments
     Route::get('/credits', [PaymentController::class, 'credits']);

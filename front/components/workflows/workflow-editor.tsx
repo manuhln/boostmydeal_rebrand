@@ -69,28 +69,16 @@ import {
   ZOHO_ACTIONS 
 } from "@/lib/types"
 
-// Extended node types for n8n-style categories
-type ExtendedNodeType = WorkflowNodeType | 
-  "WEBHOOK" | 
-  "DELAY" | 
-  "CONDITION" | 
-  "HTTP_REQUEST" | 
-  "CODE" | 
-  "SMS" | 
-  "SLACK" | 
-  "GOOGLE_SHEETS" | 
-  "CALENDAR" |
-  "SALESFORCE" |
-  "PIPEDRIVE"
-
-// Node categories like n8n
+// Node categories like n8n. The `type` field is a plain string so the catalog can include
+// UI-only placeholders (available: false) that don't exist in the backend enum. Only
+// `available: true` entries can actually be added to a workflow and must match WorkflowNodeType.
 interface NodeCategory {
   id: string
   name: string
   icon: React.ComponentType<{ className?: string }>
   color: string
   nodes: {
-    type: ExtendedNodeType
+    type: string
     label: string
     description: string
     icon: React.ComponentType<{ className?: string }>
@@ -108,7 +96,7 @@ const NODE_CATEGORIES: NodeCategory[] = [
     color: "text-green-500",
     nodes: [
       {
-        type: "TRIGGER",
+        type: "trigger",
         label: "Event Trigger",
         description: "Start workflow on call events",
         icon: Zap,
@@ -117,7 +105,7 @@ const NODE_CATEGORIES: NodeCategory[] = [
         available: true,
       },
       {
-        type: "WEBHOOK",
+        type: "webhook_tool",
         label: "Webhook",
         description: "Receive data via HTTP webhook",
         icon: Webhook,
@@ -134,7 +122,7 @@ const NODE_CATEGORIES: NodeCategory[] = [
     color: "text-purple-500",
     nodes: [
       {
-        type: "AI_AGENT",
+        type: "ai_agent",
         label: "AI Agent",
         description: "Process data with AI",
         icon: Bot,
@@ -151,7 +139,7 @@ const NODE_CATEGORIES: NodeCategory[] = [
     color: "text-orange-500",
     nodes: [
       {
-        type: "HUBSPOT_TOOL",
+        type: "hubspot_tool",
         label: "HubSpot",
         description: "Create deals, contacts, notes",
         icon: () => (
@@ -164,7 +152,7 @@ const NODE_CATEGORIES: NodeCategory[] = [
         available: true,
       },
       {
-        type: "ZOHO_TOOL",
+        type: "zoho_tool",
         label: "Zoho CRM",
         description: "Manage deals and leads",
         icon: () => (
@@ -177,7 +165,7 @@ const NODE_CATEGORIES: NodeCategory[] = [
         available: true,
       },
       {
-        type: "SALESFORCE",
+        type: "salesforce",
         label: "Salesforce",
         description: "Sync with Salesforce CRM",
         icon: Database,
@@ -186,7 +174,7 @@ const NODE_CATEGORIES: NodeCategory[] = [
         available: false,
       },
       {
-        type: "PIPEDRIVE",
+        type: "pipedrive",
         label: "Pipedrive",
         description: "Manage Pipedrive deals",
         icon: BarChart3,
@@ -203,7 +191,7 @@ const NODE_CATEGORIES: NodeCategory[] = [
     color: "text-blue-500",
     nodes: [
       {
-        type: "EMAIL_TOOL",
+        type: "email_tool",
         label: "Send Email",
         description: "Send emails via SMTP",
         icon: Mail,
@@ -212,7 +200,7 @@ const NODE_CATEGORIES: NodeCategory[] = [
         available: true,
       },
       {
-        type: "SMS",
+        type: "sms",
         label: "Send SMS",
         description: "Send SMS via Twilio/Vonage",
         icon: Phone,
@@ -221,12 +209,21 @@ const NODE_CATEGORIES: NodeCategory[] = [
         available: false,
       },
       {
-        type: "SLACK",
+        type: "slack",
         label: "Slack",
         description: "Send Slack messages",
         icon: MessageSquare,
         color: "text-violet-600",
         bgColor: "bg-violet-500/10 border-violet-500/30",
+        available: false,
+      },
+      {
+        type: "outbound_call",
+        label: "Outbound Call",
+        description: "Trigger an outbound voice call",
+        icon: Phone,
+        color: "text-sky-600",
+        bgColor: "bg-sky-500/10 border-sky-500/30",
         available: false,
       },
     ],
@@ -238,7 +235,7 @@ const NODE_CATEGORIES: NodeCategory[] = [
     color: "text-amber-500",
     nodes: [
       {
-        type: "CONDITION",
+        type: "condition",
         label: "IF Condition",
         description: "Branch based on conditions",
         icon: Filter,
@@ -247,7 +244,7 @@ const NODE_CATEGORIES: NodeCategory[] = [
         available: false,
       },
       {
-        type: "DELAY",
+        type: "delay",
         label: "Wait / Delay",
         description: "Pause workflow execution",
         icon: Clock,
@@ -264,7 +261,7 @@ const NODE_CATEGORIES: NodeCategory[] = [
     color: "text-cyan-500",
     nodes: [
       {
-        type: "HTTP_REQUEST",
+        type: "http_request",
         label: "HTTP Request",
         description: "Make API calls",
         icon: Globe,
@@ -273,7 +270,7 @@ const NODE_CATEGORIES: NodeCategory[] = [
         available: false,
       },
       {
-        type: "CODE",
+        type: "code",
         label: "Code",
         description: "Run custom JavaScript",
         icon: Code,
@@ -282,7 +279,7 @@ const NODE_CATEGORIES: NodeCategory[] = [
         available: false,
       },
       {
-        type: "GOOGLE_SHEETS",
+        type: "google_sheets",
         label: "Google Sheets",
         description: "Read/write spreadsheets",
         icon: FileText,
@@ -299,7 +296,7 @@ const NODE_CATEGORIES: NodeCategory[] = [
     color: "text-indigo-500",
     nodes: [
       {
-        type: "CALENDAR",
+        type: "calendar",
         label: "Google Calendar",
         description: "Create calendar events",
         icon: Calendar,
@@ -325,27 +322,21 @@ const NODE_CONFIGS: Record<string, {
     condition?: (data: Record<string, unknown>) => boolean
   }[]
 }> = {
-  TRIGGER: {
+  trigger: {
     label: "Event Trigger",
     color: "text-green-600",
     bgColor: "bg-green-500/10 border-green-500/30",
     icon: Zap,
     fields: [
-      { 
-        name: "triggerType", 
-        label: "Trigger Type", 
+      {
+        name: "triggerType",
+        label: "Trigger Type",
         type: "select",
         options: WORKFLOW_TRIGGER_TYPES.map(t => ({ value: t.value, label: t.label }))
       },
-      { 
-        name: "webhookUrl", 
-        label: "Webhook URL", 
-        type: "text",
-        condition: (data) => data.triggerType === "WEBHOOK"
-      },
     ]
   },
-  WEBHOOK: {
+  webhook_tool: {
     label: "Webhook",
     color: "text-emerald-600",
     bgColor: "bg-emerald-500/10 border-emerald-500/30",
@@ -359,7 +350,7 @@ const NODE_CONFIGS: Record<string, {
       { name: "path", label: "Path", type: "text" },
     ]
   },
-  EMAIL_TOOL: {
+  email_tool: {
     label: "Send Email",
     color: "text-blue-600",
     bgColor: "bg-blue-500/10 border-blue-500/30",
@@ -370,7 +361,7 @@ const NODE_CONFIGS: Record<string, {
       { name: "body", label: "Body", type: "textarea" },
     ]
   },
-  AI_AGENT: {
+  ai_agent: {
     label: "AI Agent",
     color: "text-purple-600",
     bgColor: "bg-purple-500/10 border-purple-500/30",
@@ -399,7 +390,7 @@ const NODE_CONFIGS: Record<string, {
       },
     ]
   },
-  HUBSPOT_TOOL: {
+  hubspot_tool: {
     label: "HubSpot",
     color: "text-orange-600",
     bgColor: "bg-orange-500/10 border-orange-500/30",
@@ -447,7 +438,7 @@ const NODE_CONFIGS: Record<string, {
       },
     ]
   },
-  ZOHO_TOOL: {
+  zoho_tool: {
     label: "Zoho CRM",
     color: "text-red-600",
     bgColor: "bg-red-500/10 border-red-500/30",
@@ -564,7 +555,7 @@ function NodeSelectorPanel({
 }: { 
   isOpen: boolean
   onClose: () => void
-  onAddNode: (type: ExtendedNodeType) => void
+  onAddNode: (type: WorkflowNodeType) => void
 }) {
   const [searchQuery, setSearchQuery] = useState("")
   const [expandedCategory, setExpandedCategory] = useState<string | null>("triggers")
@@ -643,7 +634,9 @@ function NodeSelectorPanel({
                         key={node.type}
                         onClick={() => {
                           if (node.available) {
-                            onAddNode(node.type)
+                            // node.type is typed as string for placeholder entries,
+                            // but `available: true` guarantees it's a WorkflowNodeType.
+                            onAddNode(node.type as WorkflowNodeType)
                             onClose()
                           }
                         }}
@@ -830,7 +823,7 @@ export function WorkflowEditor({
     [setEdges]
   )
 
-  const handleAddNode = useCallback((type: ExtendedNodeType) => {
+  const handleAddNode = useCallback((type: WorkflowNodeType) => {
     const config = NODE_CONFIGS[type]
     if (!config) return
 
@@ -945,12 +938,12 @@ export function WorkflowEditor({
             <Controls />
             <MiniMap 
               nodeColor={(node) => {
-                if (node.type === "TRIGGER") return "#22c55e"
-                if (node.type === "WEBHOOK") return "#10b981"
-                if (node.type === "EMAIL_TOOL") return "#3b82f6"
-                if (node.type === "AI_AGENT") return "#a855f7"
-                if (node.type === "HUBSPOT_TOOL") return "#f97316"
-                if (node.type === "ZOHO_TOOL") return "#ef4444"
+                if (node.type === "trigger") return "#22c55e"
+                if (node.type === "webhook_tool") return "#10b981"
+                if (node.type === "email_tool") return "#3b82f6"
+                if (node.type === "ai_agent") return "#a855f7"
+                if (node.type === "hubspot_tool") return "#f97316"
+                if (node.type === "zoho_tool") return "#ef4444"
                 return "#6b7280"
               }}
             />

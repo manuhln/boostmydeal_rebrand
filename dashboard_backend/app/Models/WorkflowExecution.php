@@ -4,14 +4,12 @@ namespace App\Models;
 
 use App\Enums\WorkflowExecutionStatus;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
-use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Stancl\Tenancy\Database\Concerns\BelongsToTenant;
 
 #[Guarded(['id', 'created_at', 'updated_at'])]
-#[Hidden(['id', 'created_at', 'updated_at'])]
 class WorkflowExecution extends Model
 {
     use BelongsToTenant, HasUuids;

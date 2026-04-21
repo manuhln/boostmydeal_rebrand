@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, use } from "react"
+import { useState, use, useMemo } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -18,8 +18,15 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible"
-import { 
-  ArrowLeft, 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import {
+  ArrowLeft,
   ChevronDown,
   CheckCircle2,
   XCircle,
@@ -27,110 +34,78 @@ import {
   Play,
   AlertCircle,
   Clock,
-  Phone,
-  Bot
 } from "lucide-react"
 import { formatDistanceToNow, format } from "date-fns"
-import { WorkflowExecution } from "@/lib/types"
+import { useWorkflow, useWorkflowExecutions } from "@/hooks/use-workflow"
+import {
+  WORKFLOW_TRIGGER_TYPES,
+  type WorkflowExecution,
+  type WorkflowExecutionStatus,
+} from "@/lib/types"
 
-// Mock data
-const mockWorkflowName = "New Lead Follow-up"
+// TODO(workflow-executions-enrichment): backend /workflows/{id}/executions currently
+// returns raw executions without relations. To restore assistant name + caller phone
+// number in this page, eager-load `call.agent` and `call.phoneNumber` in
+// WorkflowController@executions and extend the WorkflowExecution frontend type.
 
-const mockExecutions: WorkflowExecution[] = [
-  {
-    id: "exec-1a2b3c4d5e6f7890",
-    workflowId: "wf-1",
-    callId: "call-123",
-    assistantName: "Sales Agent",
-    phoneNumber: "+1 202-555-0123",
-    triggerType: "PHONE_CALL_ENDED",
-    status: "COMPLETED",
-    duration: 45,
-    startedAt: new Date(Date.now() - 10 * 60 * 1000).toISOString(),
-    completedAt: new Date(Date.now() - 9 * 60 * 1000).toISOString(),
-    nodeOutputs: {
-      "TRIGGER-1": { triggered: true, callId: "call-123" },
-      "AI_AGENT-1": { summary: "Customer interested in premium plan", sentiment: "positive" },
-      "HUBSPOT_TOOL-1": { dealId: "deal-456", status: "created" },
-    },
-    callSessionPayloads: [
-      { timestamp: new Date(Date.now() - 10 * 60 * 1000).toISOString(), payload: { event: "call_started" } },
-      { timestamp: new Date(Date.now() - 9 * 60 * 1000).toISOString(), payload: { event: "call_ended", duration: 45 } },
-    ],
-  },
-  {
-    id: "exec-2b3c4d5e6f7890ab",
-    workflowId: "wf-1",
-    callId: "call-124",
-    assistantName: "Sales Agent",
-    phoneNumber: "+1 202-555-0198",
-    triggerType: "PHONE_CALL_ENDED",
-    status: "FAILED",
-    duration: 12,
-    startedAt: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
-    completedAt: new Date(Date.now() - 29 * 60 * 1000).toISOString(),
-    error: "HubSpot API rate limit exceeded",
-    nodeOutputs: {
-      "TRIGGER-1": { triggered: true, callId: "call-124" },
-      "AI_AGENT-1": { summary: "Customer not interested", sentiment: "negative" },
-    },
-    callSessionPayloads: [],
-  },
-  {
-    id: "exec-3c4d5e6f7890abcd",
-    workflowId: "wf-1",
-    callId: "call-125",
-    assistantName: "Support Agent",
-    phoneNumber: "+1 203-555-0175",
-    triggerType: "PHONE_CALL_ENDED",
-    status: "RUNNING",
-    startedAt: new Date(Date.now() - 2 * 60 * 1000).toISOString(),
-    nodeOutputs: {
-      "TRIGGER-1": { triggered: true, callId: "call-125" },
-    },
-    callSessionPayloads: [],
-  },
-  {
-    id: "exec-4d5e6f7890abcdef",
-    workflowId: "wf-1",
-    callId: "call-126",
-    assistantName: "Sales Agent",
-    phoneNumber: "+1 202-555-0147",
-    triggerType: "PHONE_CALL_ENDED",
-    status: "COMPLETED",
-    duration: 78,
-    startedAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-    completedAt: new Date(Date.now() - 2 * 60 * 60 * 1000 + 78000).toISOString(),
-    nodeOutputs: {
-      "TRIGGER-1": { triggered: true, callId: "call-126" },
-      "AI_AGENT-1": { summary: "Meeting scheduled for next week", sentiment: "positive" },
-      "HUBSPOT_TOOL-1": { dealId: "deal-789", status: "created" },
-    },
-    callSessionPayloads: [],
-  },
+const STATUS_FILTERS: { value: "all" | WorkflowExecutionStatus; label: string }[] = [
+  { value: "all", label: "All statuses" },
+  { value: "pending", label: "Pending" },
+  { value: "running", label: "Running" },
+  { value: "completed", label: "Completed" },
+  { value: "failed", label: "Failed" },
 ]
 
-function ExecutionStatusBadge({ status }: { status: WorkflowExecution["status"] }) {
+function formatTriggerType(value?: string | null) {
+  if (!value) return "—"
+  const match = WORKFLOW_TRIGGER_TYPES.find((t) => t.value === value)
+  return match ? match.label : value.replace(/_/g, " ")
+}
+
+function computeDurationSeconds(execution: WorkflowExecution): number | null {
+  if (!execution.started_at || !execution.completed_at) return null
+  const start = new Date(execution.started_at).getTime()
+  const end = new Date(execution.completed_at).getTime()
+  if (Number.isNaN(start) || Number.isNaN(end) || end < start) return null
+  return Math.round((end - start) / 1000)
+}
+
+function extractErrorMessage(error?: Record<string, unknown> | null): string | null {
+  if (!error) return null
+  if (typeof error.message === "string" && error.message.trim().length > 0) {
+    return error.message
+  }
+  return JSON.stringify(error)
+}
+
+function ExecutionStatusBadge({ status }: { status: WorkflowExecutionStatus }) {
   switch (status) {
-    case "COMPLETED":
+    case "completed":
       return (
         <Badge variant="outline" className="bg-green-500/10 text-green-600 border-green-500/30">
           <CheckCircle2 className="w-3 h-3 mr-1" />
           Completed
         </Badge>
       )
-    case "FAILED":
+    case "failed":
       return (
         <Badge variant="outline" className="bg-red-500/10 text-red-600 border-red-500/30">
           <XCircle className="w-3 h-3 mr-1" />
           Failed
         </Badge>
       )
-    case "RUNNING":
+    case "running":
       return (
         <Badge variant="outline" className="bg-blue-500/10 text-blue-600 border-blue-500/30">
           <Loader2 className="w-3 h-3 mr-1 animate-spin" />
           Running
+        </Badge>
+      )
+    case "pending":
+      return (
+        <Badge variant="outline" className="bg-amber-500/10 text-amber-600 border-amber-500/30">
+          <Clock className="w-3 h-3 mr-1" />
+          Pending
         </Badge>
       )
     default:
@@ -138,110 +113,124 @@ function ExecutionStatusBadge({ status }: { status: WorkflowExecution["status"] 
   }
 }
 
-function ExecutionRow({ execution }: { execution: WorkflowExecution }) {
+function ExecutionRow({
+  execution,
+  triggerType,
+}: {
+  execution: WorkflowExecution
+  triggerType?: string | null
+}) {
   const [isOpen, setIsOpen] = useState(false)
+  const duration = computeDurationSeconds(execution)
+  const errorMessage = extractErrorMessage(execution.error_message)
+  const startedAt = execution.started_at ?? execution.created_at
 
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
       <TableRow className="hover:bg-muted/50">
-        <TableCell className="font-mono text-sm">
-          {execution.id.slice(-8)}
-        </TableCell>
-        <TableCell>
-          <div className="flex items-center gap-2">
-            <Bot className="w-4 h-4 text-muted-foreground" />
-            <div>
-              <p className="font-medium">{execution.assistantName}</p>
-              <p className="text-sm text-muted-foreground flex items-center gap-1">
-                <Phone className="w-3 h-3" />
-                {execution.phoneNumber}
-              </p>
-            </div>
-          </div>
-        </TableCell>
-        <TableCell>
-          <Badge variant="secondary">{execution.triggerType.replace(/_/g, " ")}</Badge>
-        </TableCell>
-        <TableCell>
-          <ExecutionStatusBadge status={execution.status} />
-        </TableCell>
-        <TableCell>
-          {execution.duration ? `${execution.duration}s` : "-"}
-        </TableCell>
-        <TableCell className="text-muted-foreground">
-          {formatDistanceToNow(new Date(execution.startedAt), { addSuffix: true })}
-        </TableCell>
-        <TableCell>
-          <CollapsibleTrigger asChild>
-            <Button variant="ghost" size="sm">
-              <ChevronDown className={`w-4 h-4 transition-transform ${isOpen ? "rotate-180" : ""}`} />
-            </Button>
-          </CollapsibleTrigger>
-        </TableCell>
-      </TableRow>
-      <CollapsibleContent asChild>
-        <TableRow className="bg-muted/30">
-          <TableCell colSpan={7} className="p-4">
-            <div className="space-y-4">
-              {/* Error Message */}
-              {execution.error && (
-                <div className="flex items-start gap-2 p-3 rounded-lg bg-red-500/10 border border-red-500/30">
-                  <AlertCircle className="w-4 h-4 text-red-500 mt-0.5" />
-                  <div>
-                    <p className="font-medium text-red-600">Error</p>
-                    <p className="text-sm text-red-600/80">{execution.error}</p>
-                  </div>
-                </div>
-              )}
-
-              {/* Node Outputs */}
-              <div>
-                <p className="text-sm font-medium mb-2">Node Outputs</p>
-                <pre className="p-3 rounded-lg bg-muted text-sm overflow-x-auto">
-                  {JSON.stringify(execution.nodeOutputs, null, 2)}
-                </pre>
-              </div>
-
-              {/* Call Session Payloads */}
-              {execution.callSessionPayloads && execution.callSessionPayloads.length > 0 && (
-                <div>
-                  <p className="text-sm font-medium mb-2">Call Session Events</p>
-                  <div className="space-y-2">
-                    {execution.callSessionPayloads.map((payload, idx) => (
-                      <div key={idx} className="flex items-start gap-3 p-2 rounded bg-muted">
-                        <Clock className="w-4 h-4 text-muted-foreground mt-0.5" />
-                        <div>
-                          <p className="text-xs text-muted-foreground">
-                            {format(new Date(payload.timestamp), "PPpp")}
-                          </p>
-                          <pre className="text-sm">{JSON.stringify(payload.payload)}</pre>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
+          <TableCell className="font-mono text-sm">{execution.id.slice(-8)}</TableCell>
+          <TableCell className="font-mono text-xs text-muted-foreground">
+            {execution.call_id ? execution.call_id.slice(-8) : "—"}
+          </TableCell>
+          <TableCell>
+            <Badge variant="secondary">{formatTriggerType(triggerType)}</Badge>
+          </TableCell>
+          <TableCell>
+            <ExecutionStatusBadge status={execution.status} />
+          </TableCell>
+          <TableCell>{duration !== null ? `${duration}s` : "—"}</TableCell>
+          <TableCell className="text-muted-foreground">
+            {startedAt ? formatDistanceToNow(new Date(startedAt), { addSuffix: true }) : "—"}
+          </TableCell>
+          <TableCell>
+            <CollapsibleTrigger asChild>
+              <Button variant="ghost" size="sm">
+                <ChevronDown
+                  className={`w-4 h-4 transition-transform ${isOpen ? "rotate-180" : ""}`}
+                />
+              </Button>
+            </CollapsibleTrigger>
           </TableCell>
         </TableRow>
-      </CollapsibleContent>
+        <CollapsibleContent asChild>
+          <TableRow className="bg-muted/30">
+            <TableCell colSpan={7} className="p-4">
+              <div className="space-y-4">
+                {errorMessage && (
+                  <div className="flex items-start gap-2 p-3 rounded-lg bg-red-500/10 border border-red-500/30">
+                    <AlertCircle className="w-4 h-4 text-red-500 mt-0.5" />
+                    <div>
+                      <p className="font-medium text-red-600">Error</p>
+                      <p className="text-sm text-red-600/80 break-all">{errorMessage}</p>
+                    </div>
+                  </div>
+                )}
+                {execution.input_data && Object.keys(execution.input_data).length > 0 && (
+                  <div>
+                    <p className="text-sm font-medium mb-2">Input data</p>
+                    <pre className="p-3 rounded-lg bg-muted text-sm overflow-x-auto">
+                      {JSON.stringify(execution.input_data, null, 2)}
+                    </pre>
+                  </div>
+                )}
+                <div>
+                  <p className="text-sm font-medium mb-2">Output data</p>
+                  <pre className="p-3 rounded-lg bg-muted text-sm overflow-x-auto">
+                    {execution.output_data
+                      ? JSON.stringify(execution.output_data, null, 2)
+                      : "—"}
+                  </pre>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-muted-foreground">
+                  <div>
+                    <span className="font-medium">Started at:</span>{" "}
+                    {execution.started_at
+                      ? format(new Date(execution.started_at), "PPpp")
+                      : "—"}
+                  </div>
+                  <div>
+                    <span className="font-medium">Completed at:</span>{" "}
+                    {execution.completed_at
+                      ? format(new Date(execution.completed_at), "PPpp")
+                      : "—"}
+                  </div>
+                </div>
+              </div>
+            </TableCell>
+          </TableRow>
+        </CollapsibleContent>
     </Collapsible>
   )
 }
 
-export default function WorkflowExecutionHistoryPage({ 
-  params 
-}: { 
-  params: Promise<{ workflowId: string }> 
+export default function WorkflowExecutionHistoryPage({
+  params,
+}: {
+  params: Promise<{ workflowId: string }>
 }) {
   const { workflowId } = use(params)
-  const executions = mockExecutions
+  const [statusFilter, setStatusFilter] = useState<"all" | WorkflowExecutionStatus>("all")
+  const [page, setPage] = useState(1)
 
-  // Compute stats
-  const totalExecutions = executions.length
-  const completedCount = executions.filter((e) => e.status === "COMPLETED").length
-  const failedCount = executions.filter((e) => e.status === "FAILED").length
-  const runningCount = executions.filter((e) => e.status === "RUNNING").length
+  const { data: workflow } = useWorkflow(workflowId)
+  const { data: executionsResponse, isLoading } = useWorkflowExecutions(workflowId, {
+    status: statusFilter === "all" ? undefined : statusFilter,
+    page,
+  })
+
+  const executions = executionsResponse?.data ?? []
+
+  const { totalExecutions, completedCount, failedCount, runningCount } = useMemo(() => {
+    return {
+      totalExecutions: executionsResponse?.total ?? 0,
+      completedCount: executions.filter((e) => e.status === "completed").length,
+      failedCount: executions.filter((e) => e.status === "failed").length,
+      runningCount: executions.filter((e) => e.status === "running").length,
+    }
+  }, [executions, executionsResponse?.total])
+
+  const currentPage = executionsResponse?.current_page ?? 1
+  const lastPage = executionsResponse?.last_page ?? 1
 
   return (
     <div className="space-y-6">
@@ -256,7 +245,8 @@ export default function WorkflowExecutionHistoryPage({
         <div>
           <h1 className="text-2xl font-semibold text-foreground">Execution History</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            {mockWorkflowName} ({workflowId})
+            {workflow?.name ?? "Loading…"}{" "}
+            <span className="font-mono text-xs">({workflowId.slice(-8)})</span>
           </p>
         </div>
       </div>
@@ -280,7 +270,7 @@ export default function WorkflowExecutionHistoryPage({
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Successful</p>
+                <p className="text-sm text-muted-foreground">Successful (page)</p>
                 <p className="text-2xl font-semibold text-green-600">{completedCount}</p>
               </div>
               <div className="w-10 h-10 rounded-lg bg-green-500/10 flex items-center justify-center">
@@ -293,7 +283,7 @@ export default function WorkflowExecutionHistoryPage({
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Failed</p>
+                <p className="text-sm text-muted-foreground">Failed (page)</p>
                 <p className="text-2xl font-semibold text-red-600">{failedCount}</p>
               </div>
               <div className="w-10 h-10 rounded-lg bg-red-500/10 flex items-center justify-center">
@@ -306,7 +296,7 @@ export default function WorkflowExecutionHistoryPage({
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Running</p>
+                <p className="text-sm text-muted-foreground">Running (page)</p>
                 <p className="text-2xl font-semibold text-blue-600">{runningCount}</p>
               </div>
               <div className="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center">
@@ -317,6 +307,28 @@ export default function WorkflowExecutionHistoryPage({
         </Card>
       </div>
 
+      {/* Filters */}
+      <div className="flex items-center gap-3">
+        <Select
+          value={statusFilter}
+          onValueChange={(value) => {
+            setStatusFilter(value as "all" | WorkflowExecutionStatus)
+            setPage(1)
+          }}
+        >
+          <SelectTrigger className="w-48">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {STATUS_FILTERS.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
       {/* Executions Table */}
       <Card>
         <CardContent className="p-0">
@@ -324,7 +336,7 @@ export default function WorkflowExecutionHistoryPage({
             <TableHeader>
               <TableRow>
                 <TableHead>Execution ID</TableHead>
-                <TableHead>Call Details</TableHead>
+                <TableHead>Call ID</TableHead>
                 <TableHead>Trigger</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Duration</TableHead>
@@ -333,7 +345,15 @@ export default function WorkflowExecutionHistoryPage({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {executions.length === 0 ? (
+              {isLoading ? (
+                [1, 2, 3].map((i) => (
+                  <TableRow key={`skeleton-${i}`}>
+                    <TableCell colSpan={7} className="py-3">
+                      <div className="h-12 bg-muted animate-pulse rounded" />
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : executions.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                     No executions yet
@@ -341,13 +361,44 @@ export default function WorkflowExecutionHistoryPage({
                 </TableRow>
               ) : (
                 executions.map((execution) => (
-                  <ExecutionRow key={execution.id} execution={execution} />
+                  <ExecutionRow
+                    key={execution.id}
+                    execution={execution}
+                    triggerType={workflow?.trigger_type}
+                  />
                 ))
               )}
             </TableBody>
           </Table>
         </CardContent>
       </Card>
+
+      {/* Pagination */}
+      {lastPage > 1 && (
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-muted-foreground">
+            Page {currentPage} of {lastPage}
+          </p>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={currentPage <= 1}
+            >
+              Previous
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPage((p) => p + 1)}
+              disabled={currentPage >= lastPage}
+            >
+              Next
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
