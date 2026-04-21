@@ -17,6 +17,7 @@ Feature ownership map:
 """
 
 import logging
+import os
 from typing import Any, Optional
 
 from models.models import CallConfig
@@ -121,11 +122,13 @@ class FeatureConfigurator:
             return None
 
         logger.info(
-            "Knowledge base enabled | top_k=%d",
+            "Knowledge base enabled | top_k=%d kb_ids=%s",
             self.c.knowledge_base_top_k,
+            self.c.knowledge_base_ids,
         )
         return KnowledgeBaseRetriever(
             top_k=self.c.knowledge_base_top_k,
+            knowledge_base_ids=self.c.knowledge_base_ids,
         )
 
     def voicemail_config(self) -> Optional[dict]:
@@ -201,12 +204,16 @@ class KnowledgeBaseRetriever:
     """
     Thin wrapper around your RAG backend.
 
-    Replace the body of `retrieve()` with your actual vector DB call
-    (Pinecone, Weaviate, pgvector, etc.).
+    Uses Qdrant vector database for knowledge base retrieval.
     """
 
-    def __init__(self, top_k: int = 3) -> None:
+    def __init__(self, top_k: int = 3, knowledge_base_ids: list[str] | None = None) -> None:
         self.top_k = top_k
+        self.knowledge_base_ids = knowledge_base_ids or []
+        self.qdrant_url = os.getenv("QDRANT_URL", "http://localhost:6333")
+        self.qdrant_api_key = os.getenv("QDRANT_API_KEY")
+        self.openai_api_key = os.getenv("OPENAI_API_KEY")
+        self.collection = os.getenv("QDRANT_COLLECTION", "knowledge_base_chunks")
 
     async def retrieve(self, query: str) -> list[dict]:
         """
@@ -231,9 +238,115 @@ class KnowledgeBaseRetriever:
                             )
                     await super().on_user_turn_completed(turn_ctx, new_message)
         """
-        logger.debug("KB retrieve | query='%s' top_k=%d", query[:80], self.top_k)
-        # TODO: replace with real vector DB call
-        return []
+        if not self.knowledge_base_ids:
+            logger.debug("KB retrieve | no knowledge_base_ids provided")
+            return []
+
+        if not self.openai_api_key:
+            logger.warning("KB retrieve | OPENAI_API_KEY not configured")
+            return []
+
+        try:
+            # Generate query embedding using OpenAI
+            query_embedding = await self._generate_query_embedding(query)
+            if not query_embedding:
+                logger.error("KB retrieve | failed to generate query embedding")
+                return []
+
+            # Search Qdrant
+            results = await self._search_qdrant(query_embedding)
+            if not results:
+                logger.debug("KB retrieve | no results from Qdrant")
+                return []
+
+            # Format results for agent
+            docs = []
+            for result in results:
+                payload = result.get("payload", {})
+                docs.append({
+                    "content": payload.get("text", ""),
+                    "source": payload.get("file_name", "unknown"),
+                    "chunk_index": payload.get("chunk_index", 0),
+                    "score": result.get("score", 0),
+                })
+
+            logger.debug(f"KB retrieve | query='{query[:80]}' top_k={self.top_k} results={len(docs)}")
+            return docs[:self.top_k]
+
+        except Exception as exc:
+            logger.error(f"KB retrieve | error: {exc}")
+            return []
+
+    async def _generate_query_embedding(self, query: str) -> list[float] | None:
+        """Generate embedding for the query using OpenAI API."""
+        import httpx
+        import json
+
+        headers = {
+            "Authorization": f"Bearer {self.openai_api_key}",
+            "Content-Type": "application/json",
+        }
+
+        payload = {
+            "model": "text-embedding-3-small",
+            "input": query,
+            "encoding_format": "float",
+        }
+
+        try:
+            async with httpx.AsyncClient(timeout=30) as client:
+                response = await client.post(
+                    "https://api.openai.com/v1/embeddings",
+                    headers=headers,
+                    json=payload,
+                )
+                response.raise_for_status()
+                data = response.json()
+                return data["data"][0]["embedding"]
+
+        except Exception as exc:
+            logger.error(f"KB retrieve | embedding error: {exc}")
+            return None
+
+    async def _search_qdrant(self, query_embedding: list[float]) -> list[dict]:
+        """Search Qdrant for relevant chunks."""
+        import httpx
+        import json
+
+        url = f"{self.qdrant_url}/collections/{self.collection}/points/search"
+        headers = {"Content-Type": "application/json"}
+        if self.qdrant_api_key:
+            headers["api-key"] = self.qdrant_api_key
+
+        # Build filter for knowledge base IDs
+        filter_must = []
+        if self.knowledge_base_ids:
+            filter_must.append({
+                "key": "knowledge_base_id",
+                "match": {
+                    "any": [{"value": kb_id} for kb_id in self.knowledge_base_ids]
+                }
+            })
+
+        payload = {
+            "vector": query_embedding,
+            "limit": self.top_k,
+            "with_payload": True,
+        }
+
+        if filter_must:
+            payload["filter"] = {"must": filter_must}
+
+        try:
+            async with httpx.AsyncClient(timeout=30) as client:
+                response = await client.post(url, headers=headers, json=payload)
+                response.raise_for_status()
+                data = response.json()
+                return data.get("result", [])
+
+        except Exception as exc:
+            logger.error(f"KB retrieve | Qdrant search error: {exc}")
+            return []
 
 
 class WebhookEmitter:

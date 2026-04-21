@@ -250,6 +250,7 @@ class InitiateLiveKitCall implements ShouldQueue
             'remember_lead_preference' => (bool) ($agent->remember_lead_preference ?? false),
             'use_knowledge_base' => true,
             'knowledge_base_top_k' => 3,
+            'knowledge_base_ids' => $agent->knowledgeBases->pluck('id')->toArray(),
 
             // Context
             'current_date' => $now->format('l, F j, Y'),

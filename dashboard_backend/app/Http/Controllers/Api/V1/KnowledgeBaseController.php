@@ -3,11 +3,15 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Data\Api\V1\KnowledgeBaseData;
+use App\Enums\ProcessingStatus;
 use App\Http\Resources\Api\V1\KnowledgeBaseResource;
+use App\Jobs\DeleteKnowledgeBaseFromQdrantJob;
+use App\Jobs\ProcessKnowledgeBaseDocumentJob;
 use App\Models\KnowledgeBase;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Support\Facades\Storage;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
 
@@ -44,7 +48,7 @@ class KnowledgeBaseController extends Controller
             )
             ->defaultSort('-created_at')
             ->allowedIncludes('agents')
-            ->paginate();
+            ->paginate($request->input('per_page', 15));
 
         return KnowledgeBaseResource::collection($knowledgeBases);
     }
@@ -57,12 +61,39 @@ class KnowledgeBaseController extends Controller
      * @bodyParam name string required Knowledge base name
      * @bodyParam description string optional Knowledge base description
      * @bodyParam document_type string optional Document type
+     * @bodyParam file file optional PDF file to upload (max 50MB)
      *
-     * @response {"id": 1, "name": "Product FAQ", "document_type": "pdf"}
+     * @response {"id": 1, "name": "Product FAQ", "processing_status": "pending"}
      */
-    public function store(KnowledgeBaseData $data): KnowledgeBaseResource
+    public function store(KnowledgeBaseData $data): KnowledgeBaseResource|JsonResponse
     {
-        $knowledgeBase = KnowledgeBase::create($data->toArray());
+        $attributes = $data->except('file')->toArray();
+
+        // Handle file upload
+        if ($data->file) {
+            $tenantId = tenant('id');
+            $fileName = $data->file->getClientOriginalName();
+            $uniqueFileName = pathinfo($fileName, PATHINFO_FILENAME).'_'.uniqid().'.'.$data->file->getClientOriginalExtension();
+
+            $filePath = $data->file->storeAs(
+                "knowledge-bases/{$tenantId}",
+                $uniqueFileName,
+                'r2'
+            );
+
+            $attributes['file_path'] = $filePath;
+            $attributes['file_name'] = $fileName;
+            $attributes['file_size'] = $data->file->getSize();
+            $attributes['processing_status'] = ProcessingStatus::PENDING;
+            $attributes['document_type'] = 'pdf';
+        }
+
+        $knowledgeBase = KnowledgeBase::create($attributes);
+
+        // Dispatch processing job if file was uploaded
+        if ($data->file) {
+            ProcessKnowledgeBaseDocumentJob::dispatch($knowledgeBase->id);
+        }
 
         return new KnowledgeBaseResource($knowledgeBase);
     }
@@ -97,12 +128,46 @@ class KnowledgeBaseController extends Controller
      * @bodyParam name string optional Knowledge base name
      * @bodyParam description string optional Knowledge base description
      * @bodyParam document_type string optional Document type
+     * @bodyParam file file optional PDF file to upload (max 50MB)
      *
-     * @response {"id": 1, "name": "Updated FAQ", "document_type": "pdf"}
+     * @response {"id": 1, "name": "Updated FAQ", "processing_status": "pending"}
      */
     public function update(KnowledgeBaseData $data, KnowledgeBase $knowledgeBase): KnowledgeBaseResource
     {
-        $knowledgeBase->update($data->toArray());
+        $attributes = $data->except('file')->toArray();
+
+        // Handle file upload (re-upload)
+        if ($data->file) {
+            // Delete old file from r2/R2
+            if ($knowledgeBase->file_path) {
+                Storage::disk('r2')->delete($knowledgeBase->file_path);
+            }
+
+            // Delete old chunks from Qdrant
+            DeleteKnowledgeBaseFromQdrantJob::dispatch($knowledgeBase->id);
+
+            $tenantId = tenant('id');
+            $fileName = $data->file->getClientOriginalName();
+            $uniqueFileName = pathinfo($fileName, PATHINFO_FILENAME).'_'.uniqid().'.'.$data->file->getClientOriginalExtension();
+
+            $filePath = $data->file->storeAs(
+                "knowledge-bases/{$tenantId}",
+                $uniqueFileName,
+                'r2'
+            );
+
+            $attributes['file_path'] = $filePath;
+            $attributes['file_name'] = $fileName;
+            $attributes['file_size'] = $data->file->getSize();
+            $attributes['processing_status'] = ProcessingStatus::PENDING;
+            $attributes['chunks_count'] = 0;
+            $attributes['document_type'] = 'pdf';
+
+            // Dispatch processing job
+            ProcessKnowledgeBaseDocumentJob::dispatch($knowledgeBase->id);
+        }
+
+        $knowledgeBase->update($attributes);
 
         return new KnowledgeBaseResource($knowledgeBase->fresh());
     }
@@ -118,6 +183,16 @@ class KnowledgeBaseController extends Controller
      */
     public function destroy(KnowledgeBase $knowledgeBase): JsonResponse
     {
+        $kbId = $knowledgeBase->id;
+
+        // Delete from Qdrant
+        DeleteKnowledgeBaseFromQdrantJob::dispatch($kbId);
+
+        // Delete file from r2/R2
+        if ($knowledgeBase->file_path) {
+            Storage::disk('r2')->delete($knowledgeBase->file_path);
+        }
+
         $knowledgeBase->delete();
 
         return response()->json(null, 204);

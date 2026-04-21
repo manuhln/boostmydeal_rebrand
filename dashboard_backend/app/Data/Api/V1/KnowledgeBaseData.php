@@ -2,9 +2,11 @@
 
 namespace App\Data\Api\V1;
 
+use Illuminate\Http\UploadedFile;
+use Spatie\LaravelData\Attributes\Validation\File;
 use Spatie\LaravelData\Attributes\Validation\Max;
+use Spatie\LaravelData\Attributes\Validation\Mimes;
 use Spatie\LaravelData\Attributes\Validation\Required;
-use Spatie\LaravelData\Attributes\Validation\Url;
 use Spatie\LaravelData\Data;
 use Spatie\LaravelData\Optional;
 
@@ -16,10 +18,7 @@ class KnowledgeBaseData extends Data
 
         public Optional|string $description,
 
-        #[Url, Max(255)]
-        public Optional|string $document_url,
-
-        #[Required, Max(100)]
-        public string $document_type,
+        #[File, Required, Mimes('pdf'), Max(51200)] // Max 50MB
+        public Optional|UploadedFile $file,
     ) {}
 }

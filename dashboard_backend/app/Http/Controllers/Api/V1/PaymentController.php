@@ -257,7 +257,17 @@ class PaymentController extends Controller
       ->paginate($request->input('per_page', 15));
 
     return response()->json($payments);
+
+    $payments = Payment::query()
+      ->when($request->has('status'), function ($query) use ($request) {
+        $query->where('status', $request->input('status'));
+      })
+      ->orderBy('created_at', 'desc')
+      ->paginate($request->input('per_page', 15));
+
+    return response()->json($payments);
   }
+
 
   /**
    * Get payment details

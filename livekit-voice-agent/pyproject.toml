@@ -12,7 +12,9 @@ dependencies = [
     "fastapi[standard]>=0.136.0",
     "livekit-agents[anthropic,cartesia,deepgram,elevenlabs,google,openai,silero,smallestai,turn-detector]~=1.4",
     "livekit-plugins-ai-coustics~=0.2",
+    "openai>=2.32.0",
     "python-dotenv",
+    "qdrant-client>=1.17.1",
     "scikit-learn>=1.7.2",
     "uvicorn>=0.44.0",
 ]

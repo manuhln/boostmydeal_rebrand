@@ -44,7 +44,7 @@ class ApiKeyController extends Controller
                 'updated_at',
             )
             ->defaultSort('-created_at')
-            ->paginate();
+            ->paginate($request->input('per_page', 15));
 
         return ApiKeyResource::collection($apiKeys);
     }

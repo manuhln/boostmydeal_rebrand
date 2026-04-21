@@ -48,7 +48,7 @@ class TenantInvitationController extends Controller
                 'expires_at',
             )
             ->defaultSort('-created_at')
-            ->paginate();
+            ->paginate($request->input('per_page', 15));
 
         return TenantInvitationResource::collection($invitations);
     }
@@ -68,7 +68,7 @@ class TenantInvitationController extends Controller
     {
         $currentUser = Auth::user();
 
-        if (! $currentUser->hasAnyRole(['Owner', 'Admin'])) {
+        if (! $currentUser->hasAnyRole(['owner', 'admin'])) {
             return response()->json([
                 'error' => 'You do not have permission to invite users',
             ], 403);

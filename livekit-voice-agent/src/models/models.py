@@ -84,6 +84,7 @@ class CallConfig(BaseModel):
     remember_lead_preference: bool = Field(default=False, description="Remember lead preferences")
     use_knowledge_base: bool = Field(default=True, description="Enable knowledge base for RAG")
     knowledge_base_top_k: int = Field(default=3, ge=1, le=10, description="Number of knowledge base results")
+    knowledge_base_ids: list[str] = Field(default_factory=list, description="Knowledge base IDs for RAG filtering")
 
     # Context
     current_date: Optional[str] = Field(None, description="Current date")

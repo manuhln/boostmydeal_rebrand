@@ -12,8 +12,8 @@ use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Response;
+use Illuminate\Support\Facades\Storage;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
 
@@ -65,7 +65,7 @@ class CallController extends Controller
                 'recordings',
                 'events',
             )
-            ->paginate();
+            ->paginate($request->input('per_page', 15));
 
         return CallResource::collection($calls);
     }

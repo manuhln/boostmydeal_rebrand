@@ -14,13 +14,17 @@
         "laravel/sanctum": "^4.0",
         "laravel/scout": "^11.1",
         "laravel/tinker": "^3.0",
+        "league/flysystem-aws-s3-v3": "^3.0",
+        "openai-php/client": "^0.19.2",
         "scalar/laravel": "^0.2.1",
+        "smalot/pdfparser": "^2.12",
         "spatie/laravel-activitylog": "^5.0",
         "spatie/laravel-data": "^4.20",
         "spatie/laravel-medialibrary": "^11.21",
         "spatie/laravel-permission": "^7.2",
         "spatie/laravel-query-builder": "^7.1",
         "stancl/tenancy": "^3.10",
+        "thiagoalessio/tesseract_ocr": "^2.13",
         "typesense/typesense-php": "^6.0"
     },
     "require-dev": {
