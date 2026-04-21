@@ -83,8 +83,8 @@ export default function CallLogsPage() {
 
   const filteredCalls = numberSearch
     ? calls.filter((c) =>
-        c.to_number.includes(numberSearch) || c.from_number.includes(numberSearch)
-      )
+      c.to_number.includes(numberSearch) || c.from_number.includes(numberSearch)
+    )
     : calls
 
   const totalCalls = filteredCalls.length
@@ -282,7 +282,7 @@ export default function CallLogsPage() {
                 </TableRow>
               ) : (
                 filteredCalls.map((call) => (
-                  <TableRow key={call.id}>
+                  <TableRow key={call.id} className="px-4 ">
                     <TableCell>
                       <div className="flex items-center gap-1">
                         {call.direction === "inbound"

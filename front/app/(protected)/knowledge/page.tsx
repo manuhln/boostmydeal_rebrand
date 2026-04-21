@@ -1,14 +1,14 @@
 "use client"
 
-import { useState } from "react"
+import { useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
-  BookOpen, Plus, Search, FileText, Globe, Link2,
-  MoreVertical, Trash2, Database, Loader2, Pencil,
+  BookOpen, Plus, Search, FileText, MoreVertical, Trash2, Database,
+  Loader2, Pencil, RefreshCw, Upload, Users, CheckCircle2, AlertCircle, Clock,
 } from "lucide-react"
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
@@ -17,43 +17,53 @@ import {
   Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog"
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select"
-import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import {
   useKnowledgeBases, useCreateKnowledgeBase, useUpdateKnowledgeBase, useDeleteKnowledgeBase,
 } from "@/hooks/use-knowledge-base"
-import type { KnowledgeBase, KnowledgeBasePayload } from "@/lib/types"
+import type { KnowledgeBase, ProcessingStatus } from "@/lib/types"
 
-const DOCUMENT_TYPES = ["pdf", "txt", "docx", "url", "csv", "html", "other"] as const
+const MAX_FILE_SIZE = 50 * 1024 * 1024 // 50 MB
 
-const docTypeIcon = (type: string) => (type === "url" ? Globe : FileText)
+type FormState = { name: string; description: string }
+const emptyForm: FormState = { name: "", description: "" }
 
-const docTypeBadgeClass = (type: string) => {
-  const map: Record<string, string> = {
-    pdf: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
-    url: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
-    txt: "bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400",
-    docx: "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400",
-    csv: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
-    html: "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400",
-  }
-  return map[type] ?? "bg-muted text-muted-foreground"
+const formatBytes = (bytes?: number | null) => {
+  if (!bytes || bytes <= 0) return "—"
+  const units = ["B", "KB", "MB", "GB"]
+  let i = 0
+  let size = bytes
+  while (size >= 1024 && i < units.length - 1) { size /= 1024; i++ }
+  return `${size.toFixed(size >= 10 || i === 0 ? 0 : 1)} ${units[i]}`
 }
 
-const emptyPayload: KnowledgeBasePayload = { name: "", document_type: "pdf", description: "", document_url: "" }
+const statusMeta = (status?: ProcessingStatus | null) => {
+  switch (status) {
+    case "processing":
+      return { label: "Processing", className: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400", Icon: Loader2, spin: true }
+    case "completed":
+      return { label: "Completed", className: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400", Icon: CheckCircle2, spin: false }
+    case "failed":
+      return { label: "Failed", className: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400", Icon: AlertCircle, spin: false }
+    case "pending":
+    default:
+      return { label: status ? "Pending" : "No document", className: "bg-muted text-muted-foreground", Icon: Clock, spin: false }
+  }
+}
 
 export default function KnowledgeBasePage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingKb, setEditingKb] = useState<KnowledgeBase | null>(null)
   const [deletingKb, setDeletingKb] = useState<KnowledgeBase | null>(null)
-  const [form, setForm] = useState<KnowledgeBasePayload>(emptyPayload)
+  const [form, setForm] = useState<FormState>(emptyForm)
+  const [file, setFile] = useState<File | null>(null)
+  const [fileError, setFileError] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const { data, isLoading } = useKnowledgeBases()
+  const { data, isLoading, isFetching, refetch } = useKnowledgeBases()
   const createKb = useCreateKnowledgeBase()
   const updateKb = useUpdateKnowledgeBase()
   const deleteKb = useDeleteKnowledgeBase()
@@ -61,49 +71,76 @@ export default function KnowledgeBasePage() {
   const knowledgeBases = data?.data ?? []
 
   const filtered = searchQuery
-    ? knowledgeBases.filter(
-        (kb) =>
-          kb.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          kb.document_type.toLowerCase().includes(searchQuery.toLowerCase())
-      )
+    ? knowledgeBases.filter((kb) => kb.name.toLowerCase().includes(searchQuery.toLowerCase()))
     : knowledgeBases
+
+  const withDocCount = knowledgeBases.filter((kb) => !!kb.file_name).length
+  const processingCount = knowledgeBases.filter(
+    (kb) => kb.processing_status === "pending" || kb.processing_status === "processing"
+  ).length
+
+  const resetFormState = () => {
+    setForm(emptyForm)
+    setFile(null)
+    setFileError(null)
+    if (fileInputRef.current) fileInputRef.current.value = ""
+  }
 
   const openCreate = () => {
     setEditingKb(null)
-    setForm(emptyPayload)
+    resetFormState()
     setIsDialogOpen(true)
   }
 
   const openEdit = (kb: KnowledgeBase) => {
     setEditingKb(kb)
-    setForm({
-      name: kb.name,
-      document_type: kb.document_type,
-      description: kb.description ?? "",
-      document_url: kb.document_url ?? "",
-    })
+    setForm({ name: kb.name, description: kb.description ?? "" })
+    setFile(null)
+    setFileError(null)
+    if (fileInputRef.current) fileInputRef.current.value = ""
     setIsDialogOpen(true)
   }
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selected = e.target.files?.[0] ?? null
+    if (!selected) { setFile(null); setFileError(null); return }
+    if (selected.type !== "application/pdf") {
+      setFileError("Only PDF files are accepted")
+      setFile(null)
+      return
+    }
+    if (selected.size > MAX_FILE_SIZE) {
+      setFileError("File must not exceed 50 MB")
+      setFile(null)
+      return
+    }
+    setFileError(null)
+    setFile(selected)
+  }
+
   const handleSubmit = () => {
-    if (!form.name.trim() || !form.document_type) return
-    const payload: KnowledgeBasePayload = {
+    if (!form.name.trim()) return
+    if (!editingKb && !file) return
+    const basePayload = {
       name: form.name,
-      document_type: form.document_type,
       description: form.description || undefined,
-      document_url: form.document_url || undefined,
+      ...(file ? { file } : {}),
     }
     if (editingKb) {
       updateKb.mutate(
-        { id: editingKb.id, data: payload },
-        { onSuccess: () => { setIsDialogOpen(false); setEditingKb(null) } }
+        { id: editingKb.id, data: basePayload },
+        { onSuccess: () => { setIsDialogOpen(false); setEditingKb(null); resetFormState() } }
       )
     } else {
-      createKb.mutate(payload, { onSuccess: () => setIsDialogOpen(false) })
+      createKb.mutate(basePayload, {
+        onSuccess: () => { setIsDialogOpen(false); resetFormState() },
+      })
     }
   }
 
   const isPending = createKb.isPending || updateKb.isPending
+  const canSubmit =
+    !!form.name.trim() && !fileError && (editingKb ? true : !!file) && !isPending
 
   return (
     <div className="space-y-6">
@@ -113,10 +150,16 @@ export default function KnowledgeBasePage() {
           <h1 className="text-2xl font-semibold text-foreground">Knowledge Base</h1>
           <p className="text-sm text-muted-foreground mt-1">Train your AI agents with your business data</p>
         </div>
-        <Button className="bg-primary hover:bg-primary/90" onClick={openCreate}>
-          <Plus className="w-4 h-4 mr-2" />
-          New Knowledge Base
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={() => refetch()} disabled={isFetching}>
+            <RefreshCw className={`w-4 h-4 mr-2 ${isFetching ? "animate-spin" : ""}`} />
+            Refresh
+          </Button>
+          <Button className="bg-primary hover:bg-primary/90" onClick={openCreate}>
+            <Plus className="w-4 h-4 mr-2" />
+            New Knowledge Base
+          </Button>
+        </div>
       </div>
 
       {/* Stats */}
@@ -139,7 +182,7 @@ export default function KnowledgeBasePage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">With Document</p>
-                <p className="text-2xl font-semibold">{knowledgeBases.filter((kb) => kb.document_url).length}</p>
+                <p className="text-2xl font-semibold">{withDocCount}</p>
               </div>
               <div className="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center">
                 <Database className="w-5 h-5 text-blue-500" />
@@ -151,11 +194,11 @@ export default function KnowledgeBasePage() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">URL Sources</p>
-                <p className="text-2xl font-semibold">{knowledgeBases.filter((kb) => kb.document_type === "url").length}</p>
+                <p className="text-sm text-muted-foreground">Processing</p>
+                <p className="text-2xl font-semibold">{processingCount}</p>
               </div>
-              <div className="w-10 h-10 rounded-lg bg-green-500/10 flex items-center justify-center">
-                <Globe className="w-5 h-5 text-green-500" />
+              <div className="w-10 h-10 rounded-lg bg-amber-500/10 flex items-center justify-center">
+                <Loader2 className={`w-5 h-5 text-amber-500 ${processingCount > 0 ? "animate-spin" : ""}`} />
               </div>
             </div>
           </CardContent>
@@ -199,7 +242,8 @@ export default function KnowledgeBasePage() {
           ) : (
             <div className="space-y-3">
               {filtered.map((kb) => {
-                const Icon = docTypeIcon(kb.document_type)
+                const status = statusMeta(kb.processing_status)
+                const StatusIcon = status.Icon
                 return (
                   <div
                     key={kb.id}
@@ -207,31 +251,35 @@ export default function KnowledgeBasePage() {
                   >
                     <div className="flex items-center gap-4 min-w-0">
                       <div className="w-10 h-10 rounded-lg bg-background flex items-center justify-center border shrink-0">
-                        <Icon className="w-5 h-5 text-muted-foreground" />
+                        <FileText className="w-5 h-5 text-muted-foreground" />
                       </div>
                       <div className="min-w-0">
                         <h4 className="font-medium text-foreground">{kb.name}</h4>
-                        <div className="flex items-center gap-2 mt-1 flex-wrap">
+                        <div className="flex items-center gap-3 mt-1 flex-wrap text-xs text-muted-foreground">
                           {kb.description && (
-                            <span className="text-xs text-muted-foreground truncate max-w-xs">{kb.description}</span>
+                            <span className="truncate max-w-xs">{kb.description}</span>
                           )}
-                          {kb.document_url && (
-                            <a
-                              href={kb.document_url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="flex items-center gap-1 text-xs text-primary hover:underline truncate max-w-xs"
-                            >
-                              <Link2 className="w-3 h-3 shrink-0" />
-                              {kb.document_url}
-                            </a>
+                          {kb.file_name && (
+                            <span className="flex items-center gap-1 truncate max-w-xs">
+                              <FileText className="w-3 h-3 shrink-0" />
+                              {kb.file_name}
+                              <span className="opacity-70">({formatBytes(kb.file_size)})</span>
+                            </span>
                           )}
+                          {typeof kb.chunks_count === "number" && kb.chunks_count > 0 && (
+                            <span>{kb.chunks_count} chunks</span>
+                          )}
+                          <span className="flex items-center gap-1">
+                            <Users className="w-3 h-3" />
+                            {kb.agents_count ?? 0} {kb.agents_count === 1 ? "agent" : "agents"}
+                          </span>
                         </div>
                       </div>
                     </div>
                     <div className="flex items-center gap-3 shrink-0">
-                      <Badge variant="secondary" className={docTypeBadgeClass(kb.document_type)}>
-                        {kb.document_type.toUpperCase()}
+                      <Badge variant="secondary" className={status.className}>
+                        <StatusIcon className={`w-3 h-3 mr-1 ${status.spin ? "animate-spin" : ""}`} />
+                        {status.label}
                       </Badge>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -261,12 +309,14 @@ export default function KnowledgeBasePage() {
       </Card>
 
       {/* Create / Edit Dialog */}
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+      <Dialog open={isDialogOpen} onOpenChange={(open) => { setIsDialogOpen(open); if (!open) resetFormState() }}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>{editingKb ? "Edit Knowledge Base" : "Create Knowledge Base"}</DialogTitle>
             <DialogDescription>
-              {editingKb ? "Update the knowledge base details." : "Add a new knowledge base to train your AI agents."}
+              {editingKb
+                ? "Update the knowledge base. Upload a new PDF to replace the existing document."
+                : "Upload a PDF to train your AI agents with its content."}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-2">
@@ -279,22 +329,6 @@ export default function KnowledgeBasePage() {
               />
             </div>
             <div className="space-y-2">
-              <Label>Document Type *</Label>
-              <Select
-                value={form.document_type}
-                onValueChange={(v) => setForm((f) => ({ ...f, document_type: v }))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select type" />
-                </SelectTrigger>
-                <SelectContent>
-                  {DOCUMENT_TYPES.map((t) => (
-                    <SelectItem key={t} value={t}>{t.toUpperCase()}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
               <Label>Description</Label>
               <Input
                 placeholder="Optional description"
@@ -303,18 +337,43 @@ export default function KnowledgeBasePage() {
               />
             </div>
             <div className="space-y-2">
-              <Label>Document URL</Label>
-              <Input
-                type="url"
-                placeholder="https://example.com/document.pdf"
-                value={form.document_url}
-                onChange={(e) => setForm((f) => ({ ...f, document_url: e.target.value }))}
+              <Label>PDF Document {editingKb ? "(optional — replaces current file)" : "*"}</Label>
+              {editingKb?.file_name && !file && (
+                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                  <FileText className="w-3 h-3" />
+                  Current: {editingKb.file_name} ({formatBytes(editingKb.file_size)})
+                </p>
+              )}
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isPending}
+                >
+                  <Upload className="w-4 h-4 mr-2" />
+                  {file ? "Change file" : "Select PDF"}
+                </Button>
+                {file && (
+                  <span className="text-xs text-muted-foreground truncate">
+                    {file.name} ({formatBytes(file.size)})
+                  </span>
+                )}
+              </div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="application/pdf"
+                className="hidden"
+                onChange={handleFileChange}
               />
+              {fileError && <p className="text-xs text-destructive">{fileError}</p>}
+              <p className="text-xs text-muted-foreground">PDF only — max 50 MB.</p>
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Cancel</Button>
-            <Button onClick={handleSubmit} disabled={!form.name.trim() || !form.document_type || isPending}>
+            <Button variant="outline" onClick={() => { setIsDialogOpen(false); resetFormState() }}>Cancel</Button>
+            <Button onClick={handleSubmit} disabled={!canSubmit}>
               {isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
               {editingKb ? "Save Changes" : "Create"}
             </Button>

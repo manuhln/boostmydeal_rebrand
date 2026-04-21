@@ -201,7 +201,7 @@ export default function BillingPage() {
               </TableHeader>
               <TableBody>
                 {payments.map((payment, idx) => (
-                  <TableRow key={payment.id ?? payment.stripe_payment_intent_id ?? `row-${idx}`}>
+                  <TableRow className="px-4 " key={payment.id ?? payment.stripe_payment_intent_id ?? `row-${idx}`}>
                     <TableCell className="font-medium">
                       {payment.description ?? "Credit purchase"}
                     </TableCell>
@@ -277,11 +277,10 @@ export default function BillingPage() {
                 <button
                   key={pkg.credits}
                   onClick={() => { setSelectedPackage(pkg); setCustomCredits("") }}
-                  className={`p-3 rounded-lg border text-left transition-colors ${
-                    selectedPackage.credits === pkg.credits && !customCredits
+                  className={`p-3 rounded-lg border text-left transition-colors ${selectedPackage.credits === pkg.credits && !customCredits
                       ? "border-primary bg-primary/5"
                       : "border-border hover:border-primary/50"
-                  }`}
+                    }`}
                 >
                   <p className="font-semibold">{pkg.price}</p>
                   <p className="text-sm text-muted-foreground">{pkg.label}</p>

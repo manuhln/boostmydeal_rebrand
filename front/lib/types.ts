@@ -1,4 +1,4 @@
-import { Tenant } from './types';
+
 // ============================================
 // Authentication & User Types
 // ============================================
@@ -684,7 +684,7 @@ export interface WorkflowExecution {
   assistantName?: string
   phoneNumber?: string
   triggerType: WorkflowTriggerType
-  status: "RUNNING" | "COMPLETED" | "FAILED"
+  status?: "RUNNING" | "COMPLETED" | "FAILED"
   duration?: number
   startedAt: string
   completedAt?: string
@@ -708,16 +708,26 @@ export interface AutomationRule {
 // Knowledge Base Types
 // ============================================
 
+export type ProcessingStatus = "pending" | "processing" | "completed" | "failed"
+
 export interface KnowledgeBaseApiItem {
   id: string
   type: string
   attributes: {
     name: string
     description?: string
-    document_url?: string
     document_type: string
+    file_name?: string | null
+    file_size?: number | null
+    s3_url?: string | null
+    processing_status?: ProcessingStatus | null
+    chunks_count?: number | null
+    last_processed_at?: string | null
     created_at: string
     updated_at: string
+  }
+  relationships?: {
+    agents?: { data: Array<{ type: string; id: string }> }
   }
 }
 
@@ -725,17 +735,22 @@ export interface KnowledgeBase {
   id: string
   name: string
   description?: string
-  document_url?: string
   document_type: string
+  file_name?: string | null
+  file_size?: number | null
+  s3_url?: string | null
+  processing_status?: ProcessingStatus | null
+  chunks_count?: number | null
+  last_processed_at?: string | null
+  agents_count?: number
   created_at: string
   updated_at: string
 }
 
 export interface KnowledgeBasePayload {
   name: string
-  document_type: string
   description?: string
-  document_url?: string
+  file?: File
 }
 
 // ============================================

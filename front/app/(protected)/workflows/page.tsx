@@ -48,6 +48,7 @@ import {
 } from "lucide-react"
 import { formatDistanceToNow } from "date-fns"
 import { Workflow } from "@/lib/types"
+import { useWorkflows } from "@/hooks/use-workflow"
 
 // Mock data
 const mockWorkflows: Workflow[] = [
@@ -104,10 +105,11 @@ const mockWorkflows: Workflow[] = [
 
 export default function WorkflowsPage() {
   const router = useRouter()
+
   const [searchQuery, setSearchQuery] = useState("")
   const [workflows, setWorkflows] = useState<Workflow[]>(mockWorkflows)
   const [deleteWorkflow, setDeleteWorkflow] = useState<Workflow | null>(null)
-
+  const { data: worlflow } = useWorkflows();
   const filteredWorkflows = workflows.filter((workflow) =>
     workflow.name.toLowerCase().includes(searchQuery.toLowerCase())
   )
@@ -239,7 +241,7 @@ export default function WorkflowsPage() {
                 </TableRow>
               ) : (
                 filteredWorkflows.map((workflow) => (
-                  <TableRow key={workflow.id}>
+                  <TableRow className="px-4 " key={workflow.id}>
                     <TableCell>
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">

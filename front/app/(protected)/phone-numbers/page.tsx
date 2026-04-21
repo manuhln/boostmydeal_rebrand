@@ -277,7 +277,7 @@ export default function PhoneNumbersPage() {
                 </TableRow>
               ) : (
                 filtered.map((phone) => (
-                  <TableRow key={phone.id}>
+                  <TableRow className="px-4 " key={phone.id}>
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <Phone className="h-4 w-4 text-muted-foreground" />
@@ -344,13 +344,12 @@ export default function PhoneNumbersPage() {
                   type="button"
                   onClick={() => setField("provider", p)}
                   disabled={!!editingPhone}
-                  className={`p-3 rounded-lg border-2 text-left transition-colors ${
-                    form.provider === p
+                  className={`p-3 rounded-lg border-2 text-left transition-colors ${form.provider === p
                       ? p === "twilio"
                         ? "border-red-500 bg-red-50 dark:bg-red-900/20"
                         : "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
                       : "border-border hover:border-muted-foreground/40"
-                  } ${editingPhone ? "opacity-60 cursor-not-allowed" : "cursor-pointer"}`}
+                    } ${editingPhone ? "opacity-60 cursor-not-allowed" : "cursor-pointer"}`}
                 >
                   <p className="font-semibold capitalize">{p}</p>
                   <p className="text-xs text-muted-foreground mt-0.5">

@@ -287,7 +287,7 @@ export default function TeamPage() {
                     filteredMembers.map((member) => {
                       const displayName = fullName(member.first_name, member.last_name, member.email)
                       return (
-                        <TableRow key={member.id}>
+                        <TableRow className="px-4 " key={member.id}>
                           <TableCell>
                             <div className="flex items-center gap-3">
                               <Avatar className="h-9 w-9">
@@ -377,7 +377,7 @@ export default function TeamPage() {
                     </TableRow>
                   ) : (
                     filteredInvitations.map((inv) => (
-                      <TableRow key={inv.id}>
+                      <TableRow className="px-4 " key={inv.id}>
                         <TableCell>
                           <div>
                             <p className="font-medium">{inv.name ?? inv.email}</p>
