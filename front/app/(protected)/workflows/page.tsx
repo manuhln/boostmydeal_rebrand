@@ -2,7 +2,6 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -42,97 +41,41 @@ import {
   Trash2,
   GitBranch,
   Play,
-  Zap,
-  CheckCircle2,
-  AlertCircle
+  AlertCircle,
 } from "lucide-react"
 import { formatDistanceToNow } from "date-fns"
 import { Workflow } from "@/lib/types"
-import { useWorkflows } from "@/hooks/use-workflow"
+import { useDeleteWorkflow, useToggleWorkflow, useWorkflows } from "@/hooks/use-workflow"
 
-// Mock data
-const mockWorkflows: Workflow[] = [
-  {
-    id: "wf-1",
-    name: "New Lead Follow-up",
-    description: "Automatically process new leads after call",
-    is_active: true,
-    nodes: [
-      { id: "TRIGGER-1", type: "TRIGGER", position: { x: 250, y: 50 }, data: { label: "Trigger", config: { triggerType: "PHONE_CALL_ENDED" } } },
-      { id: "AI_AGENT-1", type: "AI_AGENT", position: { x: 250, y: 150 }, data: { label: "AI Agent", config: {} } },
-      { id: "HUBSPOT_TOOL-1", type: "HUBSPOT_TOOL", position: { x: 250, y: 250 }, data: { label: "HubSpot", config: { action: "create_deal" } } },
-    ],
-    edges: [
-      { id: "e1", source: "TRIGGER-1", target: "AI_AGENT-1" },
-      { id: "e2", source: "AI_AGENT-1", target: "HUBSPOT_TOOL-1" },
-    ],
-    created_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-    updated_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: "wf-2",
 
-    name: "Meeting Reminder Email",
-    description: "Send confirmation emails after meetings are booked",
-    is_active: true,
-    nodes: [
-      { id: "TRIGGER-1", type: "TRIGGER", position: { x: 250, y: 50 }, data: { label: "Trigger", config: { triggerType: "CALL_SUMMARY" } } },
-      { id: "EMAIL_TOOL-1", type: "EMAIL_TOOL", position: { x: 250, y: 150 }, data: { label: "Send Email", config: {} } },
-    ],
-    edges: [
-      { id: "e1", source: "TRIGGER-1", target: "EMAIL_TOOL-1" },
-    ],
-    created_at: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
-    updated_at: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: "wf-3",
-
-    name: "Zoho CRM Sync",
-    description: "Sync call data to Zoho CRM",
-    is_active: false,
-    nodes: [
-      { id: "TRIGGER-1", type: "TRIGGER", position: { x: 250, y: 50 }, data: { label: "Trigger", config: { triggerType: "TRANSCRIPT_COMPLETE" } } },
-      { id: "ZOHO_TOOL-1", type: "ZOHO_TOOL", position: { x: 250, y: 150 }, data: { label: "Zoho CRM", config: { action: "update_deal" } } },
-    ],
-    edges: [
-      { id: "e1", source: "TRIGGER-1", target: "ZOHO_TOOL-1" },
-    ],
-    created_at: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
-    updated_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-]
 
 export default function WorkflowsPage() {
-  const router = useRouter()
-
   const [searchQuery, setSearchQuery] = useState("")
-  const [workflows, setWorkflows] = useState<Workflow[]>(mockWorkflows)
   const [deleteWorkflow, setDeleteWorkflow] = useState<Workflow | null>(null)
-  const { data: worlflow } = useWorkflows();
-  const filteredWorkflows = workflows.filter((workflow) =>
-    workflow.name.toLowerCase().includes(searchQuery.toLowerCase())
+
+  const { data: workflows, isLoading } = useWorkflows()
+  const deleteMutation = useDeleteWorkflow()
+  const toggleMutation = useToggleWorkflow()
+
+  // TODO(workflow-name-filter): the backend doesn't expose a `name` filter on /workflows
+  // (only `is_active` and `trigger_type`). Keeping client-side filtering for now.
+  const filteredWorkflows = (workflows?.data ?? []).filter((w) =>
+    w.name.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
-  const activeCount = workflows.filter((w) => w.is_active).length
-  const totalExecutions = 4867 // Mock stat
-  const successRate = 87 // Mock stat
-  const failedToday = 12 // Mock stat
+  const totalCount = workflows?.data?.length ?? 0
+  const activeCount = workflows?.data?.filter((w) => w.is_active).length ?? 0
+  const inactiveCount = workflows?.data?.filter((w) => !w.is_active).length ?? 0
 
-  const handleToggleWorkflow = (workflowId: string) => {
-    setWorkflows((prev) =>
-      prev.map((w) =>
-        w.id === workflowId ? { ...w, is_active: !w.is_active } : w
-      )
-    )
-    // API call: POST /api/workflows/:id/toggle
+  const handleToggleWorkflow = (workflowId: string, active: boolean) => {
+    toggleMutation.mutate({ id: workflowId, active })
   }
 
   const handleDeleteWorkflow = () => {
     if (!deleteWorkflow) return
-    setWorkflows((prev) => prev.filter((w) => w.id !== deleteWorkflow.id))
-    setDeleteWorkflow(null)
-    // API call: DELETE /api/workflows/:id
+    deleteMutation.mutate(deleteWorkflow.id, {
+      onSuccess: () => setDeleteWorkflow(null),
+    })
   }
 
   return (
@@ -154,7 +97,20 @@ export default function WorkflowsPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">Total Workflows</p>
+                <p className="text-2xl font-semibold">{totalCount}</p>
+              </div>
+              <div className="w-10 h-10 rounded-lg bg-green-500/10 flex items-center justify-center">
+                <Play className="w-5 h-5 text-green-500" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
@@ -168,38 +124,13 @@ export default function WorkflowsPage() {
             </div>
           </CardContent>
         </Card>
+
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Total Executions</p>
-                <p className="text-2xl font-semibold">{totalExecutions.toLocaleString()}</p>
-              </div>
-              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                <Zap className="w-5 h-5 text-primary" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Success Rate</p>
-                <p className="text-2xl font-semibold">{successRate}%</p>
-              </div>
-              <div className="w-10 h-10 rounded-lg bg-green-500/10 flex items-center justify-center">
-                <CheckCircle2 className="w-5 h-5 text-green-500" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Failed Today</p>
-                <p className="text-2xl font-semibold">{failedToday}</p>
+                <p className="text-sm text-muted-foreground">Inactive Workflows</p>
+                <p className="text-2xl font-semibold">{inactiveCount}</p>
               </div>
               <div className="w-10 h-10 rounded-lg bg-red-500/10 flex items-center justify-center">
                 <AlertCircle className="w-5 h-5 text-red-500" />
@@ -233,10 +164,18 @@ export default function WorkflowsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredWorkflows.length === 0 ? (
+              {isLoading ? (
+                [1, 2, 3].map((i) => (
+                  <TableRow key={`skeleton-${i}`}>
+                    <TableCell colSpan={4} className="py-3">
+                      <div className="h-12 bg-muted animate-pulse rounded" />
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : filteredWorkflows.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
-                    No workflows found
+                    {searchQuery ? "No workflows match your search" : "No workflows found"}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -261,7 +200,7 @@ export default function WorkflowsPage() {
                       <div className="flex items-center gap-3">
                         <Switch
                           checked={workflow.is_active}
-                          onCheckedChange={() => handleToggleWorkflow(workflow.id)}
+                          onCheckedChange={() => handleToggleWorkflow(workflow.id, !workflow.is_active)}
                         />
                         <Badge variant={workflow.is_active ? "default" : "secondary"}>
                           {workflow.is_active ? "Active" : "Inactive"}
@@ -269,7 +208,7 @@ export default function WorkflowsPage() {
                       </div>
                     </TableCell>
                     <TableCell className="text-muted-foreground">
-                      {formatDistanceToNow(new Date(workflow.updated_at), { addSuffix: true })}
+                      {workflow.updated_at ? formatDistanceToNow(new Date(workflow.updated_at), { addSuffix: true }) : "—"}
                     </TableCell>
                     <TableCell className="text-right">
                       <DropdownMenu>

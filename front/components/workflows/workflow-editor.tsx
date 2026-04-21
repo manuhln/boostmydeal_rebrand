@@ -1,5 +1,9 @@
 "use client"
 
+// TODO(workflow-editor-ux): node `description` and `conditions` are not exposed in the UI
+// yet — the adapter in lib/workflow-graph.ts sends them as null. Add fields in the node
+// config panel (around the selected-node sidebar) to let users edit them.
+
 import { useState, useCallback, useRef, useMemo } from "react"
 import {
   ReactFlow,
@@ -835,12 +839,12 @@ export function WorkflowEditor({
     const centerY = (nodes.length * 100) + 100
 
     const newNode: Node = {
-      id: `${type}-${Date.now()}`,
+      id: crypto.randomUUID(),
       type,
       position: { x: centerX, y: centerY },
-      data: { 
+      data: {
         label: config.label,
-        config: {} 
+        config: {}
       },
     }
 

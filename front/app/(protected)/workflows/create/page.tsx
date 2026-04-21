@@ -7,47 +7,32 @@ import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"
 import { WorkflowEditor } from "@/components/workflows/workflow-editor"
 import type { Node, Edge } from "reactflow"
+import { useCreateWorkflow, useSaveWorkflowGraph } from "@/hooks/use-workflow"
+import { toBackendGraph } from "@/lib/workflow-graph"
 
 export default function CreateWorkflowPage() {
   const router = useRouter()
   const [workflowName, setWorkflowName] = useState("Untitled Workflow")
-  const [isSaving, setIsSaving] = useState(false)
+  const createMutation = useCreateWorkflow()
+  const saveGraphMutation = useSaveWorkflowGraph()
 
   const handleSave = async (nodes: Node[], edges: Edge[]) => {
-    setIsSaving(true)
-    
+    if (!workflowName.trim()) return
     try {
-      // Transform nodes/edges to API format
-      const payload = {
-        name: workflowName,
-        isActive: true,
-        nodes: nodes.map((node) => ({
-          id: node.id,
-          type: node.type,
-          position: node.position,
-          data: node.data.config || {},
-        })),
-        edges: edges.map((edge) => ({
-          id: edge.id,
-          source: edge.source,
-          target: edge.target,
-          sourceHandle: edge.sourceHandle,
-        })),
+      const res = await createMutation.mutateAsync({ name: workflowName })
+      if (nodes.length > 0) {
+        await saveGraphMutation.mutateAsync({
+          id: res.workflow.id,
+          data: toBackendGraph(nodes, edges),
+        })
       }
-
-      // API call: POST /api/workflows
-      console.log("[v0] Saving workflow:", payload)
-      
-      // Simulate API delay
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-      
       router.push("/workflows")
-    } catch (error) {
-      console.error("[v0] Failed to save workflow:", error)
-    } finally {
-      setIsSaving(false)
+    } catch (err) {
+      console.error("Failed to save workflow:", err)
     }
   }
+
+  const isSaving = createMutation.isPending || saveGraphMutation.isPending
 
   return (
     <div className="space-y-4">

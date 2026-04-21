@@ -13,9 +13,7 @@ export default function DashboardPage() {
       <main className="flex-1 p-4 md:p-6 ">
         <DashboardHeader />
         <div className="mt-6 space-y-6">
-          {/* Stats Cards */}
           <DashboardStats />
-          {/* Charts Row */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2">
               <CallsChart />

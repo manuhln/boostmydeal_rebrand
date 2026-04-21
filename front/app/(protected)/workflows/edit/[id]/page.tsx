@@ -1,154 +1,70 @@
 "use client"
 
-import { useState, useEffect, use } from "react"
+import { useEffect, useState, use } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, Loader2 } from "lucide-react"
 import { WorkflowEditor } from "@/components/workflows/workflow-editor"
 import type { Node, Edge } from "reactflow"
-import { Workflow } from "@/lib/types"
+import { useSaveWorkflowGraph, useUpdateWorkflow, useWorkflow } from "@/hooks/use-workflow"
+import type { WorkflowNode } from "@/lib/types"
+import { toBackendGraph } from "@/lib/workflow-graph"
 
-// Mock data - in real app, this would come from API
-const mockWorkflows: Record<string, Workflow> = {
-  "wf-1": {
-    id: "wf-1",
-    organizationId: "org-1",
-    name: "New Lead Follow-up",
-    description: "Automatically process new leads after call",
-    isActive: true,
-    nodes: [
-      { id: "TRIGGER-1", type: "TRIGGER", position: { x: 250, y: 50 }, data: { label: "Trigger", config: { triggerType: "PHONE_CALL_ENDED" } } },
-      { id: "AI_AGENT-1", type: "AI_AGENT", position: { x: 250, y: 150 }, data: { label: "AI Agent", config: { inputField: "transcript", prompt: "Analyze the call and extract key points" } } },
-      { id: "HUBSPOT_TOOL-1", type: "HUBSPOT_TOOL", position: { x: 250, y: 250 }, data: { label: "HubSpot", config: { action: "create_deal", dealName: "{{lead_name}}" } } },
-    ],
-    edges: [
-      { id: "e1", source: "TRIGGER-1", target: "AI_AGENT-1" },
-      { id: "e2", source: "AI_AGENT-1", target: "HUBSPOT_TOOL-1" },
-    ],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+// Convert a backend WorkflowNode (flat shape: node_type, position_x/y, name) into a
+// React Flow Node (nested shape: type, position: {x,y}, data: {label, config}).
+const toReactFlowNode = (node: WorkflowNode): Node => ({
+  id: node.id,
+  type: node.node_type,
+  position: { x: node.position_x, y: node.position_y },
+  data: {
+    label: node.name,
+    // TODO(workflow-graph-persistence): backend migration doesn't store `config` yet.
+    config: {},
   },
-  "wf-2": {
-    id: "wf-2",
-    organizationId: "org-1",
-    name: "Meeting Reminder Email",
-    description: "Send confirmation emails after meetings are booked",
-    isActive: true,
-    nodes: [
-      { id: "TRIGGER-1", type: "TRIGGER", position: { x: 250, y: 50 }, data: { label: "Trigger", config: { triggerType: "CALL_SUMMARY" } } },
-      { id: "EMAIL_TOOL-1", type: "EMAIL_TOOL", position: { x: 250, y: 150 }, data: { label: "Send Email", config: { recipient: "{{lead_email}}", subject: "Meeting Confirmation", body: "Thank you for scheduling a meeting with us!" } } },
-    ],
-    edges: [
-      { id: "e1", source: "TRIGGER-1", target: "EMAIL_TOOL-1" },
-    ],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  "wf-3": {
-    id: "wf-3",
-    organizationId: "org-1",
-    name: "Zoho CRM Sync",
-    description: "Sync call data to Zoho CRM",
-    isActive: false,
-    nodes: [
-      { id: "TRIGGER-1", type: "TRIGGER", position: { x: 250, y: 50 }, data: { label: "Trigger", config: { triggerType: "TRANSCRIPT_COMPLETE" } } },
-      { id: "ZOHO_TOOL-1", type: "ZOHO_TOOL", position: { x: 250, y: 150 }, data: { label: "Zoho CRM", config: { action: "update_deal" } } },
-    ],
-    edges: [
-      { id: "e1", source: "TRIGGER-1", target: "ZOHO_TOOL-1" },
-    ],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-}
+})
+
+// Backend has no `edges` table — topology is encoded as `next_node_id` pointers on each node.
+// Derive edges from those pointers for the initial React Flow view.
+const deriveEdges = (nodes: WorkflowNode[]): Edge[] =>
+  nodes
+    .filter((n) => !!n.next_node_id)
+    .map((n) => ({
+      id: `${n.id}->${n.next_node_id}`,
+      source: n.id,
+      target: n.next_node_id as string,
+      animated: true,
+    }))
 
 export default function EditWorkflowPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
   const router = useRouter()
-  const [workflow, setWorkflow] = useState<Workflow | null>(null)
   const [workflowName, setWorkflowName] = useState("")
-  const [isLoading, setIsLoading] = useState(true)
-  const [isSaving, setIsSaving] = useState(false)
 
+  const { data: workflow, isLoading } = useWorkflow(id)
+  const updateMutation = useUpdateWorkflow()
+  const saveGraphMutation = useSaveWorkflowGraph()
+
+  // Prefill the editable name once the workflow is loaded.
   useEffect(() => {
-    // Fetch workflow data
-    // API call: GET /api/workflows/:id
-    const fetchWorkflow = async () => {
-      setIsLoading(true)
-      try {
-        // Simulate API delay
-        await new Promise((resolve) => setTimeout(resolve, 500))
-        
-        const data = mockWorkflows[id]
-        if (data) {
-          setWorkflow(data)
-          setWorkflowName(data.name)
-        }
-      } catch (error) {
-        console.error("[v0] Failed to fetch workflow:", error)
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    fetchWorkflow()
-  }, [id])
+    if (workflow) setWorkflowName(workflow.name)
+  }, [workflow])
 
   const handleSave = async (nodes: Node[], edges: Edge[]) => {
-    setIsSaving(true)
-    
+    if (!workflowName.trim()) return
     try {
-      // Transform nodes/edges to API format
-      const payload = {
-        name: workflowName,
-        isActive: workflow?.isActive ?? true,
-        nodes: nodes.map((node) => ({
-          id: node.id,
-          type: node.type,
-          position: node.position,
-          data: node.data.config || {},
-        })),
-        edges: edges.map((edge) => ({
-          id: edge.id,
-          source: edge.source,
-          target: edge.target,
-          sourceHandle: edge.sourceHandle,
-        })),
-      }
-
-      // API call: PUT /api/workflows/:id
-      console.log("[v0] Updating workflow:", payload)
-      
-      // Simulate API delay
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-      
+      await updateMutation.mutateAsync({ id, data: { name: workflowName } })
+      await saveGraphMutation.mutateAsync({
+        id,
+        data: toBackendGraph(nodes, edges),
+      })
       router.push("/workflows")
-    } catch (error) {
-      console.error("[v0] Failed to update workflow:", error)
-    } finally {
-      setIsSaving(false)
+    } catch (err) {
+      console.error("Failed to update workflow:", err)
     }
   }
 
-  // Transform workflow nodes to React Flow format
-  const initialNodes: Node[] = workflow?.nodes.map((node) => ({
-    id: node.id,
-    type: node.type,
-    position: node.position,
-    data: {
-      label: node.data.label,
-      config: node.data.config,
-    },
-  })) || []
-
-  const initialEdges: Edge[] = workflow?.edges.map((edge) => ({
-    id: edge.id,
-    source: edge.source,
-    target: edge.target,
-    sourceHandle: edge.sourceHandle,
-    animated: true,
-  })) || []
+  const isSaving = updateMutation.isPending || saveGraphMutation.isPending
 
   if (isLoading) {
     return (
@@ -173,6 +89,9 @@ export default function EditWorkflowPage({ params }: { params: Promise<{ id: str
       </div>
     )
   }
+
+  const initialNodes: Node[] = (workflow.nodes ?? []).map(toReactFlowNode)
+  const initialEdges: Edge[] = deriveEdges(workflow.nodes ?? [])
 
   return (
     <div className="space-y-4">

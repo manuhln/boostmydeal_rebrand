@@ -558,105 +558,135 @@ export interface TranscriptionSegment {
 // Workflow Types
 // ============================================
 
+export type WorkflowTriggerType =
+  | "phone_call_connected"
+  | "transcript_complete"
+  | "call_summary"
+  | "phone_call_ended"
+  | "live_transcript"
+  | "manual"
+
+export type WorkflowNodeType =
+  | "trigger"
+  | "ai_agent"
+  | "condition"
+  | "email_tool"
+  | "hubspot_tool"
+  | "zoho_tool"
+  | "outbound_call"
+  | "webhook_tool"
+
+export type WorkflowExecutionStatus = "pending" | "running" | "completed" | "failed"
+
+export interface WorkflowNode {
+  id: string
+  workflow_id: string
+  node_type: WorkflowNodeType
+  name: string
+  description?: string | null
+  position_x: number
+  position_y: number
+  next_node_id?: string | null
+  created_at?: string
+  updated_at?: string
+}
+
 export interface Workflow {
   id: string
   name: string
   description?: string | null
   is_active: boolean
-  trigger_type?: string | null
-  trigger_config?: string[] | null
+  trigger_type?: WorkflowTriggerType | null
+  trigger_config?: Record<string, unknown> | null
   nodes?: WorkflowNode[]
-  edges?: WorkflowEdge[]
   created_at?: string
   updated_at?: string
 }
 
-export interface WorkflowListResponse {
-  data: Workflow[]
-  meta?: {
-    current_page: number
-    last_page: number
-    per_page: number
-    total: number
-  }
+export interface LaravelPaginated<T> {
+  current_page: number
+  data: T[]
+  first_page_url: string
+  from: number | null
+  last_page: number
+  last_page_url: string
+  links: Array<{ url: string | null; label: string; active: boolean }>
+  next_page_url: string | null
+  path: string
+  per_page: number
+  prev_page_url: string | null
+  to: number | null
+  total: number
 }
+
+export type WorkflowListResponse = LaravelPaginated<Workflow>
 
 export interface WorkflowMutationResponse {
   message: string
   workflow: Workflow
 }
 
-export interface WorkflowExecution {
-  id: string
-  status: string
-  created_at: string
-}
-
 export interface CreateWorkflowPayload {
   name: string
   description?: string | null
   is_active?: boolean
-  trigger_type?: string | null
-  trigger_config?: string[] | null
+  trigger_type?: WorkflowTriggerType | null
+  trigger_config?: Record<string, unknown> | null
 }
 
-export interface UpdateWorkflowPayload {
-  name?: string
-  description?: string | null
-  is_active?: boolean
-  trigger_type?: string | null
-  trigger_config?: string[] | null
-}
+export type UpdateWorkflowPayload = Partial<CreateWorkflowPayload>
 
 export interface TriggerWorkflowPayload {
-  input_data?: string[]
+  input_data?: Record<string, unknown>
   call_id?: string
 }
 
-
-export interface WorkflowNode {
+export interface WorkflowExecution {
   id: string
-  type: WorkflowNodeType
-  position: { x: number; y: number }
-  data: WorkflowNodeData
+  workflow_id: string
+  call_id?: string | null
+  status: WorkflowExecutionStatus
+  input_data?: Record<string, unknown> | null
+  output_data?: Record<string, unknown> | null
+  error_message?: Record<string, unknown> | null
+  started_at?: string | null
+  completed_at?: string | null
+  created_at: string
+  updated_at: string
 }
 
-export interface WorkflowNodeData {
-  label: string
-  config: Record<string, unknown>
+export type WorkflowExecutionListResponse = LaravelPaginated<WorkflowExecution>
+
+export interface TriggerWorkflowResponse {
+  message: string
+  execution: WorkflowExecution
 }
 
-export interface WorkflowEdge {
+export interface SaveWorkflowGraphNode {
   id: string
-  source: string
-  target: string
-  sourceHandle?: string
+  node_type: WorkflowNodeType
+  name: string
+  description?: string | null
+  position_x: number
+  position_y: number
+  config?: Record<string, unknown> | null
+  conditions?: Record<string, unknown> | null
+  next_node_id?: string | null
+  true_node_id?: string | null
+  false_node_id?: string | null
 }
 
-export type WorkflowNodeType =
-  | "TRIGGER"
-  | "AI_AGENT"
-  | "EMAIL_TOOL"
-  | "HUBSPOT_TOOL"
-  | "ZOHO_TOOL"
-
-export type WorkflowTriggerType =
-  | "PHONE_CALL_CONNECTED"
-  | "TRANSCRIPT_COMPLETE"
-  | "CALL_SUMMARY"
-  | "PHONE_CALL_ENDED"
-  | "LIVE_TRANSCRIPT"
-  | "MANUAL"
-  | "WEBHOOK"
+export interface SaveWorkflowGraphPayload {
+  nodes: SaveWorkflowGraphNode[]
+}
 
 export const WORKFLOW_TRIGGER_TYPES: { value: WorkflowTriggerType; label: string }[] = [
-  { value: "PHONE_CALL_CONNECTED", label: "Phone Call Connected" },
-  { value: "TRANSCRIPT_COMPLETE", label: "Transcript Complete" },
-  { value: "CALL_SUMMARY", label: "Call Summary" },
-  { value: "PHONE_CALL_ENDED", label: "Phone Call Ended" },
-  { value: "LIVE_TRANSCRIPT", label: "Live Transcript" },
-  { value: "MANUAL", label: "Manual Trigger" },
-  { value: "WEBHOOK", label: "Webhook" },
+  { value: "phone_call_connected", label: "Phone Call Connected" },
+  { value: "transcript_complete", label: "Transcript Complete" },
+  { value: "call_summary", label: "Call Summary" },
+  { value: "phone_call_ended", label: "Phone Call Ended" },
+  { value: "live_transcript", label: "Live Transcript" },
+  { value: "manual", label: "Manual Trigger" },
 ]
 
 export const HUBSPOT_ACTIONS = [
@@ -677,23 +707,14 @@ export const ZOHO_ACTIONS = [
   { value: "create_note", label: "Create Note" },
 ] as const
 
-export interface WorkflowExecution {
+// Front-only type: the backend encodes topology as `next_node_id` / `true_node_id` /
+// `false_node_id` pointers on each node (no edges table). The adapter in
+// lib/workflow-graph.ts converts between React Flow edges and backend pointers.
+export interface WorkflowEdge {
   id: string
-  workflowId: string
-  callId?: string
-  assistantName?: string
-  phoneNumber?: string
-  triggerType: WorkflowTriggerType
-  status?: "RUNNING" | "COMPLETED" | "FAILED"
-  duration?: number
-  startedAt: string
-  completedAt?: string
-  error?: string
-  nodeOutputs: Record<string, unknown>
-  callSessionPayloads?: {
-    timestamp: string
-    payload: Record<string, unknown>
-  }[]
+  source: string
+  target: string
+  sourceHandle?: string
 }
 
 export interface AutomationRule {
