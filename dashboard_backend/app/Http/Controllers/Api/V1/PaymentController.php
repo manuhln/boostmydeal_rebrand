@@ -28,7 +28,6 @@ class PaymentController extends Controller
     {
         $user = Auth::user();
         $credit = $user->credit ?? Credit::create([
-            'user_id' => $user->id,
             'balance' => 0,
             'total_purchased' => 0,
             'total_used' => 0,
@@ -252,7 +251,6 @@ class PaymentController extends Controller
         $user = Auth::user();
 
         $payments = Payment::query()
-            ->where('user_id', $user->id)
             ->when($request->has('status'), function ($query) use ($request) {
                 $query->where('status', $request->input('status'));
             })
@@ -273,7 +271,7 @@ class PaymentController extends Controller
      */
     public function show(Payment $payment): JsonResponse
     {
-        $payment->load(['user', 'invoice']);
+        $payment->load(['invoice']);
 
         return response()->json($payment);
     }

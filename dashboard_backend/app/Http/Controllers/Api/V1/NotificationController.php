@@ -47,7 +47,7 @@ class NotificationController extends Controller
                 'read_at',
             )
             ->defaultSort('-created_at')
-            ->paginate();
+            ->paginate($request->input('per_page', 15));
 
         return NotificationResource::collection($notifications);
     }

@@ -2,7 +2,8 @@
 
 namespace App\Http\Controllers\Api\V1;
 
-use App\Data\Api\V1\{AgentData, UpdateAgentData};
+use App\Data\Api\V1\AgentData;
+use App\Data\Api\V1\UpdateAgentData;
 use App\Http\Resources\Api\V1\AgentResource;
 use App\Models\Agent;
 use Illuminate\Http\JsonResponse;
@@ -45,7 +46,7 @@ class AgentController extends Controller
             )
             ->defaultSort('-created_at')
             ->allowedIncludes('phoneNumbers', 'knowledgeBases')
-            ->paginate();
+            ->paginate($request->input('per_page', 15));
 
         return AgentResource::collection($agents);
     }

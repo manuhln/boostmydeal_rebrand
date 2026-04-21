@@ -37,10 +37,7 @@ class DashboardController extends Controller
             ? Carbon::parse($request->input('end_date'))->endOfDay()
             : Carbon::now()->endOfDay();
 
-        $tenantId = tenant('id');
-
-        $metrics = Call::where('tenant_id', $tenantId)
-            ->whereBetween('created_at', [$startDate, $endDate])
+        $metrics = Call::whereBetween('created_at', [$startDate, $endDate])
             ->selectRaw('
                 COUNT(*) as total_calls,
                 COUNT(CASE WHEN status = ? THEN 1 END) as completed_calls,
@@ -97,8 +94,6 @@ class DashboardController extends Controller
 
         $groupBy = $request->input('group_by', 'day'); // 'day', 'week', 'month'
 
-        $tenantId = tenant('id');
-
         $dateFormat = match ($groupBy) {
             'hour' => 'YYYY-MM-DD HH24:00:00',
             'day' => 'YYYY-MM-DD',
@@ -107,8 +102,7 @@ class DashboardController extends Controller
             default => 'YYYY-MM-DD',
         };
 
-        $data = Call::where('tenant_id', $tenantId)
-            ->whereBetween('created_at', [$startDate, $endDate])
+        $data = Call::whereBetween('created_at', [$startDate, $endDate])
             ->selectRaw("
                 TO_CHAR(created_at, '{$dateFormat}') as date,
                 COUNT(*) as total_calls,
@@ -143,11 +137,8 @@ class DashboardController extends Controller
             ? Carbon::parse($request->input('end_date'))->endOfDay()
             : Carbon::now()->endOfDay();
 
-        $tenantId = tenant('id');
-
         $stats = DB::table('calls')
             ->join('agents', 'calls.agent_id', '=', 'agents.id')
-            ->where('calls.tenant_id', $tenantId)
             ->whereBetween('calls.created_at', [$startDate, $endDate])
             ->select([
                 'agents.id',
@@ -186,11 +177,8 @@ class DashboardController extends Controller
             ? Carbon::parse($request->input('end_date'))->endOfDay()
             : Carbon::now()->endOfDay();
 
-        $tenantId = tenant('id');
-
         $stats = DB::table('calls')
             ->join('phone_numbers', 'calls.phone_number_id', '=', 'phone_numbers.id')
-            ->where('calls.tenant_id', $tenantId)
             ->whereBetween('calls.created_at', [$startDate, $endDate])
             ->select([
                 'phone_numbers.id',

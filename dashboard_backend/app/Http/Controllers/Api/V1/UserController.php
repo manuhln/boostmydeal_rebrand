@@ -47,7 +47,7 @@ class UserController extends Controller
                 'created_at',
             )
             ->defaultSort('first_name')
-            ->paginate();
+            ->paginate($request->input('per_page', 15));
 
         return UserResource::collection($users);
     }

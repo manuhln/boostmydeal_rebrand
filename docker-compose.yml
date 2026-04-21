@@ -45,7 +45,6 @@ services:
       - pgsql
       - redis
       - typesense
-      - minio
 
   # PostgreSQL Database
   pgsql:
@@ -113,29 +112,6 @@ services:
       retries: 5
       timeout: 7s
 
-  # Minio Object Storage
-  minio:
-    image: "minio/minio:latest"
-    ports:
-      - "${FORWARD_MINIO_PORT:-9000}:9000"
-      - "${FORWARD_MINIO_CONSOLE_PORT:-8900}:8900"
-    environment:
-      MINIO_ROOT_USER: sail
-      MINIO_ROOT_PASSWORD: password
-    volumes:
-      - sail-minio:/data
-    networks:
-      - app-network
-    command: 'minio server /data --console-address ":8900"'
-    healthcheck:
-      test:
-        - CMD
-        - mc
-        - ready
-        - local
-      retries: 3
-      timeout: 5s
-
   # LiveKit Voice Agent (Worker)
   livekit-agent-worker:
     build:
@@ -184,6 +160,4 @@ volumes:
   sail-redis:
     driver: local
   sail-typesense:
-    driver: local
-  sail-minio:
     driver: local

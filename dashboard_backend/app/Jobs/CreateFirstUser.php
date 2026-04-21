@@ -42,7 +42,9 @@ class CreateFirstUser
             // ])->assignRole('owner');
 
             // tenancy()->end();
-            $centralUser = CentralUser::create([
+            $centralUser = CentralUser::firstOrCreate([
+                'email' => $userData['email']
+            ], [
                 'global_id' => (string) \Str::uuid7(),
                 'email' => $userData['email'],
                 'first_name' => $userData['first_name'],

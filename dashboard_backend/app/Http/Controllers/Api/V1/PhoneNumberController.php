@@ -48,7 +48,7 @@ class PhoneNumberController extends Controller
             )
             ->defaultSort('-created_at')
             ->allowedIncludes('agents')
-            ->paginate();
+            ->paginate($request->input('per_page', 15));
 
         return PhoneNumberResource::collection($phoneNumbers);
     }
