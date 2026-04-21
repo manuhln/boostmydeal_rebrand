@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { api } from "../lib/api-client"
 import { queryKey } from "../lib/query-keys"
-import type { Notification } from "../lib/types"
+import type { Notification, NotificationApiItem } from "../lib/types"
 
 export const useNotifications = (params?: {
   "filter[read]"?: boolean
@@ -11,15 +11,24 @@ export const useNotifications = (params?: {
   per_page?: number
 }) => {
   return useQuery({
-    queryKey: queryKey.Notifications.all(params?.page || 1),
-    queryFn: () => api.get<{ data: Notification[] }>("/notifications", params),
+    queryKey: queryKey.Notifications.all(params?.page ?? 1),
+    queryFn: () =>
+      api.get<{ data: NotificationApiItem[]; meta?: unknown; links?: unknown }>(
+        "/notifications",
+        params,
+      ),
+    select: (res) => ({
+      ...res,
+      data: res.data.map((item): Notification => ({ id: item.id, ...item.attributes })),
+    }),
   })
 }
 
 export const useNotification = (id: string) => {
   return useQuery({
     queryKey: queryKey.Notifications.detail(id),
-    queryFn: () => api.get<Notification>(`/notifications/${id}`),
+    queryFn: () => api.get<{ data: NotificationApiItem }>(`/notifications/${id}`),
+    select: (res): Notification => ({ id: res.data.id, ...res.data.attributes }),
     enabled: !!id,
   })
 }
@@ -31,7 +40,7 @@ export const useMarkAsRead = () => {
     mutationFn: (notificationId: string) =>
       api.post<{ message: string }>(`/notifications/${notificationId}/mark-read`),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKey.Notifications.all(1) })
+      queryClient.invalidateQueries({ queryKey: ["notifications"] })
     },
   })
 }
@@ -42,7 +51,7 @@ export const useMarkAllAsRead = () => {
   return useMutation({
     mutationFn: () => api.post<{ message: string }>("/notifications/mark-all-read"),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKey.Notifications.all(1) })
+      queryClient.invalidateQueries({ queryKey: ["notifications"] })
     },
   })
 }

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { CreditCard, Download, Receipt, Zap, AlertCircle, Loader2 } from "lucide-react"
+import { CreditCard, Receipt, Zap, AlertCircle, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -15,7 +15,17 @@ import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination"
 import { useCredits, usePaymentHistory, useCreatePaymentIntent } from "@/hooks/use-billing"
+import type { PaymentStatus } from "@/lib/types"
 
 const CREDIT_PACKAGES = [
   { credits: 500, amount: 500, label: "500 credits", price: "$5.00" },
@@ -24,16 +34,47 @@ const CREDIT_PACKAGES = [
   { credits: 10000, amount: 10000, label: "10,000 credits", price: "$100.00" },
 ]
 
+const STATUS_COLORS: Record<PaymentStatus, string> = {
+  completed: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
+  pending: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400",
+  processing: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
+  failed: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
+  cancelled: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400",
+  refunded: "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400",
+}
+
+function formatAmount(amountCents: number, currency: string) {
+  return new Intl.NumberFormat(undefined, {
+    style: "currency",
+    currency: currency.toUpperCase(),
+  }).format(amountCents / 100)
+}
+
+// Build a windowed page list: [1, '…', 4, 5, 6, '…', 20]
+function buildPageWindow(current: number, last: number): Array<number | "ellipsis"> {
+  if (last <= 7) return Array.from({ length: last }, (_, i) => i + 1)
+  const pages: Array<number | "ellipsis"> = [1]
+  const start = Math.max(2, current - 1)
+  const end = Math.min(last - 1, current + 1)
+  if (start > 2) pages.push("ellipsis")
+  for (let p = start; p <= end; p++) pages.push(p)
+  if (end < last - 1) pages.push("ellipsis")
+  pages.push(last)
+  return pages
+}
+
 export default function BillingPage() {
   const [isPurchaseOpen, setIsPurchaseOpen] = useState(false)
   const [selectedPackage, setSelectedPackage] = useState(CREDIT_PACKAGES[1])
   const [customCredits, setCustomCredits] = useState("")
+  const [page, setPage] = useState(1)
 
   const { data: credits, isLoading: creditsLoading } = useCredits()
-  const { data: paymentsData, isLoading: paymentsLoading } = usePaymentHistory()
+  const { data: paymentsData, isLoading: paymentsLoading, isFetching } = usePaymentHistory({ page })
   const createIntent = useCreatePaymentIntent()
 
   const payments = paymentsData?.data ?? []
+  const lastPage = paymentsData?.last_page ?? 1
   const usagePercent = credits
     ? Math.min(100, Math.round((credits.total_used / (credits.total_purchased || 1)) * 100))
     : 0
@@ -45,12 +86,28 @@ export default function BillingPage() {
       { amount, credits_amount, currency: "usd" },
       {
         onSuccess: () => {
+          // Option (a): intent created, dialog closes. Credits are only granted
+          // once Stripe fires `payment_intent.succeeded` on the backend webhook
+          // — so the user isn't actually charged from this UI yet.
+          //
+          // TODO(stripe-checkout): to enable option (b) — a real checkout flow —
+          //   1. Install Stripe SDKs:  npm i @stripe/stripe-js @stripe/react-stripe-js
+          //   2. Add NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY to .env.local.
+          //   3. Wrap this component (or a sub-component) in <Elements stripe={loadStripe(pk)}
+          //      options={{ clientSecret: data.client_secret }}>.
+          //   4. Render <PaymentElement /> inside the dialog and call
+          //      stripe.confirmPayment({ elements, confirmParams: { return_url } }) on submit.
+          //   5. BACKEND: switch PaymentController::createIntent from createSetupIntent()
+          //      to Cashier's $user->pay(amount, options) or Stripe\PaymentIntent::create()
+          //      — SetupIntent only saves a card, it does not charge.
           setIsPurchaseOpen(false)
           setCustomCredits("")
         },
       }
     )
   }
+
+  const pageWindow = buildPageWindow(page, lastPage)
 
   return (
     <div className="flex flex-col gap-6 p-6">
@@ -117,6 +174,7 @@ export default function BillingPage() {
           <CardTitle className="flex items-center gap-2">
             <Receipt className="h-5 w-5" />
             Payment History
+            {isFetching && !paymentsLoading && <Loader2 className="h-4 w-4 animate-spin" />}
           </CardTitle>
           <CardDescription>Your past credit purchases</CardDescription>
         </CardHeader>
@@ -131,39 +189,30 @@ export default function BillingPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>ID</TableHead>
+                  {/* TODO(backend): id column hidden because Payment model's
+                      #[Hidden(['id','created_at','updated_at'])] strips them
+                      from the raw JSON response. Re-enable once backend exposes id. */}
+                  <TableHead>Description</TableHead>
                   <TableHead>Amount</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead className="w-[60px]" />
+                  <TableHead>Paid at</TableHead>
+                  {/* TODO(invoice-pdf): download button hidden — no PDF endpoint yet on backend */}
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {payments.map((payment) => (
-                  <TableRow key={payment.id}>
-                    <TableCell className="font-medium">#{payment.id}</TableCell>
-                    <TableCell>${(payment.amount / 100).toFixed(2)}</TableCell>
+                {payments.map((payment, idx) => (
+                  <TableRow key={payment.id ?? payment.stripe_payment_intent_id ?? `row-${idx}`}>
+                    <TableCell className="font-medium">
+                      {payment.description ?? "Credit purchase"}
+                    </TableCell>
+                    <TableCell>{formatAmount(payment.amount, payment.currency)}</TableCell>
                     <TableCell>
-                      <Badge
-                        variant="secondary"
-                        className={
-                          payment.status === "succeeded"
-                            ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-                            : payment.status === "pending"
-                            ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
-                            : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
-                        }
-                      >
+                      <Badge variant="secondary" className={STATUS_COLORS[payment.status]}>
                         {payment.status}
                       </Badge>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="text-muted-foreground">
                       {payment.paid_at ? new Date(payment.paid_at).toLocaleDateString() : "—"}
-                    </TableCell>
-                    <TableCell>
-                      <Button variant="ghost" size="sm">
-                        <Download className="h-4 w-4" />
-                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -171,6 +220,48 @@ export default function BillingPage() {
             </Table>
           )}
         </CardContent>
+
+        {lastPage > 1 && (
+          <CardFooter className="border-t py-3">
+            <Pagination>
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious
+                    href="#"
+                    aria-disabled={page <= 1}
+                    className={page <= 1 ? "pointer-events-none opacity-50" : ""}
+                    onClick={(e) => { e.preventDefault(); if (page > 1) setPage(page - 1) }}
+                  />
+                </PaginationItem>
+                {pageWindow.map((p, i) =>
+                  p === "ellipsis" ? (
+                    <PaginationItem key={`e-${i}`}>
+                      <PaginationEllipsis />
+                    </PaginationItem>
+                  ) : (
+                    <PaginationItem key={p}>
+                      <PaginationLink
+                        href="#"
+                        isActive={p === page}
+                        onClick={(e) => { e.preventDefault(); setPage(p) }}
+                      >
+                        {p}
+                      </PaginationLink>
+                    </PaginationItem>
+                  ),
+                )}
+                <PaginationItem>
+                  <PaginationNext
+                    href="#"
+                    aria-disabled={page >= lastPage}
+                    className={page >= lastPage ? "pointer-events-none opacity-50" : ""}
+                    onClick={(e) => { e.preventDefault(); if (page < lastPage) setPage(page + 1) }}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          </CardFooter>
+        )}
       </Card>
 
       {/* Purchase Dialog */}

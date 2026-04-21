@@ -1,13 +1,13 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { api } from "../lib/api-client"
 import { queryKey } from "../lib/query-keys"
-import type { LoginResponse, VerifyOtpResponse, SignupResponse } from "../lib/types"
+import type { LoginResponse, VerifyOtpResponse, SignupResponse, me } from "../lib/types"
 
 
 export const useMe = () => {
   return useQuery({
     queryKey: queryKey.auth.me(),
-    queryFn: () => api.get("/me"),
+    queryFn: () => api.get<me>("/me"),
   })
 }
 
@@ -38,6 +38,8 @@ export const useSignup = () => {
     }) => api.post<SignupResponse>("/tenants/register", data)
   })
 }
+
+
 export const useSendOtp = () => {
   return useMutation({
     mutationFn: (email: string) =>

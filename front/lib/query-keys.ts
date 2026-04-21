@@ -94,7 +94,8 @@ export const queryKey = {
 
   Billing: {
     credits: () => ["billing", "credits"] as const,
-    payments: () => ["billing", "payments"] as const,
+    payments: (page = 1, status?: string) =>
+      ["billing", "payments", page, status ?? "all"] as const,
     payment: (id: string) => ["billing", "payments", id] as const,
   },
 

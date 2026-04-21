@@ -8,15 +8,18 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Bell, CheckCircle2, AlertCircle, Info, Clock, Check } from "lucide-react"
 import { useNotifications, useMarkAsRead, useMarkAllAsRead } from "@/hooks/use-notification"
 
-const typeIcon = (type: string) => {
-  if (type.includes("fail") || type.includes("error")) return AlertCircle
-  if (type.includes("complet") || type.includes("success")) return CheckCircle2
+const typeIcon = (type: string | null) => {
+  const t = type ?? ""
+  if (t.includes("fail") || t.includes("error")) return AlertCircle
+  if (t.includes("complet") || t.includes("success")) return CheckCircle2
   return Info
 }
 
-const typeStyle = (type: string) => {
-  if (type.includes("fail") || type.includes("error")) return "bg-red-500/10 text-red-600"
-  if (type.includes("complet") || type.includes("success")) return "bg-green-500/10 text-green-600"
+
+const typeStyle = (type: string | null) => {
+  const t = type ?? ""
+  if (t.includes("fail") || t.includes("error")) return "bg-red-500/10 text-red-600"
+  if (t.includes("complet") || t.includes("success")) return "bg-green-500/10 text-green-600"
   return "bg-blue-500/10 text-blue-600"
 }
 
@@ -60,13 +63,14 @@ export default function NotificationsPage() {
         )}
       </div>
 
+
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {[
           { label: "Total", value: notifications.length, icon: Bell, color: "bg-primary/10 text-primary" },
           { label: "Unread", value: unreadCount, icon: Clock, color: "bg-blue-500/10 text-blue-500" },
-          { label: "Success", value: notifications.filter((n) => n.notification_type.includes("complet")).length, icon: CheckCircle2, color: "bg-green-500/10 text-green-500" },
-          { label: "Alerts", value: notifications.filter((n) => n.notification_type.includes("fail") || n.notification_type.includes("error")).length, icon: AlertCircle, color: "bg-red-500/10 text-red-500" },
+          { label: "Success", value: notifications.filter((n) => (n.notification_type ?? "").includes("complet")).length, icon: CheckCircle2, color: "bg-green-500/10 text-green-500" },
+          { label: "Alerts", value: notifications.filter((n) => (n.notification_type ?? "").includes("fail") || (n.notification_type ?? "").includes("error")).length, icon: AlertCircle, color: "bg-red-500/10 text-red-500" },
         ].map(({ label, value, icon: Icon, color }) => (
           <Card key={label}>
             <CardContent className="p-4">
@@ -114,6 +118,7 @@ export default function NotificationsPage() {
               {filtered.map((notification) => {
                 const isRead = notification.read_at !== null
                 const Icon = typeIcon(notification.notification_type)
+                const heading = notification.title ?? (notification.notification_type ?? "notification").replace(/_/g, " ")
                 return (
                   <div
                     key={notification.id}
@@ -126,20 +131,20 @@ export default function NotificationsPage() {
                       <div className="flex items-start justify-between gap-2">
                         <div>
                           <h4 className={`font-medium capitalize ${!isRead ? "text-foreground" : "text-muted-foreground"}`}>
-                            {notification.notification_type.replace(/_/g, " ")}
+                            {heading}
                           </h4>
-                          {notification.data?.message && (
+                          {notification.body && (
                             <p className="text-sm text-muted-foreground mt-0.5">
-                              {String(notification.data.message)}
+                              {notification.body}
                             </p>
                           )}
                         </div>
                         {!isRead && <div className="w-2 h-2 rounded-full bg-primary shrink-0 mt-2" />}
                       </div>
                       <div className="flex items-center gap-4 mt-2">
-                        {notification.data?.created_at && (
+                        {notification.created_at && (
                           <span className="text-xs text-muted-foreground">
-                            {formatTime(String(notification.data.created_at))}
+                            {formatTime(notification.created_at)}
                           </span>
                         )}
                         {!isRead && (
@@ -148,7 +153,7 @@ export default function NotificationsPage() {
                             size="sm"
                             className="h-7 text-xs"
                             disabled={markAsRead.isPending}
-                            onClick={() => markAsRead.mutate(String(notification.id))}
+                            onClick={() => markAsRead.mutate(notification.id)}
                           >
                             Mark as read
                           </Button>

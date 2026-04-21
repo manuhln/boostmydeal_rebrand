@@ -228,19 +228,19 @@ export function AgentForm({ agent, onSubmit, onCancel, isLoading }: AgentFormPro
       <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
         <div className="border-b px-6">
           <TabsList className="h-12 w-full justify-start gap-4 bg-transparent p-0">
-            <TabsTrigger value="basics" className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-1 pb-3">
+            <TabsTrigger value="basics" className="data-[state=active]:border-b-2 data-[state=active]:border-b-primary rounded-none px-1 pb-3">
               Basics
             </TabsTrigger>
-            <TabsTrigger value="persona" className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-1 pb-3">
+            <TabsTrigger value="persona" className="data-[state=active]:border-b-2 data-[state=active]:border-b-primary rounded-none px-1 pb-3">
               Persona
             </TabsTrigger>
-            <TabsTrigger value="media" className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-1 pb-3">
+            <TabsTrigger value="media" className="data-[state=active]:border-b-2 data-[state=active]:border-b-primary rounded-none px-1 pb-3">
               Media & Knowledge
             </TabsTrigger>
-            <TabsTrigger value="settings" className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-1 pb-3">
+            <TabsTrigger value="settings" className="data-[state=active]:border-b-2 data-[state=active]:border-b-primary rounded-none px-1 pb-3">
               Settings
             </TabsTrigger>
-            <TabsTrigger value="analysis" className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-1 pb-3">
+            <TabsTrigger value="analysis" className="data-[state=active]:border-b-2 data-[state=active]:border-b-primary rounded-none px-1 pb-3">
               Post Call Analysis
             </TabsTrigger>
           </TabsList>
@@ -287,6 +287,7 @@ export function AgentForm({ agent, onSubmit, onCancel, isLoading }: AgentFormPro
                     </SelectContent>
                   </Select>
                 </div>
+
 
                 <div className="grid gap-2">
                   <Label>AI Provider</Label>
@@ -371,8 +372,8 @@ export function AgentForm({ agent, onSubmit, onCancel, isLoading }: AgentFormPro
                     <label
                       key={workflow.id}
                       className={`flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 transition-colors ${formData.workflowIds.includes(workflow.id)
-                          ? "border-primary bg-primary/5"
-                          : "hover:bg-muted"
+                        ? "border-b-primary bg-primary/5"
+                        : "hover:bg-muted"
                         }`}
                     >
                       <Checkbox
@@ -594,8 +595,8 @@ export function AgentForm({ agent, onSubmit, onCancel, isLoading }: AgentFormPro
                           type="button"
                           onClick={() => updateField("voice", voice.id)}
                           className={`flex items-center justify-between rounded-lg border p-3 transition-colors ${formData.voice === voice.id
-                              ? "border-primary bg-primary/5"
-                              : "hover:bg-muted"
+                            ? "border-b-primary bg-primary/5"
+                            : "hover:bg-muted"
                             }`}
                         >
                           <div className="text-left">
@@ -668,8 +669,8 @@ export function AgentForm({ agent, onSubmit, onCancel, isLoading }: AgentFormPro
                   <label
                     key={kb.id}
                     className={`flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 transition-colors ${formData.knowledgeBase.includes(kb.id)
-                        ? "border-primary bg-primary/5"
-                        : "hover:bg-muted"
+                      ? "border-b-primary bg-primary/5"
+                      : "hover:bg-muted"
                       }`}
                   >
                     <Checkbox
@@ -913,8 +914,8 @@ export function AgentForm({ agent, onSubmit, onCancel, isLoading }: AgentFormPro
                   <label
                     key={tag}
                     className={`flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 transition-colors ${formData.systemTags.includes(tag)
-                        ? "border-primary bg-primary/5"
-                        : "hover:bg-muted"
+                      ? "border-b-primary bg-primary/5"
+                      : "hover:bg-muted"
                       }`}
                   >
                     <Checkbox

@@ -58,6 +58,8 @@ export interface SignupResponse {
 export interface User {
   id: string
   email: string
+  first_name?: string;
+  last_name?: string;
   name: string
   avatar?: string
   role: "owner" | "admin" | "user"
@@ -65,6 +67,20 @@ export interface User {
   preferences: UserPreferences
   createdAt: string
   updatedAt: string
+}
+
+export interface me {
+  Tenant: {
+    id: string,
+    name: string,
+  }
+  user: {
+    data: {
+      id: string;
+      type: "users";
+      attributes: Partial<User>;
+    }
+  }
 }
 
 
@@ -726,38 +742,90 @@ export interface KnowledgeBasePayload {
 // Team Types
 // ============================================
 
+export type TeamRole = "Owner" | "Admin" | "Member"
+
+export interface RoleIncluded {
+  id: string
+  type: "roles"
+  attributes: { name: TeamRole }
+}
+
+export interface UserApiItem {
+  id: string
+  type: string
+  attributes: {
+    first_name: string | null
+    last_name: string | null
+    email: string
+    created_at: string
+    updated_at: string
+  }
+  relationships?: {
+    roles?: { data: Array<{ id: string; type: string }> }
+  }
+}
+
 export interface TeamMember {
   id: string
-  userId: string
-  organizationId: string
+  first_name: string | null
+  last_name: string | null
   email: string
-  name: string
-  avatar?: string
-  role: "owner" | "admin" | "user"
-  status: "active" | "pending"
-  invitedAt?: string
-  joinedAt?: string
+  role: TeamRole | null
+  created_at: string
+  updated_at: string
+}
+
+export interface TenantInvitationApiItem {
+  id: string
+  type: string
+  attributes: {
+    email: string
+    name: string | null
+    role: TeamRole
+    expires_at: string
+    accepted_at: string | null
+    created_at: string
+  }
+  relationships?: {
+    invitedBy?: { data: { id: string; type: string } | null }
+  }
 }
 
 export interface TeamInvitation {
   id: string
   email: string
-  role: "admin" | "user"
-  status: "pending" | "accepted" | "expired"
-  invitedBy: string
-  createdAt: string
-  expiresAt: string
+  name: string | null
+  role: TeamRole
+  expires_at: string
+  accepted_at: string | null
+  created_at: string
 }
 
 // ============================================
 // Notification Types
 // ============================================
 
+export interface NotificationApiItem {
+  id: string
+  type: string
+  attributes: {
+    title: string | null
+    body: string | null
+    notification_type: string | null
+    read_at: string | null
+    created_at: string
+    updated_at: string
+  }
+}
+
 export interface Notification {
-  id: number
-  notification_type: string
-  data: Record<string, unknown>
+  id: string
+  title: string | null
+  body: string | null
+  notification_type: string | null
   read_at: string | null
+  created_at: string
+  updated_at: string
 }
 
 // ============================================
@@ -770,13 +838,48 @@ export interface Credits {
   total_used: number
 }
 
+export type PaymentStatus =
+  | "pending"
+  | "processing"
+  | "completed"
+  | "failed"
+  | "cancelled"
+  | "refunded"
+
 export interface Payment {
-  id: number
+  // TODO(backend): Payment model has #[Hidden(['id','created_at','updated_at'])]
+  // which strips these from the raw JSON response. Remove them from Hidden or
+  // expose via a PaymentResource so the front can show them. Until then `id`
+  // and `created_at` are undefined here.
+  id?: string
+  invoice_id: string | null
+  stripe_payment_intent_id: string | null
+  stripe_charge_id: string | null
+  status: PaymentStatus
   amount: number
-  status: string
+  currency: string
+  description: string | null
+  metadata: Record<string, unknown> | null
+  failure_reason: string | null
   paid_at: string | null
-  user?: Record<string, unknown>
-  invoice?: Record<string, unknown>
+  refunded_at: string | null
+  created_at?: string
+}
+
+export interface LaravelPaginator<T> {
+  data: T[]
+  current_page: number
+  last_page: number
+  per_page: number
+  total: number
+  from: number | null
+  to: number | null
+  first_page_url: string | null
+  last_page_url: string | null
+  next_page_url: string | null
+  prev_page_url: string | null
+  path: string
+  links: Array<{ url: string | null; label: string; active: boolean }>
 }
 
 export interface PaymentIntent {

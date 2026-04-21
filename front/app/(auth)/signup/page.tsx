@@ -80,9 +80,9 @@ export default function SignupPage() {
       },
       {
         onSuccess: (data) => {
-          sendOtp.mutate(data.email, {
+          sendOtp.mutate(values.email, {
             onSuccess: () => {
-              sessionStorage.setItem("auth_email", data.email)
+              sessionStorage.setItem("auth_email", values.email)
               router.push("/verify-otp")
             },
           })

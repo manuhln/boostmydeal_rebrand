@@ -1,6 +1,5 @@
 "use client"
 
-import { AuthGuard } from "@/components/AuthGuard";
 import { Sidebar } from "@/components/dashboard/sidebar"
 import { api } from "@/lib/api-client";
 import { useEffect } from "react"
@@ -21,9 +20,9 @@ export default function DashboardLayout({
       <Sidebar />
       <main className="lg:ml-64 min-h-screen">
         <div className="container mx-auto p-6 lg:p-8">
-          <AuthGuard>
-            {children}
-          </AuthGuard>
+
+          {children}
+
         </div>
       </main>
     </div>

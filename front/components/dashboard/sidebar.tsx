@@ -6,7 +6,6 @@ import {
   Phone,
   PhoneCall,
   GitBranch,
-  BarChart3,
   Users,
   Plug,
   BookOpen,
@@ -21,11 +20,14 @@ import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { LogoIcon } from "@/components/ui/logo"
+import { useMe } from "@/hooks/use-auth"
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar"
+import { Skeleton } from "../ui/skeleton"
 
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
   { icon: Bot, label: "AI Agents", href: "/agents" },
-  { icon: Phone, label: "Call Logs", badge: "24", href: "/calls" },
+  { icon: Phone, label: "Call Logs", href: "/calls" },
   { icon: PhoneCall, label: "Phone Numbers", href: "/phone-numbers" },
   { icon: GitBranch, label: "Workflows", href: "/workflows" },
   { icon: BookOpen, label: "Knowledge Base", href: "/knowledge" },
@@ -34,6 +36,11 @@ const menuItems = [
 
 const teamItems = [
   { icon: Users, label: "Team", href: "/team" },
+  // TODO(sidebar-unread-badge): badge "5" is hardcoded. To wire the real unread
+  // count: call `useNotifications({ "filter[read]": false })` from this component
+  // (needs to become a client subtree) and use `data?.data.length` — or, better,
+  // ask the backend to add GET /api/v1/notifications/unread-count and use
+  // queryKey.Notifications.unreadCount() which already exists in query-keys.ts.
   { icon: Bell, label: "Notifications", badge: "5", href: "/notifications" },
 ]
 
@@ -47,6 +54,15 @@ const generalItems = [
 export function Sidebar() {
   const [hoveredItem, setHoveredItem] = useState<string | null>(null)
   const pathname = usePathname()
+  const { data: me, isLoading } = useMe()
+  const user = me?.user?.data.attributes
+
+
+  function getInitials(firstName?: string, lastName?: string): string {
+    const first = firstName?.trim()[0] ?? "";
+    const last = lastName?.trim()[0] ?? "";
+    return (first + last).toUpperCase() || "?";
+  }
 
   const renderNavItem = (item: typeof menuItems[0]) => {
     const isActive = pathname === item.href || pathname.startsWith(item.href + "/")
@@ -66,7 +82,7 @@ export function Sidebar() {
       >
         <item.icon className="w-4 h-4" />
         <span className="text-sm">{item.label}</span>
-        {"badge" in item && item.badge && (
+        {/* {"badge" in item && item.badge && (
           <span className={cn(
             "ml-auto text-[10px] font-semibold px-1.5 py-0.5 rounded-full",
             isActive
@@ -75,22 +91,22 @@ export function Sidebar() {
           )}>
             {item.badge}
           </span>
-        )}
+        )} */}
       </Link>
     )
   }
 
   return (
-    <aside className="fixed top-0 left-0 w-64 bg-card border-r border-border p-4 h-screen overflow-y-auto lg:block custom-scrollbar">
-      {/* Logo */}
-      <div className="flex items-center gap-2 mb-6 group cursor-pointer">
+    <aside className=" sideBar fixed top-0 left-0 w-64 bg-card border-r border-border p-4 h-screen overflow-y-auto  lg:block custom-scrollbar">
+      <div className="flex items-center justify-start mb-6 group cursor-pointer">
         <Link href="/dashboard" className="flex items-center gap-2">
-          <LogoIcon size="lg" />
-          <span className="text-lg font-semibold text-foreground">BoostMyDeal</span>
+          <LogoIcon size="xl" />
+          <span className="text-2xl font-semibold text-foreground">
+            <span className="text-primary">B</span>oostMyDeal
+          </span>
         </Link>
       </div>
-
-      <div className="space-y-6">
+      <div className="space-y-6 pb-20">
         {/* Main Menu */}
         <div>
           <p className="text-[10px] font-medium text-muted-foreground mb-2 uppercase tracking-wider">
@@ -122,17 +138,32 @@ export function Sidebar() {
         </div>
       </div>
 
-      {/* User Profile */}
-      <div className="absolute bottom-4 left-4 right-4">
-        <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
-          <div className="w-9 h-9 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-semibold">
-            JD
+      <div className="fixed bottom-0  backdrop-blur-xs backdrop-grayscale  pb-4 ">
+        {/* User Profile */}
+        {isLoading ? (
+          <>
+            <Skeleton className="w-9 h-9 rounded-full" />
+            <div className="flex-1 min-w-0 space-y-2">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-3 w-32" />
+            </div>
+          </>
+        ) : (
+          <div className="flex space-x-2">
+            <Avatar className="w-9 h-9">
+              <AvatarImage src={user?.avatar} alt={user?.first_name} />
+              <AvatarFallback className="bg-primary text-primary-foreground font-semibold">
+                {getInitials(user?.first_name, user?.last_name)}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium truncate">
+                {user?.first_name} {user?.last_name}
+              </p>
+              <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
+            </div>
           </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium truncate">John Doe</p>
-            <p className="text-xs text-muted-foreground truncate">john@company.com</p>
-          </div>
-        </div>
+        )}
       </div>
     </aside>
   )

@@ -57,19 +57,23 @@ export function TranscriptOverlay({ isOpen, onClose, callId, contactName, status
   const [recordingUrl, setRecordingUrl] = useState<string | null>(null)
   const [isLoadingRecording, setIsLoadingRecording] = useState(false)
 
+
   useEffect(() => {
-    if (!isOpen || !callId) return
+    if (!isOpen || !callId) {
+      setTranscript([])
+      setIsLoading(false)
+      return
+    }
 
     let active = true
-    let intervalId: ReturnType<typeof setInterval> | undefined
+    setIsLoading(true)
 
     const loadTranscript = async () => {
-      setIsLoading(true)
       try {
         const response = await api.get<TranscriptResponse>(`/calls/${callId}/transcript`)
         if (!active) return
         setTranscript(
-          (response.segments ?? []).map((segment) => ({
+          (response?.segments ?? []).map((segment) => ({
             speaker: segment.speaker,
             text: segment.content,
             timestamp: formatTimestamp(segment.timestamp_ms),
@@ -77,29 +81,19 @@ export function TranscriptOverlay({ isOpen, onClose, callId, contactName, status
           }))
         )
       } catch (error) {
-        if (active) {
-          setTranscript([])
-        }
+        console.error('Failed to load transcript', error)
+        if (active) setTranscript([])
       } finally {
-        if (active) {
-          setIsLoading(false)
-        }
+        if (active) setIsLoading(false)
       }
     }
 
     void loadTranscript()
 
-    if (status === "in_progress") {
-      intervalId = setInterval(() => {
-        void loadTranscript()
-      }, 1500)
-    }
-
     return () => {
       active = false
-      if (intervalId) clearInterval(intervalId)
     }
-  }, [isOpen, callId, status])
+  }, [isOpen, callId])
 
   const getStatusColor = (status: string) => {
     switch (status) {
